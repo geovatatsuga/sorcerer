@@ -1,0 +1,151 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: hsl(220, 25%, 8%);
+  --foreground: hsl(45, 20%, 90%);
+  --card: hsl(220, 25%, 12%);
+  --card-foreground: hsl(45, 15%, 85%);
+  --popover: hsl(220, 25%, 12%);
+  --popover-foreground: hsl(45, 15%, 85%);
+  --primary: hsl(45, 90%, 65%);
+  --primary-foreground: hsl(220, 25%, 8%);
+  --secondary: hsl(260, 50%, 25%);
+  --secondary-foreground: hsl(45, 20%, 90%);
+  --muted: hsl(220, 20%, 15%);
+  --muted-foreground: hsl(45, 10%, 70%);
+  --accent: hsl(30, 40%, 45%);
+  --accent-foreground: hsl(45, 20%, 90%);
+  --destructive: hsl(0, 65%, 50%);
+  --destructive-foreground: hsl(45, 20%, 90%);
+  --border: hsl(220, 15%, 20%);
+  --input: hsl(220, 15%, 20%);
+  --ring: hsl(45, 90%, 65%);
+  --chart-1: hsl(45, 90%, 65%);
+  --chart-2: hsl(159.7826, 100%, 36.0784%);
+  --chart-3: hsl(42.0290, 92.8251%, 56.2745%);
+  --chart-4: hsl(147.1429, 78.5047%, 41.9608%);
+  --chart-5: hsl(341.4894, 75.2000%, 50.9804%);
+  --sidebar: hsl(220, 25%, 12%);
+  --sidebar-foreground: hsl(45, 15%, 85%);
+  --sidebar-primary: hsl(45, 90%, 65%);
+  --sidebar-primary-foreground: hsl(220, 25%, 8%);
+  --sidebar-accent: hsl(30, 40%, 45%);
+  --sidebar-accent-foreground: hsl(45, 20%, 90%);
+  --sidebar-border: hsl(220, 15%, 20%);
+  --sidebar-ring: hsl(45, 90%, 65%);
+  --font-display: 'Cinzel', serif;
+  --font-body: 'Crimson Text', serif;
+  --font-sans: 'Crimson Text', serif;
+  --font-serif: 'Crimson Text', serif;
+  --font-mono: 'Fira Code', monospace;
+  --radius: 0.75rem;
+}
+
+.dark {
+  --background: hsl(220, 25%, 8%);
+  --foreground: hsl(45, 20%, 90%);
+  --card: hsl(220, 25%, 12%);
+  --card-foreground: hsl(45, 15%, 85%);
+  --popover: hsl(220, 25%, 12%);
+  --popover-foreground: hsl(45, 15%, 85%);
+  --primary: hsl(45, 90%, 65%);
+  --primary-foreground: hsl(220, 25%, 8%);
+  --secondary: hsl(260, 50%, 25%);
+  --secondary-foreground: hsl(45, 20%, 90%);
+  --muted: hsl(220, 20%, 15%);
+  --muted-foreground: hsl(45, 10%, 70%);
+  --accent: hsl(30, 40%, 45%);
+  --accent-foreground: hsl(45, 20%, 90%);
+  --destructive: hsl(0, 65%, 50%);
+  --destructive-foreground: hsl(45, 20%, 90%);
+  --border: hsl(220, 15%, 20%);
+  --input: hsl(220, 15%, 20%);
+  --ring: hsl(45, 90%, 65%);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-body antialiased bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  .font-display {
+    font-family: var(--font-display);
+  }
+  
+  .font-body {
+    font-family: var(--font-body);
+  }
+  
+  .magical-gradient {
+    background: linear-gradient(135deg, hsl(260, 50%, 25%) 0%, hsl(220, 25%, 8%) 50%, hsl(30, 40%, 15%) 100%);
+  }
+  
+  .text-shadow-gold {
+    text-shadow: 0 0 10px hsl(45, 90%, 65%, 0.5);
+  }
+  
+  .ornate-border {
+    border-image: linear-gradient(45deg, hsl(45, 90%, 65%), hsl(30, 40%, 45%), hsl(45, 90%, 65%)) 1;
+    border-style: solid;
+    border-width: 2px;
+  }
+  
+  .hover-glow {
+    transition: all 0.3s ease;
+  }
+  
+  .hover-glow:hover {
+    box-shadow: 0 0 20px hsl(45, 90%, 65%, 0.3);
+    transform: translateY(-2px);
+  }
+  
+  .scroll-indicator {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: linear-gradient(to right, hsl(45, 90%, 65%), hsl(30, 40%, 45%));
+    transform-origin: left;
+    transform: scaleX(0);
+    z-index: 1000;
+  }
+  
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+  }
+  
+  .floating {
+    animation: float 6s ease-in-out infinite;
+  }
+  
+  .chapter-card {
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .chapter-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, hsl(45, 90%, 65%, 0.1), transparent);
+    transition: left 0.5s;
+  }
+  
+  .chapter-card:hover::before {
+    left: 100%;
+  }
+}
