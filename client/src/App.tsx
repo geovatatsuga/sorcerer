@@ -13,6 +13,9 @@ import World from "@/pages/world";
 import Codex from "@/pages/codex";
 import Blog from "@/pages/blog";
 import Admin from "@/pages/admin";
+import CharacterPage from "@/pages/character";
+import CodexEntryPage from "@/pages/codex-entry";
+import LocationPage from "@/pages/location";
 import NotFound from "@/pages/not-found";
 
 function ScrollIndicator() {
@@ -39,8 +42,11 @@ function Router() {
       <Route path="/chapters" component={Chapters} />
       <Route path="/chapters/:slug" component={ChapterReader} />
       <Route path="/characters" component={Characters} />
+  <Route path="/characters/:id" component={CharacterPage} />
       <Route path="/world" component={World} />
+  <Route path="/world/:id" component={LocationPage} />
       <Route path="/codex" component={Codex} />
+  <Route path="/codex/:id" component={CodexEntryPage} />
       <Route path="/blog" component={Blog} />
       <Route path="/admin" component={Admin} />
       <Route component={NotFound} />

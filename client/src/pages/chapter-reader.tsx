@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ChevronLeft, ChevronRight, Bookmark, Settings } from "lucide-react";
 import { useReadingProgress } from "@/hooks/use-reading-progress";
+import { useLanguage } from '@/contexts/LanguageContext';
 import type { Chapter } from "@shared/schema";
 
 export default function ChapterReader() {
@@ -63,6 +64,16 @@ export default function ChapterReader() {
   const previousChapter = currentIndex > 0 ? allChapters[currentIndex - 1] : null;
   const nextChapter = currentIndex < allChapters.length - 1 ? allChapters[currentIndex + 1] : null;
 
+  const { language, t } = useLanguage();
+
+  const localized = (item: any, field: string) => {
+    try {
+      return (item?.[`${field}I18n`]?.[language] as string) || item?.[field] || '';
+    } catch (e) {
+      return item?.[field] || '';
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <Navigation />
@@ -73,10 +84,10 @@ export default function ChapterReader() {
             <div className="flex items-center justify-between p-6 border-b border-border">
               <div>
                 <h1 className="font-display text-2xl font-semibold text-card-foreground" data-testid="text-chapter-title">
-                  Chapter {chapter.chapterNumber}: {chapter.title}
+                  {`${t.title} ${chapter.chapterNumber}: ${localized(chapter, 'title')}`}
                 </h1>
                 <p className="text-muted-foreground text-sm" data-testid="text-chapter-meta">
-                  Published {new Date(chapter.publishedAt).toLocaleDateString()} • {chapter.readingTime} min read
+                  {t.published} {new Date(chapter.publishedAt).toLocaleDateString()} • {chapter.readingTime} {t.minRead}
                 </p>
               </div>
               <div className="flex items-center space-x-4">
@@ -86,7 +97,7 @@ export default function ChapterReader() {
                       variant="ghost" 
                       size="icon"
                       className="text-muted-foreground hover:text-primary transition-colors"
-                      title="Previous Chapter"
+                      title={t.previous}
                       data-testid="button-previous-chapter"
                     >
                       <ChevronLeft className="h-5 w-5" />
@@ -117,7 +128,7 @@ export default function ChapterReader() {
                       variant="ghost" 
                       size="icon"
                       className="text-muted-foreground hover:text-primary transition-colors"
-                      title="Next Chapter"
+                      title={t.next}
                       data-testid="button-next-chapter"
                     >
                       <ChevronRight className="h-5 w-5" />
@@ -129,7 +140,7 @@ export default function ChapterReader() {
             
             <CardContent className="p-8">
               <div className="prose prose-lg max-w-none" data-testid="content-chapter-text">
-                {chapter.content.split('\n\n').map((paragraph, index) => (
+                { (localized(chapter, 'content') || chapter.content).split('\n\n').map((paragraph: string, index: number) => (
                   <p key={index} className="text-card-foreground leading-relaxed mb-6 text-lg">
                     {paragraph}
                   </p>
@@ -144,7 +155,7 @@ export default function ChapterReader() {
                   <Link href={`/chapters/${previousChapter.slug}`}>
                     <Button variant="outline" className="flex items-center gap-2" data-testid="button-previous-nav">
                       <ChevronLeft className="h-4 w-4" />
-                      Previous: {previousChapter.title}
+                      {t.previous}: {(previousChapter.titleI18n as any)?.[language] ?? previousChapter.title}
                     </Button>
                   </Link>
                 ) : (
@@ -154,7 +165,7 @@ export default function ChapterReader() {
                 {nextChapter ? (
                   <Link href={`/chapters/${nextChapter.slug}`}>
                     <Button className="flex items-center gap-2" data-testid="button-next-nav">
-                      Next: {nextChapter.title}
+                      {t.next}: {(nextChapter.titleI18n as any)?.[language] ?? nextChapter.title}
                       <ChevronRight className="h-4 w-4" />
                     </Button>
                   </Link>

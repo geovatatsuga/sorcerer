@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Link } from "wouter";
 import type { Location } from "@shared/schema";
 
 interface WorldMapProps {
@@ -34,20 +35,15 @@ export default function WorldMap({ locations }: WorldMapProps) {
         
         <div className="absolute inset-0">
           {locations.map((location) => (
-            <Button
-              key={location.id}
-              variant="ghost"
-              className={`absolute w-4 h-4 ${getLocationColor(location.type)} rounded-full animate-pulse hover:scale-150 transition-transform p-0`}
-              style={{
-                top: `${location.mapY}%`,
-                left: `${location.mapX}%`,
-                transform: 'translate(-50%, -50%)'
-              }}
-              onClick={() => setSelectedLocation(location)}
-              data-testid={`button-location-${location.id}`}
-            >
-              <span className="sr-only">{location.name}</span>
-            </Button>
+            <Link key={location.id} href={`/world/${location.id}`} className="absolute" style={{ top: `${location.mapY}%`, left: `${location.mapX}%`, transform: 'translate(-50%, -50%)' }}>
+              <Button
+                variant="ghost"
+                className={`w-4 h-4 ${getLocationColor(location.type)} rounded-full animate-pulse hover:scale-150 transition-transform p-0`}
+                data-testid={`button-location-${location.id}`}
+              >
+                <span className="sr-only">{location.name}</span>
+              </Button>
+            </Link>
           ))}
         </div>
 

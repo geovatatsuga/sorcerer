@@ -8,12 +8,11 @@ import memoize from "memoizee";
 import connectPg from "connect-pg-simple";
 import { storage } from "./storage";
 
-if (!process.env.REPLIT_DOMAINS) {
-  throw new Error("Environment variable REPLIT_DOMAINS not provided");
-}
+const hasReplitConfig = Boolean(process.env.REPLIT_DOMAINS && process.env.REPL_ID);
 
 const getOidcConfig = memoize(
   async () => {
+    if (!hasReplitConfig) return null as any;
     return await client.discovery(
       new URL(process.env.ISSUER_URL ?? "https://replit.com/oidc"),
       process.env.REPL_ID!
@@ -25,20 +24,32 @@ const getOidcConfig = memoize(
 export function getSession() {
   const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
   const pgStore = connectPg(session);
-  const sessionStore = new pgStore({
-    conString: process.env.DATABASE_URL,
-    createTableIfMissing: false,
-    ttl: sessionTtl,
-    tableName: "sessions",
-  });
+  // In development prefer in-memory session store to avoid hard dependency
+  // on a running Postgres instance. Use PG-backed store only in production.
+  let store: any = undefined;
+  const conString = process.env.DATABASE_URL || undefined;
+  if (process.env.NODE_ENV === 'production' && conString) {
+    try {
+      store = new pgStore({
+        conString,
+        createTableIfMissing: false,
+        ttl: sessionTtl,
+        tableName: 'sessions',
+      });
+    } catch (error) {
+      console.warn('Failed to initialize PG session store, falling back to memory store:', error);
+      store = undefined;
+    }
+  }
+
   return session({
-    secret: process.env.SESSION_SECRET!,
-    store: sessionStore,
+    secret: process.env.SESSION_SECRET || "dev_secret_change_me",
+    store,
     resave: false,
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: true,
+      secure: false,
       maxAge: sessionTtl,
     },
   });
@@ -72,6 +83,106 @@ export async function setupAuth(app: Express) {
   app.use(passport.initialize());
   app.use(passport.session());
 
+  if (!hasReplitConfig) {
+    // No Replit OIDC config provided — provide a simple local login form and handlers for dev.
+  app.get('/api/login', (_req, res) => {
+      // Simple HTML login form that posts to /api/login
+      res.send(`
+        <html>
+          <head><title>Local Login</title></head>
+          <body style="font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;background:#f7fafc;">
+            <form method="POST" action="/api/login" style="background:white;padding:24px;border-radius:8px;max-width:360px;width:100%;box-shadow:0 4px 12px rgba(0,0,0,0.08);">
+              <h2 style="margin:0 0 12px;">Login (dev)</h2>
+              <label style="display:block;margin-bottom:8px;">
+                <div style="font-size:12px;color:#666;margin-bottom:4px;">Usuário</div>
+                <input name="username" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:4px;" />
+              </label>
+              <label style="display:block;margin-bottom:12px;">
+                <div style="font-size:12px;color:#666;margin-bottom:4px;">Senha (qualquer)</div>
+                <input name="password" type="password" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:4px;" />
+              </label>
+              <div style="display:flex;gap:8px;justify-content:flex-end;">
+                <a href="/" style="padding:8px 12px;border-radius:4px;text-decoration:none;color:#374151;border:1px solid transparent;">Cancelar</a>
+                <button type="submit" style="background:#6366f1;color:white;border:none;padding:8px 12px;border-radius:4px;">Entrar</button>
+              </div>
+            </form>
+          </body>
+        </html>
+      `);
+    });
+
+    app.post('/api/login', async (req: any, res) => {
+      try {
+        const { username, email, password } = req.body;
+
+        // Accept either username or email+password flow
+        if (username) {
+          // legacy username flow: create admin user with that id
+          try {
+            await storage.upsertUser({
+              id: username,
+              email: `${username}@local`,
+              firstName: username,
+              lastName: '',
+              profileImageUrl: '',
+              isAdmin: true,
+            } as any);
+          } catch (err) {
+            console.warn('Could not upsert user to DB (continuing with session only):', err);
+          }
+          req.session.user = { id: username, email: `${username}@local`, isAdmin: true };
+          return res.redirect('/admin');
+        }
+
+        if (!email || !password) {
+          res.status(400).json({ message: 'email and password required' });
+          return;
+        }
+
+        // Validate against dev-admins.json
+        const devAdmins = JSON.parse(
+          await import('fs').then((m) => m.promises.readFile(new URL('./dev-admins.json', import.meta.url), 'utf-8'))
+        );
+        const match = (devAdmins as any[]).find((a) => a.email === email && a.password === password);
+        if (!match) {
+          res.status(401).json({ message: 'Invalid credentials' });
+          return;
+        }
+
+        // Upsert real user record and mark admin flag according to dev-admins.json
+        const userId = email;
+        try {
+          await storage.upsertUser({
+            id: userId,
+            email,
+            firstName: email.split('@')[0],
+            lastName: '',
+            profileImageUrl: '',
+            isAdmin: !!match.isAdmin,
+          } as any);
+        } catch (err) {
+          console.warn('Could not upsert dev admin to DB (continuing with session only):', err);
+        }
+
+        // Always store session user so auth works even without DB
+        req.session.user = { id: userId, email, isAdmin: !!match.isAdmin };
+        return res.redirect('/admin');
+      } catch (error) {
+        console.error('Local login error:', error);
+        res.status(500).json({ message: 'Local login failed' });
+      }
+    });
+
+    app.get('/api/logout', (req: any, res) => {
+      if (req.session) {
+        req.session.destroy?.(() => {});
+      }
+      res.redirect('/');
+    });
+
+    return;
+  }
+
   const config = await getOidcConfig();
 
   const verify: VerifyFunction = async (
@@ -84,8 +195,7 @@ export async function setupAuth(app: Express) {
     verified(null, user);
   };
 
-  for (const domain of process.env
-    .REPLIT_DOMAINS!.split(",")) {
+  for (const domain of process.env.REPLIT_DOMAINS!.split(",")) {
     const strategy = new Strategy(
       {
         name: `replitauth:${domain}`,
@@ -128,6 +238,9 @@ export async function setupAuth(app: Express) {
 }
 
 export const isAuthenticated: RequestHandler = async (req, res, next) => {
+  // If OIDC not configured, allow all requests in local dev to simplify testing
+  if (!hasReplitConfig) return next();
+
   const user = req.user as any;
 
   if (!req.isAuthenticated() || !user.expires_at) {
@@ -157,6 +270,9 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
 };
 
 export const isAdmin: RequestHandler = async (req, res, next) => {
+  // Allow admin actions locally when OIDC is not configured (you can secure later)
+  if (!hasReplitConfig) return next();
+
   const user = req.user as any;
 
   if (!req.isAuthenticated() || !user.claims?.sub) {

@@ -6,9 +6,13 @@ import { z } from "zod";
 export const chapters = pgTable("chapters", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   title: text("title").notNull(),
+  // Localized versions for UI content (optional)
+  titleI18n: jsonb("title_i18n"),
   slug: text("slug").notNull().unique(),
   content: text("content").notNull(),
+  contentI18n: jsonb("content_i18n"),
   excerpt: text("excerpt").notNull(),
+  excerptI18n: jsonb("excerpt_i18n"),
   chapterNumber: integer("chapter_number").notNull(),
   readingTime: integer("reading_time").notNull(), // in minutes
   publishedAt: timestamp("published_at").notNull(),
@@ -18,8 +22,11 @@ export const chapters = pgTable("chapters", {
 export const characters = pgTable("characters", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
+  nameI18n: jsonb("name_i18n"),
   title: text("title").notNull(),
+  titleI18n: jsonb("title_i18n"),
   description: text("description").notNull(),
+  descriptionI18n: jsonb("description_i18n"),
   imageUrl: text("image_url"),
   role: text("role").notNull(), // protagonist, antagonist, supporting
 });
@@ -27,7 +34,9 @@ export const characters = pgTable("characters", {
 export const locations = pgTable("locations", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
+  nameI18n: jsonb("name_i18n"),
   description: text("description").notNull(),
+  descriptionI18n: jsonb("description_i18n"),
   mapX: integer("map_x").notNull(), // x coordinate on map (percentage)
   mapY: integer("map_y").notNull(), // y coordinate on map (percentage)
   type: text("type").notNull(), // kingdom, forest, ruins, etc.
@@ -36,7 +45,9 @@ export const locations = pgTable("locations", {
 export const codexEntries = pgTable("codex_entries", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   title: text("title").notNull(),
+  titleI18n: jsonb("title_i18n"),
   description: text("description").notNull(),
+  descriptionI18n: jsonb("description_i18n"),
   category: text("category").notNull(), // magic, creatures, locations
   imageUrl: text("image_url"),
 });
@@ -44,9 +55,12 @@ export const codexEntries = pgTable("codex_entries", {
 export const blogPosts = pgTable("blog_posts", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   title: text("title").notNull(),
+  titleI18n: jsonb("title_i18n"),
   slug: text("slug").notNull().unique(),
   content: text("content").notNull(),
+  contentI18n: jsonb("content_i18n"),
   excerpt: text("excerpt").notNull(),
+  excerptI18n: jsonb("excerpt_i18n"),
   category: text("category").notNull(), // update, world-building, behind-scenes, research
   publishedAt: timestamp("published_at").notNull(),
   imageUrl: text("image_url"),

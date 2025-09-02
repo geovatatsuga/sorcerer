@@ -112,6 +112,10 @@ export interface Translations {
   daysAgo: string;
   weekAgo: string;
   weeksAgo: string;
+  oneDayAgo: string;
+  oneWeekAgo: string;
+  twoWeeksAgo: string;
+  threeWeeksAgo: string;
   
   // Toast messages
   subscribeSuccess: string;
@@ -148,6 +152,15 @@ export interface Translations {
   eternalForgeDesc: string;
   whisperingWoods: string;
   whisperingWoodsDesc: string;
+
+  // Supplemental UI keys used across pages
+  followEpicJourney: string;
+  meetHeroesVillains: string;
+  discoverVastWorld: string;
+  theCodex: string;
+  comprehensiveGuide: string;
+  behindScenesInsights: string;
+  readMore: string;
   
   // Admin
   admin: string;
@@ -163,7 +176,6 @@ export interface Translations {
   content: string;
   category: string;
   role: string;
-  published: string;
   draft: string;
   loginRequired: string;
   adminRequired: string;
@@ -284,6 +296,10 @@ export const translations: Record<Language, Translations> = {
     daysAgo: 'dias atrás',
     weekAgo: '1 semana atrás',
     weeksAgo: 'semanas atrás',
+  oneDayAgo: '1 dia atrás',
+  oneWeekAgo: '1 semana atrás',
+  twoWeeksAgo: '2 semanas atrás',
+  threeWeeksAgo: '3 semanas atrás',
     
     // Toast messages
     subscribeSuccess: 'Inscrito com sucesso!',
@@ -320,6 +336,35 @@ export const translations: Record<Language, Translations> = {
     eternalForgeDesc: 'Onde armas lendárias são criadas usando fogo estelar e sopro de dragão',
     whisperingWoods: 'Bosques Sussurrantes',
     whisperingWoodsDesc: 'Uma floresta mística onde as próprias árvores guardam memórias antigas',
+
+  // Supplemental UI keys used across pages
+  followEpicJourney: 'Siga a jornada épica conforme ela se desenrola',
+  meetHeroesVillains: 'Conheça heróis, vilões e figuras marcantes',
+  discoverVastWorld: 'Descubra o vasto mundo de Aethermoor',
+  theCodex: 'O Codex',
+  comprehensiveGuide: 'Guia abrangente',
+  behindScenesInsights: 'Insights dos bastidores e atualizações do autor',
+  readMore: 'Leia mais',
+
+  // Admin
+  admin: 'Admin',
+  adminPanel: 'Painel Admin',
+  manageContent: 'Gerenciar Conteúdo',
+  addNew: 'Adicionar Novo',
+  edit: 'Editar',
+  delete: 'Excluir',
+  save: 'Salvar',
+  cancel: 'Cancelar',
+  title: 'Título',
+  description: 'Descrição',
+  content: 'Conteúdo',
+  category: 'Categoria',
+  role: 'Função',
+  draft: 'Rascunho',
+  loginRequired: 'Login necessário',
+  adminRequired: 'Permissão de admin necessária',
+  login: 'Entrar',
+  logout: 'Sair',
   },
   
   en: {
@@ -434,6 +479,10 @@ export const translations: Record<Language, Translations> = {
     daysAgo: 'days ago',
     weekAgo: '1 week ago',
     weeksAgo: 'weeks ago',
+  oneDayAgo: '1 day ago',
+  oneWeekAgo: '1 week ago',
+  twoWeeksAgo: '2 weeks ago',
+  threeWeeksAgo: '3 weeks ago',
     
     // Toast messages
     subscribeSuccess: 'Successfully subscribed!',
@@ -470,6 +519,35 @@ export const translations: Record<Language, Translations> = {
     eternalForgeDesc: 'Where legendary weapons are crafted using starfire and dragon breath',
     whisperingWoods: 'Whispering Woods',
     whisperingWoodsDesc: 'A mystical forest where the trees themselves hold ancient memories',
+
+  // Supplemental UI keys used across pages
+  followEpicJourney: 'Follow the epic journey as it unfolds',
+  meetHeroesVillains: 'Meet heroes, villains and memorable figures',
+  discoverVastWorld: 'Discover the vast world of Aethermoor',
+  theCodex: 'The Codex',
+  comprehensiveGuide: 'Comprehensive guide',
+  behindScenesInsights: 'Behind-the-scenes insights and author updates',
+  readMore: 'Read more',
+
+  // Admin
+  admin: 'Admin',
+  adminPanel: 'Admin Panel',
+  manageContent: 'Manage Content',
+  addNew: 'Add New',
+  edit: 'Edit',
+  delete: 'Delete',
+  save: 'Save',
+  cancel: 'Cancel',
+  title: 'Title',
+  description: 'Description',
+  content: 'Content',
+  category: 'Category',
+  role: 'Role',
+  draft: 'Draft',
+  loginRequired: 'Login required',
+  adminRequired: 'Admin required',
+  login: 'Login',
+  logout: 'Logout',
   },
   
   es: {
@@ -584,6 +662,10 @@ export const translations: Record<Language, Translations> = {
     daysAgo: 'días atrás',
     weekAgo: 'hace 1 semana',
     weeksAgo: 'semanas atrás',
+  oneDayAgo: 'hace 1 día',
+  oneWeekAgo: 'hace 1 semana',
+  twoWeeksAgo: 'hace 2 semanas',
+  threeWeeksAgo: 'hace 3 semanas',
     
     // Toast messages
     subscribeSuccess: '¡Suscrito exitosamente!',
@@ -620,6 +702,35 @@ export const translations: Record<Language, Translations> = {
     eternalForgeDesc: 'Donde se crean armas legendarias usando fuego estelar y aliento de dragón',
     whisperingWoods: 'Bosques Susurrantes',
     whisperingWoodsDesc: 'Un bosque místico donde los propios árboles guardan recuerdos antiguos',
+
+  // Supplemental UI keys used across pages
+  followEpicJourney: 'Sigue el viaje épico mientras se desarrolla',
+  meetHeroesVillains: 'Conoce a héroes, villanos y figuras memorables',
+  discoverVastWorld: 'Descubre el vasto mundo de Aethermoor',
+  theCodex: 'El Códice',
+  comprehensiveGuide: 'Guía completa',
+  behindScenesInsights: 'Perspectivas entre bastidores y actualizaciones del autor',
+  readMore: 'Leer más',
+
+  // Admin
+  admin: 'Admin',
+  adminPanel: 'Panel Admin',
+  manageContent: 'Administrar Contenido',
+  addNew: 'Agregar Nuevo',
+  edit: 'Editar',
+  delete: 'Eliminar',
+  save: 'Guardar',
+  cancel: 'Cancelar',
+  title: 'Título',
+  description: 'Descripción',
+  content: 'Contenido',
+  category: 'Categoría',
+  role: 'Rol',
+  draft: 'Borrador',
+  loginRequired: 'Inicio de sesión requerido',
+  adminRequired: 'Se requiere admin',
+  login: 'Iniciar sesión',
+  logout: 'Cerrar sesión',
   },
 };
 

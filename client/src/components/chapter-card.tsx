@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Link } from "wouter";
 import type { Chapter } from "@shared/schema";
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface ChapterCardProps {
   chapter: Chapter;
@@ -22,8 +23,17 @@ export default function ChapterCard({ chapter }: ChapterCardProps) {
     return "3 weeks ago";
   };
 
+  const { language } = useLanguage();
+
+  const localized = (field: string | null | undefined, i18n?: Record<string, string> | null) => {
+    if (!field && !i18n) return '';
+    if (i18n && i18n[language]) return i18n[language];
+    return field || '';
+  };
+
   return (
-    <Card className="chapter-card bg-card border border-border rounded-lg overflow-hidden hover-glow">
+    <Link href={`/chapters/${chapter.slug}`} className="block">
+      <Card className="chapter-card bg-card border border-border rounded-lg overflow-hidden hover-glow">
       {chapter.imageUrl && (
         <img 
           src={chapter.imageUrl} 
@@ -40,11 +50,11 @@ export default function ChapterCard({ chapter }: ChapterCardProps) {
             {timeAgo(chapter.publishedAt)}
           </span>
         </div>
-        <h3 className="font-display text-xl font-semibold text-card-foreground mb-3" data-testid={`text-title-${chapter.slug}`}>
-          {chapter.title}
+          <h3 className="font-display text-xl font-semibold text-card-foreground mb-3" data-testid={`text-title-${chapter.slug}`}>
+          {localized(chapter.title, chapter.titleI18n as any)}
         </h3>
         <p className="text-muted-foreground text-sm mb-4" data-testid={`text-excerpt-${chapter.slug}`}>
-          {chapter.excerpt}
+          {localized(chapter.excerpt, chapter.excerptI18n as any)}
         </p>
         <div className="flex justify-between items-center">
           <div className="flex items-center text-xs text-muted-foreground">
@@ -53,18 +63,17 @@ export default function ChapterCard({ chapter }: ChapterCardProps) {
               {chapter.readingTime} min read
             </span>
           </div>
-          <Link href={`/chapters/${chapter.slug}`}>
-            <Button 
-              variant="ghost" 
-              size="sm"
-              className="text-primary hover:text-accent transition-colors p-2"
-              data-testid={`button-read-${chapter.slug}`}
-            >
-              <ArrowRight className="h-4 w-4" />
-            </Button>
-          </Link>
+          <Button 
+            variant="ghost" 
+            size="sm"
+            className="text-primary hover:text-accent transition-colors p-2"
+            data-testid={`button-read-${chapter.slug}`}
+          >
+            <ArrowRight className="h-4 w-4" />
+          </Button>
         </div>
       </CardContent>
-    </Card>
+      </Card>
+    </Link>
   );
 }

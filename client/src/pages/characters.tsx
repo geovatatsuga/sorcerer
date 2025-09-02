@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import type { Character } from "@shared/schema";
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function Characters() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -15,11 +16,22 @@ export default function Characters() {
     queryKey: ['/api/characters'],
   });
 
+  const { language, t } = useLanguage();
+
   const roles = ["all", "protagonist", "antagonist", "supporting"];
 
+  const localized = (item: any, field: string) => {
+    try {
+      return (item?.[`${field}I18n`]?.[language] as string) || item?.[field] || '';
+    } catch (e) {
+      return item?.[field] || '';
+    }
+  };
+
   const filteredCharacters = characters.filter(character => {
-    const matchesSearch = character.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         character.description.toLowerCase().includes(searchQuery.toLowerCase());
+    const name = (character.name || '').toLowerCase();
+    const desc = (localized(character, 'description') || '').toLowerCase();
+    const matchesSearch = name.includes(searchQuery.toLowerCase()) || desc.includes(searchQuery.toLowerCase());
     const matchesRole = selectedRole === "all" || character.role === selectedRole;
     return matchesSearch && matchesRole;
   });
@@ -32,16 +44,16 @@ export default function Characters() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h1 className="font-display text-4xl md:text-5xl font-bold text-primary mb-4" data-testid="text-characters-title">
-              Character Gallery
+              {t.characterGallery}
             </h1>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto mb-8">
-              Meet the heroes, villains, and complex figures that shape this epic tale
+              {t.characterGalleryDesc}
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center max-w-2xl mx-auto">
               <Input
                 type="text"
-                placeholder="Search characters..."
+                placeholder={t.searchCharacters}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="bg-input border-border text-foreground placeholder:text-muted-foreground"
@@ -58,7 +70,7 @@ export default function Characters() {
                     className="capitalize"
                     data-testid={`button-filter-${role}`}
                   >
-                    {role}
+                    {t[role as keyof typeof t] ?? role}
                   </Button>
                 ))}
               </div>
@@ -74,10 +86,10 @@ export default function Characters() {
           ) : filteredCharacters.length === 0 ? (
             <div className="text-center py-20">
               <h3 className="font-display text-2xl font-semibold text-muted-foreground mb-4" data-testid="text-no-characters">
-                No characters found
+                {t.noCharacters}
               </h3>
               <p className="text-muted-foreground">
-                Try adjusting your search terms or filters
+                {t.adjustFilters}
               </p>
             </div>
           ) : (
