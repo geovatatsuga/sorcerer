@@ -204,12 +204,6 @@ function ChapterManager() {
 
   const [showCreate, setShowCreate] = useState(false);
 
-  const handleCreate = async (payload: InsertChapter) => {
-    await createChapter.mutateAsync(payload);
-    setShowCreate(false);
-    toast({ title: 'Capítulo criado' });
-  };
-
   if (isLoading) {
     return <div>Carregando capítulos...</div>;
   }
@@ -274,6 +268,8 @@ function ChapterManager() {
               setShowCreate(false);
             } else {
               await createChapter.mutateAsync(data as InsertChapter);
+              setShowCreate(false);
+              toast({ title: 'Capítulo criado' });
             }
           }}
           defaults={((window as any).__admin_edit_defaults) ?? {
@@ -579,6 +575,14 @@ function LocationManager() {
   const [showCreateLoc, setShowCreateLoc] = useState(false);
 
   const handleCreateLocation = async (payload: InsertLocation) => {
+    const editDefaults = (window as any).__admin_edit_defaults as any | undefined;
+    if (editDefaults?.id) {
+      await updateLocation.mutateAsync({ id: editDefaults.id, data: payload });
+      toast({ title: 'Localização atualizada' });
+      delete (window as any).__admin_edit_defaults;
+      setShowCreateLoc(false);
+      return;
+    }
     await createLocation.mutateAsync(payload);
     setShowCreateLoc(false);
     toast({ title: 'Localização criada' });
@@ -638,9 +642,9 @@ function LocationManager() {
       {showCreateLoc && (
         <EntityForm
           type="location"
-          onCancel={() => setShowCreateLoc(false)}
+          onCancel={() => { setShowCreateLoc(false); delete (window as any).__admin_edit_defaults; }}
           onSave={handleCreateLocation}
-          defaults={{
+          defaults={((window as any).__admin_edit_defaults) ?? {
             name: '',
             nameI18n: { pt: '', en: '', es: '' },
             description: '',
@@ -685,6 +689,14 @@ function CodexManager() {
   const [showCreateCodex, setShowCreateCodex] = useState(false);
 
   const handleCreateEntry = async (payload: InsertCodexEntry) => {
+    const editDefaults = (window as any).__admin_edit_defaults as any | undefined;
+    if (editDefaults?.id) {
+      await updateCodex.mutateAsync({ id: editDefaults.id, data: payload });
+      toast({ title: 'Entrada do codex atualizada' });
+      delete (window as any).__admin_edit_defaults;
+      setShowCreateCodex(false);
+      return;
+    }
     await createEntry.mutateAsync(payload);
     setShowCreateCodex(false);
     toast({ title: 'Entrada do codex criada' });
@@ -744,9 +756,9 @@ function CodexManager() {
       {showCreateCodex && (
         <EntityForm
           type="codex"
-          onCancel={() => setShowCreateCodex(false)}
+          onCancel={() => { setShowCreateCodex(false); delete (window as any).__admin_edit_defaults; }}
           onSave={handleCreateEntry}
-          defaults={{
+          defaults={((window as any).__admin_edit_defaults) ?? {
             title: '',
             titleI18n: { pt: '', en: '', es: '' },
             description: '',
@@ -790,6 +802,14 @@ function BlogManager() {
   const [showCreatePost, setShowCreatePost] = useState(false);
 
   const handleCreatePost = async (payload: InsertBlogPost) => {
+    const editDefaults = (window as any).__admin_edit_defaults as any | undefined;
+    if (editDefaults?.id) {
+      await updatePost.mutateAsync({ id: editDefaults.id, data: payload });
+      toast({ title: 'Post atualizado' });
+      delete (window as any).__admin_edit_defaults;
+      setShowCreatePost(false);
+      return;
+    }
     await createPost.mutateAsync(payload);
     setShowCreatePost(false);
     toast({ title: 'Post criado' });
@@ -858,9 +878,9 @@ function BlogManager() {
       {showCreatePost && (
         <EntityForm
           type="blog"
-          onCancel={() => setShowCreatePost(false)}
+          onCancel={() => { setShowCreatePost(false); delete (window as any).__admin_edit_defaults; }}
           onSave={handleCreatePost}
-          defaults={{
+          defaults={((window as any).__admin_edit_defaults) ?? {
             title: '',
             titleI18n: { pt: '', en: '', es: '' },
             slug: '',
