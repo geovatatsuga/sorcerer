@@ -4,11 +4,13 @@ import WorldMap from "@/components/world-map";
 import Footer from "@/components/footer";
 import { Card, CardContent } from "@/components/ui/card";
 import type { Location } from "@shared/schema";
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function World() {
   const { data: locations = [], isLoading } = useQuery<Location[]>({
     queryKey: ['/api/locations'],
   });
+  const { t } = useLanguage();
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -18,10 +20,10 @@ export default function World() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h1 className="font-display text-4xl md:text-5xl font-bold text-primary mb-4" data-testid="text-world-title">
-              The World of Aethermoor
+              {t.worldTitle}
             </h1>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              Discover the vast realms, ancient kingdoms, and mystical locations that make up this epic fantasy world
+              {t.worldDesc}
             </p>
           </div>
           
@@ -42,11 +44,11 @@ export default function World() {
             ) : locations.length === 0 ? (
               <div className="col-span-full text-center py-20">
                 <h3 className="font-display text-2xl font-semibold text-muted-foreground mb-4" data-testid="text-no-locations">
-                  No locations available
-                </h3>
-                <p className="text-muted-foreground">
-                  World locations will appear here as they are added to the story
-                </p>
+                    {t.noLocations}
+                  </h3>
+                  <p className="text-muted-foreground">
+                    {t.locationsWillAppear}
+                  </p>
               </div>
             ) : (
               locations.map((location) => (

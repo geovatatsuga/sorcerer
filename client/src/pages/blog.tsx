@@ -6,10 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import type { BlogPost } from "@shared/schema";
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function Blog() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const { t } = useLanguage();
   
   const { data: blogPosts = [], isLoading } = useQuery<BlogPost[]>({
     queryKey: ['/api/blog'],
@@ -60,16 +62,16 @@ export default function Blog() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h1 className="font-display text-4xl md:text-5xl font-bold text-primary mb-4" data-testid="text-blog-title">
-              Author's Chronicles
+              {t.blogTitle}
             </h1>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto mb-8">
-              Behind-the-scenes insights, world-building notes, and updates from the author
+              {t.blogDesc}
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center max-w-3xl mx-auto">
-              <Input
+                <Input
                 type="text"
-                placeholder="Search blog posts..."
+                placeholder={t.searchBlog}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="bg-input border-border text-foreground placeholder:text-muted-foreground"
@@ -77,7 +79,7 @@ export default function Blog() {
               />
               
               <div className="flex gap-2 flex-wrap">
-                {categories.map((category) => (
+        {categories.map((category) => (
                   <Button
                     key={category}
                     variant={selectedCategory === category ? "default" : "outline"}
@@ -86,7 +88,7 @@ export default function Blog() {
                     className="capitalize"
                     data-testid={`button-filter-${category}`}
                   >
-                    {category === "behind-scenes" ? "Behind Scenes" : category}
+          {category === 'all' ? t.all : category === 'behind-scenes' ? t.behindScenes || 'Behind Scenes' : category}
                   </Button>
                 ))}
               </div>
@@ -102,13 +104,10 @@ export default function Blog() {
           ) : filteredPosts.length === 0 ? (
             <div className="text-center py-20">
               <h3 className="font-display text-2xl font-semibold text-muted-foreground mb-4" data-testid="text-no-blog-posts">
-                {searchQuery || selectedCategory !== "all" ? "No blog posts found" : "No blog posts available"}
+                {searchQuery || selectedCategory !== 'all' ? t.noBlogPostsFound : t.noBlogPosts}
               </h3>
               <p className="text-muted-foreground">
-                {searchQuery || selectedCategory !== "all"
-                  ? "Try adjusting your search terms or filters"
-                  : "New blog posts will appear here as they are published"
-                }
+                {searchQuery || selectedCategory !== 'all' ? t.adjustFilters : t.blogWillAppear}
               </p>
             </div>
           ) : (

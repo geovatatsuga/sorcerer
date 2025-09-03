@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Wand2, Crown, MapPin } from "lucide-react";
 import { useState } from "react";
 import type { CodexEntry } from "@shared/schema";
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function Codex() {
   const [selectedCategory, setSelectedCategory] = useState("magic");
@@ -14,6 +15,7 @@ export default function Codex() {
   const { data: codexEntries = [], isLoading } = useQuery<CodexEntry[]>({
     queryKey: ['/api/codex'],
   });
+  const { t } = useLanguage();
 
   const categorizedEntries = {
     magic: codexEntries.filter(entry => entry.category === "magic"),
@@ -64,10 +66,10 @@ export default function Codex() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h1 className="font-display text-4xl md:text-5xl font-bold text-primary mb-4" data-testid="text-codex-title">
-              The Codex of Aethermoor
+              {t.codexPageTitle}
             </h1>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              Comprehensive guide to the magic systems, creatures, and lore of this epic fantasy world
+              {t.codexPageDesc}
             </p>
           </div>
           
@@ -89,27 +91,27 @@ export default function Codex() {
             
             {["magic", "creatures", "locations"].map((category) => (
               <TabsContent key={category} value={category}>
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                   {isLoading ? (
                     [1, 2, 3, 4, 5, 6].map((i) => (
                       <div key={i} className="bg-card border border-border rounded-lg h-64 animate-pulse" />
                     ))
                   ) : categorizedEntries[category as keyof typeof categorizedEntries].length === 0 ? (
                     // Show fallback content when no entries exist
-                    fallbackContent[category as keyof typeof fallbackContent].map((item, index) => (
+          fallbackContent[category as keyof typeof fallbackContent].map((item, index) => (
                       <Card key={index} className="bg-card border border-border rounded-lg hover-glow">
                         <CardContent className="p-6">
                           <div className="flex items-center gap-3 mb-4">
                             <div className="w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center">
                               {getCategoryIcon(category)}
                             </div>
-                            <h3 className="font-display text-lg font-semibold text-card-foreground" data-testid={`text-entry-title-${index}`}>
+                              <h3 className="font-display text-lg font-semibold text-card-foreground" data-testid={`text-entry-title-${index}`}>
                               {item.title}
                             </h3>
                           </div>
-                          <p className="text-muted-foreground text-sm" data-testid={`text-entry-description-${index}`}>
+                              <p className="text-muted-foreground text-sm" data-testid={`text-entry-description-${index}`}>
                             {item.description}
-                          </p>
+                            </p>
                         </CardContent>
                       </Card>
                     ))

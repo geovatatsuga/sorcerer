@@ -10,6 +10,8 @@ import {
 } from "@shared/schema";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
+import fs from 'fs';
+import path from 'path';
 import { randomUUID } from "crypto";
 
 // Interface for storage operations
@@ -427,4 +429,87 @@ O Primeiro Feiticeiro havia retornado, mas o mundo que ele conhecia se foi para 
   }
 }
 
-export const storage = new DatabaseStorage();
+// Simple file-based storage fallback for local development when DB is unavailable.
+class FileStorage implements IStorage {
+  private baseDir = path.resolve(process.cwd(), 'data');
+
+  constructor() {
+    fs.mkdirSync(this.baseDir, { recursive: true });
+  }
+
+  // helper
+  private async readFile<T>(name: string, defaultValue: T): Promise<T> {
+    const fp = path.join(this.baseDir, name);
+    try {
+      const txt = await fs.promises.readFile(fp, 'utf-8');
+      return JSON.parse(txt || 'null') as T;
+    } catch (e) {
+      return defaultValue;
+    }
+  }
+
+  private async writeFile(name: string, data: any) {
+    const fp = path.join(this.baseDir, name);
+    await fs.promises.writeFile(fp, JSON.stringify(data, null, 2), 'utf-8');
+  }
+
+  async getUser(id: string) {
+    const users = await this.readFile<any[]>('offline-users.json', []);
+    return users.find((u) => u.id === id);
+  }
+
+  async upsertUser(user: any) {
+    const users = await this.readFile<any[]>('offline-users.json', []);
+    const idx = users.findIndex((u) => u.id === user.id);
+    if (idx >= 0) users[idx] = { ...users[idx], ...user };
+    else users.push(user);
+    await this.writeFile('offline-users.json', users);
+    return users.find((u) => u.id === user.id);
+  }
+
+  async getChapters() { return this.readFile<any[]>('offline-chapters.json', []); }
+  async getChapterBySlug(slug: string) { const arr = await this.getChapters(); return arr.find((c) => c.slug === slug); }
+  async getChapterById(id: string) { const arr = await this.getChapters(); return arr.find((c) => c.id === id); }
+  async createChapter(chapter: any) { chapter.id = chapter.id ?? randomUUID(); const arr = await this.getChapters(); arr.push(chapter); await this.writeFile('offline-chapters.json', arr); return chapter; }
+  async updateChapter(id: string, chapter: any) { const arr = await this.getChapters(); const idx = arr.findIndex((c) => c.id === id); if (idx < 0) return undefined; arr[idx] = { ...arr[idx], ...chapter }; await this.writeFile('offline-chapters.json', arr); return arr[idx]; }
+  async deleteChapter(id: string) { const arr = await this.getChapters(); const idx = arr.findIndex((c) => c.id === id); if (idx < 0) return false; arr.splice(idx, 1); await this.writeFile('offline-chapters.json', arr); return true; }
+
+  async getCharacters() { return this.readFile<any[]>('offline-characters.json', []); }
+  async getCharacterById(id: string) { const arr = await this.getCharacters(); return arr.find((c) => c.id === id); }
+  async createCharacter(character: any) { character.id = character.id ?? randomUUID(); const arr = await this.getCharacters(); arr.push(character); await this.writeFile('offline-characters.json', arr); return character; }
+  async updateCharacter(id: string, character: any) { const arr = await this.getCharacters(); const idx = arr.findIndex((c) => c.id === id); if (idx < 0) return undefined; arr[idx] = { ...arr[idx], ...character }; await this.writeFile('offline-characters.json', arr); return arr[idx]; }
+  async deleteCharacter(id: string) { const arr = await this.getCharacters(); const idx = arr.findIndex((c) => c.id === id); if (idx < 0) return false; arr.splice(idx, 1); await this.writeFile('offline-characters.json', arr); return true; }
+
+  async getLocations() { return this.readFile<any[]>('offline-locations.json', []); }
+  async getLocationById(id: string) { const arr = await this.getLocations(); return arr.find((c) => c.id === id); }
+  async createLocation(location: any) { location.id = location.id ?? randomUUID(); const arr = await this.getLocations(); arr.push(location); await this.writeFile('offline-locations.json', arr); return location; }
+  async updateLocation(id: string, location: any) { const arr = await this.getLocations(); const idx = arr.findIndex((c) => c.id === id); if (idx < 0) return undefined; arr[idx] = { ...arr[idx], ...location }; await this.writeFile('offline-locations.json', arr); return arr[idx]; }
+  async deleteLocation(id: string) { const arr = await this.getLocations(); const idx = arr.findIndex((c) => c.id === id); if (idx < 0) return false; arr.splice(idx, 1); await this.writeFile('offline-locations.json', arr); return true; }
+
+  async getCodexEntries() { return this.readFile<any[]>('offline-codex.json', []); }
+  async getCodexEntriesByCategory(category: string) { const arr = await this.getCodexEntries(); return arr.filter((e) => e.category === category); }
+  async getCodexEntryById(id: string) { const arr = await this.getCodexEntries(); return arr.find((c) => c.id === id); }
+  async createCodexEntry(entry: any) { entry.id = entry.id ?? randomUUID(); const arr = await this.getCodexEntries(); arr.push(entry); await this.writeFile('offline-codex.json', arr); return entry; }
+  async updateCodexEntry(id: string, entry: any) { const arr = await this.getCodexEntries(); const idx = arr.findIndex((c) => c.id === id); if (idx < 0) return undefined; arr[idx] = { ...arr[idx], ...entry }; await this.writeFile('offline-codex.json', arr); return arr[idx]; }
+  async deleteCodexEntry(id: string) { const arr = await this.getCodexEntries(); const idx = arr.findIndex((c) => c.id === id); if (idx < 0) return false; arr.splice(idx, 1); await this.writeFile('offline-codex.json', arr); return true; }
+
+  async getBlogPosts() { return this.readFile<any[]>('offline-blog.json', []); }
+  async getBlogPostBySlug(slug: string) { const arr = await this.getBlogPosts(); return arr.find((c) => c.slug === slug); }
+  async getBlogPostById(id: string) { const arr = await this.getBlogPosts(); return arr.find((c) => c.id === id); }
+  async createBlogPost(post: any) { post.id = post.id ?? randomUUID(); const arr = await this.getBlogPosts(); arr.push(post); await this.writeFile('offline-blog.json', arr); return post; }
+  async updateBlogPost(id: string, post: any) { const arr = await this.getBlogPosts(); const idx = arr.findIndex((c) => c.id === id); if (idx < 0) return undefined; arr[idx] = { ...arr[idx], ...post }; await this.writeFile('offline-blog.json', arr); return arr[idx]; }
+  async deleteBlogPost(id: string) { const arr = await this.getBlogPosts(); const idx = arr.findIndex((c) => c.id === id); if (idx < 0) return false; arr.splice(idx, 1); await this.writeFile('offline-blog.json', arr); return true; }
+
+  async getReadingProgress(sessionId: string, chapterId: string) { const arr = await this.readFile<any[]>('offline-progress.json', []); return arr.find((p) => p.sessionId === sessionId && p.chapterId === chapterId); }
+  async updateReadingProgress(sessionId: string, chapterId: string, progress: number) { const arr = await this.readFile<any[]>('offline-progress.json', []); let p = arr.find((x) => x.sessionId === sessionId && x.chapterId === chapterId); if (p) { p.progress = progress; p.lastReadAt = new Date().toISOString(); } else { p = { id: randomUUID(), sessionId, chapterId, progress, lastReadAt: new Date().toISOString() }; arr.push(p); } await this.writeFile('offline-progress.json', arr); return p; }
+}
+
+let storageInstance: IStorage;
+try {
+  storageInstance = new DatabaseStorage();
+} catch (err) {
+  console.warn('DatabaseStorage initialization failed, falling back to FileStorage:', err);
+  storageInstance = new FileStorage();
+}
+
+export const storage = storageInstance;

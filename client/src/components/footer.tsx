@@ -1,5 +1,6 @@
 import { Link } from "wouter";
 import { Twitter, Instagram, MessageCircle } from "lucide-react";
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const quickLinks = [
   { name: "Latest Chapters", href: "/chapters" },
@@ -16,16 +17,18 @@ const supportLinks = [
 ];
 
 export default function Footer() {
+  const { t } = useLanguage();
+
   return (
     <footer className="bg-card border-t border-border py-12 px-4">
       <div className="max-w-7xl mx-auto">
         <div className="grid md:grid-cols-4 gap-8">
           <div className="col-span-2">
             <h3 className="font-display text-xl font-bold text-primary mb-4" data-testid="text-footer-title">
-              The Return of the First Sorcerer
+              {t.heroTitle}
             </h3>
             <p className="text-muted-foreground mb-4 max-w-md">
-              An epic fantasy webnovel exploring themes of power, redemption, and the eternal struggle between light and darkness.
+              {t.footerDesc}
             </p>
             <div className="flex space-x-4">
               <a 
@@ -54,7 +57,7 @@ export default function Footer() {
           
           <div>
             <h4 className="font-display font-semibold text-card-foreground mb-4" data-testid="text-quick-links">
-              Quick Links
+              {t.quickLinks}
             </h4>
             <ul className="space-y-2">
               {quickLinks.map((link) => (
@@ -64,7 +67,7 @@ export default function Footer() {
                     className="text-muted-foreground hover:text-primary transition-colors"
                     data-testid={`link-footer-${link.name.toLowerCase().replace(' ', '-')}`}
                   >
-                    {link.name}
+                    {link.href === '/chapters' ? t.chapters : link.href === '/characters' ? t.characters : link.href === '/world' ? t.world : link.href === '/codex' ? t.codex : link.name}
                   </Link>
                 </li>
               ))}
@@ -73,7 +76,7 @@ export default function Footer() {
           
           <div>
             <h4 className="font-display font-semibold text-card-foreground mb-4" data-testid="text-support">
-              Support
+              {t.support}
             </h4>
             <ul className="space-y-2">
               {supportLinks.map((link) => (
@@ -93,7 +96,7 @@ export default function Footer() {
         
         <div className="border-t border-border mt-8 pt-8 text-center">
           <p className="text-muted-foreground" data-testid="text-copyright">
-            © 2024 The Return of the First Sorcerer. All rights reserved.
+            {t.copyright}
           </p>
         </div>
       </div>

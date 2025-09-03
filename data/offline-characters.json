@@ -1,0 +1,22 @@
+[
+  {
+    "id": "fb45f7da-31e3-44cb-a95f-1f0888ff0c05",
+    "name": "Lyssandra",
+    "title": "Lyssandra",
+    "titleI18n": {
+      "pt": "adsasd",
+      "en": "asadsads",
+      "es": "asdadsads"
+    },
+    "description": "",
+    "descriptionI18n": {
+      "pt": "asdasd",
+      "en": "ads",
+      "es": "asdasd"
+    },
+    "imageUrl": "/uploads/d404a050-acae-4b3e-901e-eb71c21cb5f7.png",
+    "role": "protagonist",
+    "createdAt": "2025-09-02T16:12:43.483Z",
+    "updatedAt": "2025-09-02T16:22:33.279Z"
+  }
+]

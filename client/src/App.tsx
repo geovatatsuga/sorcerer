@@ -9,6 +9,7 @@ import Home from "@/pages/home";
 import Chapters from "@/pages/chapters";
 import ChapterReader from "@/pages/chapter-reader";
 import Characters from "@/pages/characters";
+import CharacterProfile from "@/pages/character-profile";
 import World from "@/pages/world";
 import Codex from "@/pages/codex";
 import Blog from "@/pages/blog";
@@ -39,6 +40,7 @@ function Router() {
       <Route path="/chapters" component={Chapters} />
       <Route path="/chapters/:slug" component={ChapterReader} />
       <Route path="/characters" component={Characters} />
+  <Route path="/characters/:id" component={CharacterProfile} />
       <Route path="/world" component={World} />
       <Route path="/codex" component={Codex} />
       <Route path="/blog" component={Blog} />

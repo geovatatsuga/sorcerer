@@ -1,0 +1,19 @@
+[
+  {
+    "id": "8becef68-5372-4750-bd00-498275660db3",
+    "title": "World",
+    "titleI18n": {
+      "pt": "",
+      "en": "",
+      "es": ""
+    },
+    "description": "map",
+    "descriptionI18n": {
+      "pt": "",
+      "en": "",
+      "es": ""
+    },
+    "category": "magic",
+    "imageUrl": "/uploads/f0d5cecb-ea44-456f-a9fa-4e5e0f8dccef.jpg"
+  }
+]

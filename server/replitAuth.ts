@@ -8,9 +8,8 @@ import memoize from "memoizee";
 import connectPg from "connect-pg-simple";
 import { storage } from "./storage";
 
-if (!process.env.REPLIT_DOMAINS) {
-  throw new Error("Environment variable REPLIT_DOMAINS not provided");
-}
+// REPLIT_DOMAINS is required for production Replit OIDC integration.
+// For local development we allow it to be unset and fall back to session-based auth.
 
 const getOidcConfig = memoize(
   async () => {
@@ -24,21 +23,36 @@ const getOidcConfig = memoize(
 
 export function getSession() {
   const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
-  const pgStore = connectPg(session);
-  const sessionStore = new pgStore({
-    conString: process.env.DATABASE_URL,
-    createTableIfMissing: false,
-    ttl: sessionTtl,
-    tableName: "sessions",
-  });
+  // If DATABASE_URL is provided, prefer a Postgres-backed session store.
+  if (process.env.DATABASE_URL) {
+    const pgStore = connectPg(session);
+    const sessionStore = new pgStore({
+      conString: process.env.DATABASE_URL,
+      createTableIfMissing: false,
+      ttl: sessionTtl,
+      tableName: "sessions",
+    });
+    return session({
+      secret: process.env.SESSION_SECRET!,
+      store: sessionStore,
+      resave: false,
+      saveUninitialized: false,
+      cookie: {
+        httpOnly: true,
+        secure: true,
+        maxAge: sessionTtl,
+      },
+    });
+  }
+
+  // Local development fallback: in-memory session store (not for production)
   return session({
-    secret: process.env.SESSION_SECRET!,
-    store: sessionStore,
+    secret: process.env.SESSION_SECRET || 'dev-secret',
     resave: false,
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: true,
+      secure: false,
       maxAge: sessionTtl,
     },
   });
@@ -71,6 +85,11 @@ export async function setupAuth(app: Express) {
   app.use(getSession());
   app.use(passport.initialize());
   app.use(passport.session());
+  // If REPLIT_DOMAINS isn't configured, skip OIDC setup and rely on session-based auth for local dev.
+  if (!process.env.REPLIT_DOMAINS) {
+    // noop - local development will use session-based users stored at req.session.user
+    return;
+  }
 
   const config = await getOidcConfig();
 
@@ -84,8 +103,7 @@ export async function setupAuth(app: Express) {
     verified(null, user);
   };
 
-  for (const domain of process.env
-    .REPLIT_DOMAINS!.split(",")) {
+  for (const domain of process.env.REPLIT_DOMAINS.split(",")) {
     const strategy = new Strategy(
       {
         name: `replitauth:${domain}`,
@@ -128,6 +146,15 @@ export async function setupAuth(app: Express) {
 }
 
 export const isAuthenticated: RequestHandler = async (req, res, next) => {
+  // If OIDC isn't configured, treat a session user as authenticated for local dev
+  if (!process.env.REPLIT_DOMAINS) {
+    const sessionUser = (req as any).session?.user;
+    if (sessionUser) {
+      return next();
+    }
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
   const user = req.user as any;
 
   if (!req.isAuthenticated() || !user.expires_at) {
@@ -157,6 +184,27 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
 };
 
 export const isAdmin: RequestHandler = async (req, res, next) => {
+  // If OIDC isn't configured, accept a session-based user for local dev
+  if (!process.env.REPLIT_DOMAINS) {
+    const sessionUser = (req as any).session?.user as { id?: string; isAdmin?: boolean } | undefined;
+    if (!sessionUser?.id) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    try {
+      const dbUser = await storage.getUser(sessionUser.id);
+      const isAdminFlag = dbUser?.isAdmin ?? sessionUser.isAdmin;
+      if (!isAdminFlag) {
+        return res.status(403).json({ message: 'Admin access required' });
+      }
+      (req as any).adminUser = dbUser ?? sessionUser;
+      return next();
+    } catch (error) {
+      console.error('Error checking admin status (dev):', error);
+      return res.status(500).json({ message: 'Internal server error' });
+    }
+  }
+
   const user = req.user as any;
 
   if (!req.isAuthenticated() || !user.claims?.sub) {
