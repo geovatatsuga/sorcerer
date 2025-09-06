@@ -1,7 +1,6 @@
 ﻿import { Card, CardContent } from "@/components/ui/card";
 import { Link } from "wouter";
 import type { Character } from "@shared/schema";
-import { Link } from "wouter";
 import { useEffect, useState } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useQuery } from '@tanstack/react-query';
@@ -23,7 +22,6 @@ export default function CharacterCard({ character }: CharacterCardProps) {
   };
 
   // Translation system disabled: always use primary (Portuguese) fields.
-  useLanguage();
   const title = character.title;
   const story = (character as any).story ?? character.description;
 

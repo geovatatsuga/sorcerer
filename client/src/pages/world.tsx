@@ -11,7 +11,6 @@ export default function World() {
   const { data: locations = [], isLoading } = useQuery<Location[]>({
     queryKey: ['/api/locations'],
   });
-  const { t } = useLanguage();
   const [, setLocation] = useLocation();
 
   const { t, language } = useLanguage();

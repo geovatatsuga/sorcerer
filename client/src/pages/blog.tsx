@@ -11,7 +11,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 export default function Blog() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
-  const { t } = useLanguage();
+  // useLanguage provides translations and current language
   
   const { data: blogPosts = [], isLoading } = useQuery<BlogPost[]>({
     queryKey: ['/api/blog'],

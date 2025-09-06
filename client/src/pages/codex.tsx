@@ -16,7 +16,6 @@ export default function Codex() {
   const { data: codexEntries = [], isLoading } = useQuery<CodexEntry[]>({
     queryKey: ['/api/codex'],
   });
-  const { t } = useLanguage();
 
   const categorizedEntries = {
     magic: codexEntries.filter(entry => entry.category === "magic"),
@@ -128,17 +127,17 @@ export default function Codex() {
                             className="w-full h-32 object-cover rounded-t-lg"
                           />
                         )}
-                        <CardContent className="p-6" onClick={() => window.location.href = `/codex/${entry.id}`}>
+                        <CardContent className="p-6" onClick={() => (window.location.href = `/codex/${entry.id}`)}>
                           <div className="flex items-center gap-3 mb-4">
                             <div className="w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center">
                               {getCategoryIcon(category)}
                             </div>
-                            <p className="text-muted-foreground text-sm" data-testid={`text-entry-description-${entry.id}`}>
-                              {(entry.descriptionI18n as any)?.[language] ?? entry.description}
-                            </p>
-                          </CardContent>
-                        </Card>
-                      </Link>
+                          </div>
+                          <p className="text-muted-foreground text-sm" data-testid={`text-entry-description-${entry.id}`}>
+                            {(entry.descriptionI18n as any)?.[language] ?? entry.description}
+                          </p>
+                        </CardContent>
+                      </Card>
                     ))
                   )}
                 </div>

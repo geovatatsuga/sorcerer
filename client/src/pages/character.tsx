@@ -56,7 +56,7 @@ export default function CharacterPage() {
             {character.imageUrl && <img src={character.imageUrl} alt={character.name} className="w-full h-64 object-cover" />}
             <CardContent className="p-6">
               <h1 className="font-display text-2xl font-semibold text-card-foreground mb-2">{character.name}</h1>
-              <p className="text-muted-foreground mb-4">{localized('description', character.descriptionI18n)}</p>
+              <p className="text-muted-foreground mb-4">{localized('description', (character as any).descriptionI18n)}</p>
               <div className="flex gap-2">
                 <Button variant="outline">{t.backToChapters}</Button>
                 <Link href="/characters"><Button variant="ghost">{t.characters}</Button></Link>

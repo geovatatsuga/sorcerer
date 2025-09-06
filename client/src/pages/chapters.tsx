@@ -9,7 +9,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function Chapters() {
   const [searchQuery, setSearchQuery] = useState("");
-  const { t } = useLanguage();
+  // useLanguage provides translations and current language
   
   const { data: chapters = [], isLoading } = useQuery<Chapter[]>({
     queryKey: ['/api/chapters'],

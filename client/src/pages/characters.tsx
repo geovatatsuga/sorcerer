@@ -11,7 +11,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 export default function Characters() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedRole, setSelectedRole] = useState<string>("all");
-  const { t } = useLanguage();
+  // useLanguage provides translations and current language
   
   const { data: characters = [], isLoading } = useQuery<Character[]>({
     queryKey: ['/api/characters'],

@@ -13,8 +13,6 @@ import { eq, and } from "drizzle-orm";
 import fs from 'fs';
 import path from 'path';
 import { randomUUID } from "crypto";
-import fs from 'fs';
-import path from 'path';
 
 // Interface for storage operations
 export interface IStorage {
@@ -501,29 +499,30 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateReadingProgress(sessionId: string, chapterId: string, progress: number): Promise<ReadingProgress> {
-    // Try to update existing record first
-    const [existingProgress] = await db
-      .update(readingProgress)
-      .set(({
-        progress,
-    lastReadAt: new Date().toISOString(),
-      } as any))
-      .where(and(eq(readingProgress.sessionId, sessionId), eq(readingProgress.chapterId, chapterId)))
-      .returning();
+    try {
+      // Try to update existing record first
+      const [existingProgress] = await db
+        .update(readingProgress)
+        .set({
+          progress,
+          lastReadAt: new Date().toISOString(),
+        } as any)
+        .where(and(eq(readingProgress.sessionId, sessionId), eq(readingProgress.chapterId, chapterId)))
+        .returning();
 
       if (existingProgress) {
         return existingProgress;
       }
 
-      // Create new record if doesn't exist
+      // Create new record if it doesn't exist
       const [newProgress] = await db
         .insert(readingProgress)
         .values({
           sessionId,
           chapterId,
           progress,
-          lastReadAt: new Date(),
-        })
+          lastReadAt: new Date().toISOString(),
+        } as any)
         .returning();
 
       return newProgress;
@@ -531,19 +530,6 @@ export class DatabaseStorage implements IStorage {
       console.error('DB error in updateReadingProgress:', error);
       throw error;
     }
-
-    // Create new record if doesn't exist
-    const [newProgress] = await db
-      .insert(readingProgress)
-      .values(({
-        sessionId,
-        chapterId,
-        progress,
-        lastReadAt: new Date().toISOString(),
-      } as any))
-      .returning();
-
-    return newProgress;
   }
 
   private async seedData() {
