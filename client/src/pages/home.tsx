@@ -1,11 +1,16 @@
 import { useQuery } from "@tanstack/react-query";
 import Navigation from "@/components/navigation";
 import HeroSection from "@/components/hero-section";
+import Reveal from "@/components/reveal";
 import ChapterCard from "@/components/chapter-card";
 import CharacterCard from "@/components/character-card";
 import WorldMap from "@/components/world-map";
+import SectionDivider from "@/components/section-divider";
+import SectionIcon from "@/components/section-icon";
 import NewsletterSignup from "@/components/newsletter-signup";
 import Footer from "@/components/footer";
+import HeroParticles from "@/components/hero-particles";
+import Starfield from "@/components/starfield";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Wand2, Crown, MapPin } from "lucide-react";
@@ -58,18 +63,19 @@ export default function Home() {
       <Navigation />
       <HeroSection />
       
-      {/* Latest Chapters */}
-      <section id="chapters" className="py-20 px-4">
+  {/* Latest Chapters */}
+  <Reveal className="w-full">
+  <section id="chapters" className="py-20 px-4">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="font-display text-3xl md:text-4xl font-bold text-primary mb-4" data-testid="text-latest-chapters">
-              {t.latestChapters || 'Últimos Capítulos'}
+            <h2 className="section-title font-display text-3xl md:text-4xl font-bold text-primary mb-4" data-testid="text-latest-chapters">
+              <SectionIcon type="rune" />{t.latestChapters || 'Últimos Capítulos'}
             </h2>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
               {t.followEpicJourney || 'Acompanhe a jornada épica em cada capítulo.'}
             </p>
           </div>
-          
+
           {chaptersLoading ? (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
               {[1, 2, 3].map((i) => (
@@ -78,33 +84,40 @@ export default function Home() {
             </div>
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {latestChapters.map((chapter) => (
-                <ChapterCard key={chapter.id} chapter={chapter} />
+              {latestChapters.map((chapter, idx) => (
+                <Reveal key={chapter.id} delay={idx * 80} className="">
+                  <ChapterCard key={chapter.id} chapter={chapter} />
+                </Reveal>
               ))}
             </div>
           )}
-          
+
           <div className="text-center mt-12">
             <Link href="/chapters">
-              <Button className="bg-secondary text-secondary-foreground px-8 py-3 font-semibold hover-glow" data-testid="button-view-all-chapters">
+              <Button className="btn-gold btn-font px-8 py-3 font-semibold hover-glow btn-micro" data-testid="button-view-all-chapters">
                   {t.viewAllChapters || 'Ver todos os capítulos'}
                 </Button>
             </Link>
           </div>
         </div>
-      </section>
+    </section>
       
-      {/* Characters Gallery */}
-      <section id="characters" className="py-20 px-4 bg-muted/30">
+  <SectionDivider />
+
+  {/* Characters Gallery */}
+  </Reveal>
+
+  <Reveal className="w-full">
+  <section id="characters" className="py-20 px-4 bg-muted/30">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="font-display text-3xl md:text-4xl font-bold text-primary mb-4" data-testid="text-characters">
-              {t.characters || 'Personagens'}
+          <div className="text-center mt-12">
+            <h2 className="section-title font-display text-3xl md:text-4xl font-bold text-primary mb-4" data-testid="text-characters">
+              <SectionIcon type="leaf" />{t.characters || 'Personagens'}
             </h2>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
               {t.meetHeroesVillains || 'Conheça heróis, vilões e rostos memoráveis do reino.'}
             </p>
-          </div>
+        </div>
           
           {charactersLoading ? (
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -114,8 +127,10 @@ export default function Home() {
             </div>
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-              {mainCharacters.map((character) => (
-                <CharacterCard key={character.id} character={character} />
+              {mainCharacters.map((character, idx) => (
+                <Reveal key={character.id} delay={idx * 80} className="">
+                  <CharacterCard key={character.id} character={character} />
+                </Reveal>
               ))}
             </div>
           )}
@@ -123,23 +138,25 @@ export default function Home() {
           <div className="text-center mt-12">
             <Link href="/characters">
               <Button 
-                variant="outline"
-                className="border-border text-foreground px-8 py-3 font-semibold hover:bg-muted transition-colors"
+                className="btn-gold btn-font px-8 py-3 font-semibold hover-glow btn-micro"
                 data-testid="button-view-character-profiles"
               >
                 {t.viewCharacterProfiles || 'Ver perfis de personagens'}
               </Button>
             </Link>
           </div>
-        </div>
-      </section>
-      
-      {/* Interactive World Map */}
-      <section id="world" className="py-20 px-4">
+    </div>
+  </section>
+  </Reveal>
+  <SectionDivider />
+
+  {/* Interactive World Map */}
+  <Reveal className="w-full">
+  <section id="world" className="py-20 px-4">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="font-display text-3xl md:text-4xl font-bold text-primary mb-4" data-testid="text-explore-realms">
-              {t.exploreRealms || 'Explore os Reinos'}
+            <h2 className="section-title font-display text-3xl md:text-4xl font-bold text-primary mb-4" data-testid="text-explore-realms">
+              <SectionIcon type="spark" />{t.exploreRealms || 'Explore os Reinos'}
             </h2>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
               {t.discoverVastWorld || 'Descubra o vasto mundo, locais e segredos ocultos.'}
@@ -151,30 +168,56 @@ export default function Home() {
           ) : (
             <WorldMap locations={locations} />
           )}
-        </div>
-      </section>
-      
-      {/* Codex Section */}
-      <section id="codex" className="py-20 px-4 bg-muted/30">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="font-display text-3xl md:text-4xl font-bold text-primary mb-4" data-testid="text-codex">
-              {t.theCodex || 'O Códex'}
-            </h2>
-            
-            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              {t.comprehensiveGuide || 'Um guia completo sobre magia, criaturas e locais.'}
-            </p>
+          <div className="text-center mt-8">
+            <Link href="/world">
+              <Button className="btn-gold btn-font px-8 py-3 font-semibold hover-glow btn-micro" data-testid="button-world">
+                {t.world || 'Mundo'}
+              </Button>
+            </Link>
           </div>
-          
-          <div className="grid lg:grid-cols-3 gap-8">
+        </div>
+  </section>
+  </Reveal>
+      
+  {/* Codex Section */}
+  <Reveal className="w-full">
+  <section id="codex" className="py-20 px-4 bg-muted/30">
+        <div className="max-w-7xl mx-auto codex-wrapper">
+          <div className="codex-bg" aria-hidden>
+            {/* Poster fallback image behind the video (shows if video doesn't load) */}
+            <img src="/uploads/nOVOCOVER-poster.jpg" alt="codex poster" className="codex-poster poster-hidden" />
+            <video autoPlay muted loop playsInline preload="auto" poster="/uploads/nOVOCOVER-poster.jpg" className="hero-like-video" aria-hidden>
+              <source src="/uploads/nOVOCOVER.webm" type="video/webm" />
+              <source src="/uploads/nOVOCOVER.mp4" type="video/mp4" />
+            </video>
+            <div className="codex-bg-overlay" aria-hidden />
+            {/* replicate hero light effects */}
+            <HeroParticles />
+            <Starfield count={24} />
+          </div>
+
+          {/* Animated darkening overlay behind title/subtitle */}
+          <div className="codex-title-overlay" aria-hidden />
+
+          <div className="codex-content relative z-10">
+            <div className="text-center mb-16">
+              <h2 className="section-title font-display text-3xl md:text-4xl font-bold text-primary mb-4" data-testid="text-codex">
+                {t.theCodex || 'O Códex'}
+              </h2>
+              
+              <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+                {t.comprehensiveGuide || 'Um guia completo sobre magia, criaturas e locais.'}
+              </p>
+            </div>
+
+            <div className="grid lg:grid-cols-3 gap-8">
             {/* Magic Systems */}
-            <Card className="bg-card border border-border rounded-lg p-8 hover-glow">
+            <Card className="bg-card border border-border rounded-lg p-6 hover-glow codex-card">
               <div className="text-center mb-6">
                 <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Wand2 className="text-primary text-2xl h-8 w-8" />
                 </div>
-                  <h3 className="font-display text-xl font-semibold text-card-foreground" data-testid="text-magic-systems">
+                  <h3 className="font-display text-lg font-semibold text-card-foreground" data-testid="text-magic-systems">
                     {t.magicSystems || 'Sistemas Mágicos'}
                   </h3>
               </div>
@@ -195,12 +238,12 @@ export default function Home() {
             </Card>
             
             {/* Creatures */}
-            <Card className="bg-card border border-border rounded-lg p-8 hover-glow">
+            <Card className="bg-card border border-border rounded-lg p-6 hover-glow codex-card">
               <div className="text-center mb-6">
                 <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Crown className="text-primary text-2xl h-8 w-8" />
                 </div>
-                <h3 className="font-display text-xl font-semibold text-card-foreground" data-testid="text-creatures-beasts">
+                <h3 className="font-display text-lg font-semibold text-card-foreground" data-testid="text-creatures-beasts">
                   {t.creaturesBeasts || 'Criaturas e Bestas'}
                 </h3>
               </div>
@@ -221,12 +264,12 @@ export default function Home() {
             </Card>
             
             {/* Locations */}
-            <Card className="bg-card border border-border rounded-lg p-8 hover-glow">
+            <Card className="bg-card border border-border rounded-lg p-6 hover-glow codex-card">
               <div className="text-center mb-6">
                 <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
                   <MapPin className="text-primary text-2xl h-8 w-8" />
                 </div>
-                <h3 className="font-display text-xl font-semibold text-card-foreground" data-testid="text-legendary-locations">
+                <h3 className="font-display text-lg font-semibold text-card-foreground" data-testid="text-legendary-locations">
                   {t.legendaryLocations || 'Locais Lendários'}
                 </h3>
               </div>
@@ -247,17 +290,28 @@ export default function Home() {
             </Card>
           </div>
         </div>
-      </section>
+        {/* CTA overlay - positioned over the video */}
+        <div className="codex-cta-over" aria-hidden={false}>
+          <Link href="/codex">
+            <Button className="btn-gold btn-font px-8 py-3 font-semibold hover-glow btn-micro" data-testid="button-codex">
+              {t.theCodex || 'Ver o Códex'}
+            </Button>
+          </Link>
+        </div>
+      </div>
+    </section>
+  </Reveal>
       
-      {/* Blog Section */}
-      <section id="blog" className="py-20 px-4">
+  {/* Blog Section */}
+  <Reveal className="w-full">
+  <section id="blog" className="py-20 px-4">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="font-display text-3xl md:text-4xl font-bold text-primary mb-4" data-testid="text-authors-chronicles">
-              {t.authorsChronicles}
+            <h2 className="section-title font-display text-3xl md:text-4xl font-bold text-primary mb-4" data-testid="text-authors-chronicles">
+              {t.authorsChronicles || 'Crônicas do Autor'}
             </h2>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              {t.behindScenesInsights}
+              {t.behindScenesInsights || 'Bastidores e insights do autor'}
             </p>
           </div>
           
@@ -307,32 +361,44 @@ export default function Home() {
                   </CardContent>
                 </Card>
               )}
-              
+
+            
               {/* Blog Posts List */}
               <div className="space-y-6">
-                {recentBlogPosts.map((post) => (
-                  <Card key={post.id} className="bg-card border border-border rounded-lg p-6 hover-glow">
-                    <div className="flex items-center mb-2">
-                      <span className="bg-primary/20 text-primary px-2 py-1 rounded text-xs font-medium">
-                        {post.category}
-                      </span>
-                      <span className="text-muted-foreground text-sm ml-3">
-                        {timeAgo(post.publishedAt)}
-                      </span>
-                    </div>
-                    <h4 className="font-display text-lg font-semibold text-card-foreground mb-2" data-testid={`text-blog-title-${post.id}`}>
-                      {post.title}
-                    </h4>
-                    <p className="text-muted-foreground text-sm" data-testid={`text-blog-excerpt-${post.id}`}>
-                      {post.excerpt}
-                    </p>
-                  </Card>
+                {recentBlogPosts.map((post, idx) => (
+                  <Reveal key={post.id} delay={idx * 80} className="">
+                    <Card key={post.id} className="bg-card border border-border rounded-lg p-6 hover-glow">
+                      <div className="flex items-center mb-2">
+                        <span className="bg-primary/20 text-primary px-2 py-1 rounded text-xs font-medium">
+                          {post.category}
+                        </span>
+                        <span className="text-muted-foreground text-sm ml-3">
+                          {timeAgo(post.publishedAt)}
+                        </span>
+                      </div>
+                      <h4 className="font-display text-lg font-semibold text-card-foreground mb-2" data-testid={`text-blog-title-${post.id}`}>
+                        {post.title}
+                      </h4>
+                      <p className="text-muted-foreground text-sm" data-testid={`text-blog-excerpt-${post.id}`}>
+                        {post.excerpt}
+                      </p>
+                    </Card>
+                  </Reveal>
                 ))}
               </div>
             </div>
           )}
         </div>
-      </section>
+  </section>
+  </Reveal>
+  {/* Blog CTA (moved under the two blog cards) */}
+  <div className="max-w-7xl mx-auto text-center mt-8">
+    <Link href="/blog">
+      <Button className="btn-gold btn-font px-8 py-3 font-semibold hover-glow btn-micro" data-testid="button-chronicles">
+        {t.processCreation || 'Processo de criação'}
+      </Button>
+    </Link>
+  </div>
       
       <NewsletterSignup />
       <Footer />

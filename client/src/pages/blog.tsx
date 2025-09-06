@@ -138,13 +138,16 @@ export default function Blog() {
                     <p className="text-muted-foreground mb-4" data-testid={`text-blog-excerpt-${post.id}`}>
                       {post.excerpt}
                     </p>
-                    <Button 
-                      variant="ghost"
-                      className="text-primary hover:text-accent transition-colors font-medium p-0"
-                      data-testid={`button-read-blog-${post.id}`}
-                    >
-                      {t.readMore || 'Ler mais'} →
-                    </Button>
+                    <div className="mt-4 flex justify-end">
+                      <Button
+                        variant="default"
+                        className="btn-gold btn-font h-10 px-4"
+                        data-testid={`button-read-blog-${post.id}`}
+                        onClick={() => window.location.href = `/blog/${post.slug}`}
+                      >
+                        {t.readMore || 'Ler mais'} →
+                      </Button>
+                    </div>
                   </CardContent>
                 </Card>
               ))}

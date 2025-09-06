@@ -1,4 +1,5 @@
 ﻿import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import type { Character } from "@shared/schema";
 import { useEffect, useState } from "react";
@@ -10,6 +11,8 @@ interface CharacterCardProps {
 }
 
 export default function CharacterCard({ character }: CharacterCardProps) {
+  const { t } = useLanguage();
+
   const getRoleColor = (role: string) => {
     switch (role) {
       case "protagonist":
@@ -48,6 +51,7 @@ export default function CharacterCard({ character }: CharacterCardProps) {
           <p className="text-muted-foreground text-sm" data-testid={`text-description-${character.id}`}>
             <span dangerouslySetInnerHTML={{ __html: story || '' }} />
           </p>
+          {/* actions intentionally minimal here; click card to open */}
         </CardContent>
       </Card>
     </Link>

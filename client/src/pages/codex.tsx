@@ -85,17 +85,27 @@ export default function Codex() {
       <Navigation />
       
       <main className="pt-24 pb-20 px-4">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h1 className="font-display text-4xl md:text-5xl font-bold text-primary mb-4" data-testid="text-codex-title">
-              {t.codexPageTitle || 'O Códex'}
-            </h1>
-            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              {t.codexPageDesc || 'Navegue por entradas do lore sobre magia, criaturas e locais.'}
-            </p>
+        <div className="max-w-7xl mx-auto codex-wrapper">
+          <div className="codex-bg" aria-hidden>
+            <video autoPlay muted loop playsInline preload="auto" className="hero-like-video" aria-hidden>
+              {/* webm first for better compression/support, fall back to mp4 */}
+              <source src="/uploads/nOVOCOVER.webm" type="video/webm" />
+              <source src="/uploads/nOVOCOVER.mp4" type="video/mp4" />
+            </video>
+            <div className="codex-bg-overlay" aria-hidden />
           </div>
-          
-          <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="w-full">
+
+          <div className="codex-content relative z-10">
+            <div className="text-center mb-16">
+              <h1 className="font-display text-4xl md:text-5xl font-bold text-primary mb-4" data-testid="text-codex-title">
+                {t.codexPageTitle || 'O Códex'}
+              </h1>
+              <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+                {t.codexPageDesc || 'Navegue por entradas do lore sobre magia, criaturas e locais.'}
+              </p>
+            </div>
+
+            <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="w-full">
             <TabsList className="grid w-full max-w-md mx-auto grid-cols-5 mb-12">
                 <TabsTrigger value="magic" className="flex items-center gap-2" data-testid="tab-magic">
                   <Wand2 className="h-4 w-4" />
@@ -142,6 +152,9 @@ export default function Codex() {
                               <p className="text-muted-foreground text-sm" data-testid={`text-entry-description-${index}`}>
                             {item.description}
                             </p>
+                          <div className="mt-4 flex justify-end">
+                            <Button className="btn-gold btn-font h-10 px-4" onClick={() => window.location.href = `/codex/${category}`}>{t.view || 'Ver'}</Button>
+                          </div>
                         </CardContent>
                       </Card>
                     ))
@@ -155,7 +168,8 @@ export default function Codex() {
                             className="w-full h-32 object-cover rounded-t-lg"
                           />
                         )}
-                        <CardContent className="p-6" onClick={() => (window.location.href = `/codex/${entry.id}`)}>
+                        <CardContent className="p-6">
+                          <div onClick={() => (window.location.href = `/codex/${entry.id}`)} className="cursor-pointer">
                           <div className="flex items-center gap-3 mb-4">
                             <div className="w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center">
                               {getCategoryIcon(category)}
@@ -164,6 +178,7 @@ export default function Codex() {
                           <p className="text-muted-foreground text-sm" data-testid={`text-entry-description-${entry.id}`}>
                             {entry.description}
                           </p>
+                          </div>
                         </CardContent>
                       </Card>
                     ))
@@ -172,6 +187,7 @@ export default function Codex() {
               </TabsContent>
             ))}
           </Tabs>
+          </div>
         </div>
       </main>
       

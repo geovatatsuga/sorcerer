@@ -2,6 +2,8 @@ import { ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import { useLanguage } from "@/contexts/LanguageContext";
+import HeroParticles from "@/components/hero-particles";
+import Starfield from "@/components/starfield";
 
 export default function HeroSection() {
   const { t } = useLanguage();
@@ -28,7 +30,7 @@ export default function HeroSection() {
       </video>
 
   {/* Dark overlay so the title remains readable (increased by ~15% overall) */}
-    <div className="absolute inset-0" style={{ backgroundColor: 'rgba(0,0,0,0.85)' }} />
+  <div className="absolute inset-0" style={{ backgroundColor: 'rgba(0,0,0,0.70)' }} />
       
       <div className="relative z-10 text-center max-w-4xl mx-auto px-4">
         <h1 className="font-display text-4xl md:text-6xl lg:text-7xl font-bold text-primary text-shadow-gold mb-6">
@@ -38,10 +40,10 @@ export default function HeroSection() {
         <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-8 leading-relaxed">
           {t.heroSubtitle}
         </p>
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+    <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Button
             asChild
-            className="bg-yellow-500 hover:bg-yellow-600 text-black px-8 py-3 font-semibold shadow hover-glow"
+            className="btn-gold px-8 py-3 font-semibold shadow hover-glow btn-font"
             data-testid="button-start-reading"
           >
             <Link href="/chapters">{t.startReading || 'Começar a ler'}</Link>
@@ -49,13 +51,15 @@ export default function HeroSection() {
 
           <Button
             asChild
-            className="bg-gray-800 hover:bg-gray-700 text-white px-8 py-3 font-semibold transition-colors"
+            className="btn-gold-alt px-8 py-3 font-semibold transition-colors btn-font"
             data-testid="button-explore-world"
           >
             <Link href="/world">{t.exploreWorld || 'Explorar o mundo'}</Link>
           </Button>
         </div>
       </div>
+  <HeroParticles />
+  <Starfield count={36} />
       
       <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 floating">
         <ChevronDown className="text-primary text-2xl h-8 w-8" />

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
+import ParallaxLayer from "@/components/parallax-layer";
 import type { Location } from "@shared/schema";
 
 interface WorldMapProps {
@@ -27,11 +28,13 @@ export default function WorldMap({ locations }: WorldMapProps) {
   return (
     <Card className="bg-card border border-border rounded-xl overflow-hidden">
       <div className="relative h-96 md:h-[500px]">
-        <img 
-          src="https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&h=600"
-          alt="Fantasy world map"
-          className="w-full h-full object-cover"
-        />
+        <ParallaxLayer depth={0.3} className="absolute inset-0">
+          <img 
+            src="https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&h=600"
+            alt="Fantasy world map"
+            className="w-full h-full object-cover"
+          />
+        </ParallaxLayer>
         
         <div className="absolute inset-0">
           {locations.map((location) => (
@@ -69,7 +72,8 @@ export default function WorldMap({ locations }: WorldMapProps) {
       </div>
       
       <CardContent className="p-6 bg-muted/50">
-        <div className="grid md:grid-cols-3 gap-6">
+        <ParallaxLayer depth={0.6} className="w-full">
+          <div className="grid md:grid-cols-3 gap-6">
           <div className="text-center">
             <h4 className="font-display text-lg font-semibold text-card-foreground mb-2" data-testid="text-kingdoms-count">
               7 Kingdoms
@@ -88,7 +92,8 @@ export default function WorldMap({ locations }: WorldMapProps) {
             </h4>
             <p className="text-muted-foreground text-sm">Hidden dimensions accessible through portals</p>
           </div>
-        </div>
+          </div>
+        </ParallaxLayer>
       </CardContent>
     </Card>
   );

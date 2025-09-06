@@ -56,7 +56,7 @@ export default function ChapterCard({ chapter }: ChapterCardProps) {
           <p className="text-muted-foreground text-sm mb-4" data-testid={`text-excerpt-${chapter.slug}`}>
           <span dangerouslySetInnerHTML={{ __html: chapter.excerpt || '' }} />
         </p>
-        <div className="flex justify-between items-center">
+          <div className="flex justify-between items-center">
           <div className="flex items-center text-xs text-muted-foreground">
             <Clock className="h-3 w-3 mr-1" />
             <span data-testid={`text-reading-time-${chapter.slug}`}>

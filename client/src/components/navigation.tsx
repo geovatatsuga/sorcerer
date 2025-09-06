@@ -63,8 +63,8 @@ export default function Navigation() {
             </Link>
           </div>
           
-          <div className="hidden md:block">
-            <div className="ml-10 flex items-baseline space-x-8">
+          <div className="hidden md:flex flex-1 justify-center">
+            <div className="flex items-baseline space-x-8">
               {navigationItems.map((item) => {
                 const displayName = item.name ?? "";
                 const safeId = displayName
@@ -75,11 +75,13 @@ export default function Navigation() {
                     key={item.href}
                     href={item.href}
                     data-testid={safeId}
-                    className={`font-medium transition-colors duration-200 ${
+                    className={`nav-link font-medium transition-colors duration-200 ${
                       location === item.href
                         ? "text-primary"
                         : "text-foreground hover:text-primary"
                     }`}
+                    aria-current={location === item.href ? 'page' : undefined}
+                    data-active={location === item.href ? 'true' : 'false'}
                     onClick={() => {
                       // Debug log and SPA navigation; fallback to hard reload if it doesn't change the path
                       try {
@@ -112,14 +114,17 @@ export default function Navigation() {
                 <Link
                   href="/admin"
                   data-testid="link-admin"
-                  className={`font-medium transition-colors duration-200 ${
+                  aria-label="Admin"
+                  className={`nav-link font-medium transition-colors duration-200 ${
                     location === "/admin"
                       ? "text-primary"
                       : "text-foreground hover:text-primary"
                   }`}
+                  aria-current={location === '/admin' ? 'page' : undefined}
+                  data-active={location === '/admin' ? 'true' : 'false'}
                 >
-                  <Settings className="h-4 w-4 inline mr-1" />
-                  Admin
+                  <Settings className="h-4 w-4 inline" />
+                  <span className="sr-only">Admin</span>
                 </Link>
               )}
               
@@ -129,7 +134,7 @@ export default function Navigation() {
               {!isDevLocal && (
                 <button
                   type="button"
-                  className="ml-4 px-3 py-1 rounded-md text-sm font-medium border border-border text-foreground hover:bg-muted"
+                  className="ml-4 px-3 py-1 rounded-md text-sm font-medium border border-border text-foreground hover:bg-muted btn-font"
                   onClick={() => {
                     try { localStorage.setItem('devAdmin', 'true'); } catch (e) {}
                     window.location.reload();
@@ -165,17 +170,17 @@ export default function Navigation() {
                         <DropdownMenuSeparator />
                       </>
                     )}
-                    {isAdmin && (
-                      <>
-                        <DropdownMenuItem asChild>
-                          <Link href="/admin" className="cursor-pointer w-full">
-                            <Settings className="h-4 w-4 mr-2" />
-                            Admin Panel
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                      </>
-                    )}
+                          {isAdmin && (
+                            <>
+                              <DropdownMenuItem asChild>
+                                <Link href="/admin" className="cursor-pointer w-full">
+                                  <Settings className="h-4 w-4 mr-2" />
+                                  Admin Panel
+                                </Link>
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                            </>
+                          )}
                     <DropdownMenuItem asChild>
                       <a href="/api/logout" className="cursor-pointer w-full">
                         <LogOut className="h-4 w-4 mr-2" />
@@ -205,6 +210,7 @@ export default function Navigation() {
                       // Fallback to server OIDC login
                       window.location.href = '/api/login';
                     }}
+                    className="btn-gold btn-font px-3 py-1 rounded-md"
                   >
                     <LogIn className="h-4 w-4 mr-1" />
                     Entrar
@@ -247,7 +253,7 @@ export default function Navigation() {
                   key={item.href}
                   href={item.href}
                   data-testid={safeId}
-                  className={`block px-3 py-2 rounded-md font-medium transition-colors ${
+                  className={`nav-link block px-3 py-2 rounded-md font-medium transition-colors ${
                     location === item.href
                       ? "text-primary bg-primary/10"
                       : "text-foreground hover:text-primary hover:bg-muted"
@@ -264,15 +270,16 @@ export default function Navigation() {
               <Link
                 href="/admin"
                 data-testid="mobile-link-admin"
-                className={`flex items-center px-3 py-2 rounded-md font-medium transition-colors ${
+                aria-label="Admin"
+                className={`nav-link flex items-center px-3 py-2 rounded-md font-medium transition-colors ${
                   location === "/admin"
                     ? "text-primary bg-primary/10"
                     : "text-foreground hover:text-primary hover:bg-muted"
                 }`}
                 onClick={() => setMobileMenuOpen(false)}
               >
-                <Settings className="h-4 w-4 mr-2" />
-                Admin
+                <Settings className="h-4 w-4" />
+                <span className="sr-only">Admin</span>
               </Link>
             )}
             
@@ -286,7 +293,7 @@ export default function Navigation() {
                   {isDevLocal && (
                     <a
                       onClick={() => { try { localStorage.removeItem('devAdmin'); } catch(e) {} ; window.location.reload(); }}
-                      className="flex items-center px-3 py-2 rounded-md font-medium transition-colors text-foreground hover:text-primary hover:bg-muted cursor-pointer"
+                      className="nav-link flex items-center px-3 py-2 rounded-md font-medium transition-colors text-foreground hover:text-primary hover:bg-muted cursor-pointer"
                     >
                       Sair do modo dev
                     </a>
@@ -301,7 +308,7 @@ export default function Navigation() {
                   )}
                   <a
                     href="/api/logout"
-                    className="flex items-center px-3 py-2 rounded-md font-medium transition-colors text-foreground hover:text-primary hover:bg-muted"
+                    className="nav-link flex items-center px-3 py-2 rounded-md font-medium transition-colors text-foreground hover:text-primary hover:bg-muted"
                     data-testid="mobile-button-logout"
                   >
                     <LogOut className="h-4 w-4 mr-2" />

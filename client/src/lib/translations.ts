@@ -114,6 +114,13 @@ const pt: Translations = {
   delete: 'Excluir',
   save: 'Salvar',
   cancel: 'Cancelar',
+  // Newsletter
+  joinTheJourney: 'Junte-se à jornada',
+  joinTheJourneyDesc: 'Assine para receber notificações quando novos capítulos forem publicados e conteúdo exclusivo dos bastidores.',
+  enterYourEmail: 'Digite seu e-mail',
+  subscribe: 'Inscrever-se',
+  subscribing: 'Inscrevendo...',
+  noSpam: 'Sem spam, apenas conteúdo épico de fantasia.',
 };
 
 const en: Translations = {
@@ -219,6 +226,13 @@ const en: Translations = {
   delete: 'Delete',
   save: 'Save',
   cancel: 'Cancel',
+  // Newsletter
+  joinTheJourney: 'Join the Journey',
+  joinTheJourneyDesc: 'Subscribe to receive notifications when new chapters are published and exclusive behind-the-scenes content.',
+  enterYourEmail: 'Enter your email',
+  subscribe: 'Subscribe',
+  subscribing: 'Subscribing...',
+  noSpam: 'No spam, just epic fantasy content.',
 };
 
 const es: Translations = {
@@ -324,6 +338,13 @@ const es: Translations = {
   delete: 'Eliminar',
   save: 'Guardar',
   cancel: 'Cancelar',
+  // Newsletter
+  joinTheJourney: 'Únete a la travesía',
+  joinTheJourneyDesc: 'Suscríbete para recibir notificaciones cuando se publiquen nuevos capítulos y contenido exclusivo entre bastidores.',
+  enterYourEmail: 'Introduce tu correo electrónico',
+  subscribe: 'Suscribirse',
+  subscribing: 'Suscribiendo...',
+  noSpam: 'Sin spam, solo contenido épico de fantasía.',
 };
 
 export const translations: Record<Language, Translations> = { pt, en, es };

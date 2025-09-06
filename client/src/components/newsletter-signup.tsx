@@ -4,8 +4,10 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function NewsletterSignup() {
+  const { t } = useLanguage();
   const [email, setEmail] = useState("");
   const { toast } = useToast();
 
@@ -48,15 +50,15 @@ export default function NewsletterSignup() {
       <div className="max-w-4xl mx-auto text-center">
         <div className="bg-gradient-to-r from-secondary/20 to-accent/20 border border-border rounded-xl p-12">
           <h2 className="font-display text-3xl font-bold text-primary mb-4" data-testid="text-newsletter-title">
-            Join the Journey
+            {t.joinTheJourney || 'Junte-se à jornada'}
           </h2>
           <p className="text-muted-foreground text-lg mb-8 max-w-2xl mx-auto">
-            Subscribe to receive notifications when new chapters are published and exclusive behind-the-scenes content.
+            {t.joinTheJourneyDesc || 'Assine para receber notificações quando novos capítulos forem publicados e conteúdo exclusivo dos bastidores.'}
           </p>
           <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
             <Input
               type="email"
-              placeholder="Enter your email"
+              placeholder={t.enterYourEmail || 'Digite seu e-mail'}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="flex-1 bg-input border-border text-foreground placeholder:text-muted-foreground"
@@ -68,10 +70,10 @@ export default function NewsletterSignup() {
               disabled={subscribeToNewsletter.isPending}
               data-testid="button-subscribe"
             >
-              {subscribeToNewsletter.isPending ? "Subscribing..." : "Subscribe"}
+              {subscribeToNewsletter.isPending ? (t.subscribing || 'Subscribing...') : (t.subscribe || 'Subscribe')}
             </Button>
           </form>
-          <p className="text-muted-foreground text-sm mt-4">No spam, just epic fantasy content.</p>
+          <p className="text-muted-foreground text-sm mt-4">{t.noSpam || 'Sem spam, apenas conteúdo épico de fantasia.'}</p>
         </div>
       </div>
     </section>
