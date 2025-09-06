@@ -1,31 +1,33 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, timestamp, integer, boolean, index, jsonb } from "drizzle-orm/pg-core";
+import { sqliteTable, text, integer, index } from "drizzle-orm/sqlite-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-export const chapters = pgTable("chapters", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+export const chapters = sqliteTable("chapters", {
+  id: text("id").primaryKey(),
   title: text("title").notNull(),
   slug: text("slug").notNull().unique(),
   content: text("content").notNull(),
   excerpt: text("excerpt").notNull(),
   chapterNumber: integer("chapter_number").notNull(),
   readingTime: integer("reading_time").notNull(), // in minutes
-  publishedAt: timestamp("published_at").notNull(),
+  publishedAt: text("published_at").notNull(),
   imageUrl: text("image_url"),
 });
 
-export const characters = pgTable("characters", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+export const characters = sqliteTable("characters", {
+  id: text("id").primaryKey(),
   name: text("name").notNull(),
   title: text("title").notNull(),
   description: text("description").notNull(),
+  story: text("story"),
+  slug: text("slug").notNull().unique(),
   imageUrl: text("image_url"),
   role: text("role").notNull(), // protagonist, antagonist, supporting
 });
 
-export const locations = pgTable("locations", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+export const locations = sqliteTable("locations", {
+  id: text("id").primaryKey(),
   name: text("name").notNull(),
   description: text("description").notNull(),
   mapX: integer("map_x").notNull(), // x coordinate on map (percentage)
@@ -33,57 +35,57 @@ export const locations = pgTable("locations", {
   type: text("type").notNull(), // kingdom, forest, ruins, etc.
 });
 
-export const codexEntries = pgTable("codex_entries", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+export const codexEntries = sqliteTable("codex_entries", {
+  id: text("id").primaryKey(),
   title: text("title").notNull(),
   description: text("description").notNull(),
   category: text("category").notNull(), // magic, creatures, locations
   imageUrl: text("image_url"),
 });
 
-export const blogPosts = pgTable("blog_posts", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+export const blogPosts = sqliteTable("blog_posts", {
+  id: text("id").primaryKey(),
   title: text("title").notNull(),
   slug: text("slug").notNull().unique(),
   content: text("content").notNull(),
   excerpt: text("excerpt").notNull(),
   category: text("category").notNull(), // update, world-building, behind-scenes, research
-  publishedAt: timestamp("published_at").notNull(),
+  publishedAt: text("published_at").notNull(),
   imageUrl: text("image_url"),
 });
 
-export const readingProgress = pgTable("reading_progress", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  chapterId: varchar("chapter_id").notNull().references(() => chapters.id),
-  sessionId: varchar("session_id").notNull(), // browser session
+export const readingProgress = sqliteTable("reading_progress", {
+  id: text("id").primaryKey().default(sql`gen_random_uuid()`),
+  chapterId: text("chapter_id").notNull().references(() => chapters.id),
+  sessionId: text("session_id").notNull(), // browser session
   progress: integer("progress").notNull().default(0), // percentage read
-  lastReadAt: timestamp("last_read_at").notNull(),
+  lastReadAt: text("last_read_at").notNull(),
 });
 
 // Insert schemas
-export const insertChapterSchema = createInsertSchema(chapters).omit({
+export const insertChapterSchema = ((createInsertSchema(chapters) as any).omit({
   id: true,
-});
+}) as any);
 
-export const insertCharacterSchema = createInsertSchema(characters).omit({
+export const insertCharacterSchema = ((createInsertSchema(characters) as any).omit({
   id: true,
-});
+}) as any);
 
-export const insertLocationSchema = createInsertSchema(locations).omit({
+export const insertLocationSchema = ((createInsertSchema(locations) as any).omit({
   id: true,
-});
+}) as any);
 
-export const insertCodexEntrySchema = createInsertSchema(codexEntries).omit({
+export const insertCodexEntrySchema = ((createInsertSchema(codexEntries) as any).omit({
   id: true,
-});
+}) as any);
 
-export const insertBlogPostSchema = createInsertSchema(blogPosts).omit({
+export const insertBlogPostSchema = ((createInsertSchema(blogPosts) as any).omit({
   id: true,
-});
+}) as any);
 
-export const insertReadingProgressSchema = createInsertSchema(readingProgress).omit({
+export const insertReadingProgressSchema = ((createInsertSchema(readingProgress) as any).omit({
   id: true,
-});
+}) as any);
 
 // Types
 export type Chapter = typeof chapters.$inferSelect;
@@ -106,27 +108,27 @@ export type InsertReadingProgress = z.infer<typeof insertReadingProgressSchema>;
 
 // Session storage table.
 // (IMPORTANT) This table is mandatory for Replit Auth, don't drop it.
-export const sessions = pgTable(
+export const sessions = sqliteTable(
   "sessions",
   {
-    sid: varchar("sid").primaryKey(),
-    sess: jsonb("sess").notNull(),
-    expire: timestamp("expire").notNull(),
+    sid: text("sid").primaryKey(),
+    sess: text("sess").notNull(),
+    expire: text("expire").notNull(),
   },
   (table) => [index("IDX_session_expire").on(table.expire)],
 );
 
 // User storage table.
 // (IMPORTANT) This table is mandatory for Replit Auth, don't drop it.
-export const users = pgTable("users", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  email: varchar("email").unique(),
-  firstName: varchar("first_name"),
-  lastName: varchar("last_name"),
-  profileImageUrl: varchar("profile_image_url"),
-  isAdmin: boolean("is_admin").default(false),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
+export const users = sqliteTable("users", {
+  id: text("id").primaryKey().default(sql`gen_random_uuid()`),
+  email: text("email").unique(),
+  firstName: text("first_name"),
+  lastName: text("last_name"),
+  profileImageUrl: text("profile_image_url"),
+  isAdmin: integer("is_admin").default(0),
+  createdAt: text("created_at"),
+  updatedAt: text("updated_at"),
 });
 
 export type UpsertUser = typeof users.$inferInsert;

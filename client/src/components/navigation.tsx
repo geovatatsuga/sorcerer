@@ -11,18 +11,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/hooks/useAuth";
-import type { Language } from "@/lib/translations";
-
-const languages: { code: Language; name: string; flag: string }[] = [
-  { code: 'pt', name: 'Português', flag: '🇧🇷' },
-  { code: 'en', name: 'English', flag: '🇺🇸' },
-  { code: 'es', name: 'Español', flag: '🇪🇸' },
-];
 
 export default function Navigation() {
   const [location] = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { language, setLanguage, t } = useLanguage();
+  const { t } = useLanguage();
   const { user, isAuthenticated, isAdmin } = useAuth();
   
   const navigationItems = [
@@ -102,32 +95,7 @@ export default function Navigation() {
                 </Link>
               )}
               
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    className="text-foreground hover:text-primary transition-colors"
-                    data-testid="button-language-selector"
-                  >
-                    <Globe className="h-4 w-4 mr-1" />
-                    {languages.find(l => l.code === language)?.flag}
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  {languages.map((lang) => (
-                    <DropdownMenuItem
-                      key={lang.code}
-                      onClick={() => setLanguage(lang.code)}
-                      className={`cursor-pointer ${language === lang.code ? 'bg-muted' : ''}`}
-                      data-testid={`language-option-${lang.code}`}
-                    >
-                      <span className="mr-2">{lang.flag}</span>
-                      {lang.name}
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
+              {/* Single-language app: Portuguese only. Language selector removed. */}
               
               {/* Authentication */}
               {isAuthenticated ? (
@@ -193,33 +161,11 @@ export default function Navigation() {
           </div>
           
           <div className="flex items-center space-x-2">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  className="md:hidden text-foreground hover:text-primary transition-colors"
-                  data-testid="button-mobile-language-selector"
-                >
-                  <Globe className="h-4 w-4 mr-1" />
-                  {languages.find(l => l.code === language)?.flag}
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                {languages.map((lang) => (
-                  <DropdownMenuItem
-                    key={lang.code}
-                    onClick={() => setLanguage(lang.code)}
-                    className={`cursor-pointer ${language === lang.code ? 'bg-muted' : ''}`}
-                    data-testid={`mobile-language-option-${lang.code}`}
-                  >
-                    <span className="mr-2">{lang.flag}</span>
-                    {lang.name}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-            
+            {/* Single-language app: show static Portuguese flag */}
+            <div className="hidden md:flex items-center" aria-hidden>
+              <span className="text-lg">🇧🇷</span>
+            </div>
+
             <Button
               variant="ghost"
               size="icon"

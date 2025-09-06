@@ -113,7 +113,7 @@ export default function Blog() {
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
               {filteredPosts.map((post) => (
-                <Card key={post.id} className="bg-card border border-border rounded-lg overflow-hidden hover-glow">
+                <Card key={post.id} className="bg-card border border-border rounded-lg overflow-hidden hover-glow cursor-pointer transition-transform hover:scale-105">
                   {post.imageUrl && (
                     <img 
                       src={post.imageUrl} 
@@ -121,7 +121,7 @@ export default function Blog() {
                       className="w-full h-48 object-cover"
                     />
                   )}
-                  <CardContent className="p-6">
+                  <CardContent className="p-6" onClick={() => window.location.href = `/blog/${post.slug}`}>
                     <div className="flex items-center mb-3">
                       <span className={`px-3 py-1 rounded-full text-sm font-medium ${getCategoryColor(post.category)}`}>
                         {post.category === "behind-scenes" ? "Behind Scenes" : post.category}

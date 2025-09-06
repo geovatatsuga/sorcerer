@@ -117,7 +117,7 @@ export default function Codex() {
                     ))
                   ) : (
                     categorizedEntries[category as keyof typeof categorizedEntries].map((entry) => (
-                      <Card key={entry.id} className="bg-card border border-border rounded-lg hover-glow">
+                      <Card key={entry.id} className="bg-card border border-border rounded-lg hover-glow cursor-pointer transition-transform hover:scale-105">
                         {entry.imageUrl && (
                           <img 
                             src={entry.imageUrl} 
@@ -125,7 +125,7 @@ export default function Codex() {
                             className="w-full h-32 object-cover rounded-t-lg"
                           />
                         )}
-                        <CardContent className="p-6">
+                        <CardContent className="p-6" onClick={() => window.location.href = `/codex/${entry.id}`}>
                           <div className="flex items-center gap-3 mb-4">
                             <div className="w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center">
                               {getCategoryIcon(category)}

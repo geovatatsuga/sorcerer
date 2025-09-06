@@ -5,12 +5,14 @@ import Footer from "@/components/footer";
 import { Card, CardContent } from "@/components/ui/card";
 import type { Location } from "@shared/schema";
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useLocation } from 'wouter';
 
 export default function World() {
   const { data: locations = [], isLoading } = useQuery<Location[]>({
     queryKey: ['/api/locations'],
   });
   const { t } = useLanguage();
+  const [, setLocation] = useLocation();
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -52,8 +54,8 @@ export default function World() {
               </div>
             ) : (
               locations.map((location) => (
-                <Card key={location.id} className="bg-card border border-border rounded-lg hover-glow">
-                  <CardContent className="p-6">
+                <Card key={location.id} className="bg-card border border-border rounded-lg hover-glow cursor-pointer transition-transform hover:scale-105">
+                  <CardContent className="p-6" onClick={() => setLocation(`/world/${location.id}`)}>
                     <h3 className="font-display text-xl font-semibold text-card-foreground mb-3" data-testid={`text-location-name-${location.id}`}>
                       {location.name}
                     </h3>
@@ -61,7 +63,7 @@ export default function World() {
                       {location.type}
                     </div>
                     <p className="text-muted-foreground text-sm" data-testid={`text-location-description-${location.id}`}>
-                      {location.description}
+                      <span dangerouslySetInnerHTML={{ __html: location.description ?? '' }} />
                     </p>
                   </CardContent>
                 </Card>

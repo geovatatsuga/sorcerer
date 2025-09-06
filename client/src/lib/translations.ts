@@ -24,6 +24,7 @@ const pt: Translations = {
 
   characterGallery: 'Galeria de Personagens',
   characterGalleryDesc: 'Conheça heróis, vilões e figuras secundárias do mundo.',
+  meetHeroesVillains: 'Conheça os heróis e vilões que moldam o destino dos reinos.',
   viewCharacterProfiles: 'Ver Perfis de Personagens',
 
   exploreRealms: 'Explorar Reinos',
@@ -38,6 +39,9 @@ const pt: Translations = {
   oneWeekAgo: '1 semana atrás',
   twoWeeksAgo: '2 semanas atrás',
   threeWeeksAgo: '3 semanas atrás',
+  // Chapter card labels
+  chapterLabel: 'Capítulo',
+  minRead: 'min',
 
   // Chapters page
   allChapters: 'Todos os Capítulos',
@@ -122,6 +126,7 @@ const en: Translations = {
 
   characterGallery: 'Character Gallery',
   characterGalleryDesc: 'Meet the heroes, villains and supporting cast of the world.',
+  meetHeroesVillains: 'Meet the heroes and villains who shape the destiny of the realms.',
   viewCharacterProfiles: 'View Character Profiles',
 
   exploreRealms: 'Explore Realms',
@@ -136,6 +141,9 @@ const en: Translations = {
   oneWeekAgo: '1 week ago',
   twoWeeksAgo: '2 weeks ago',
   threeWeeksAgo: '3 weeks ago',
+  // Chapter card labels
+  chapterLabel: 'Chapter',
+  minRead: 'min read',
 
   // Chapters page
   allChapters: 'All Chapters',
@@ -216,10 +224,11 @@ const es: Translations = {
   // Home / Sections
   latestChapters: 'Últimos Capítulos',
   followEpicJourney: 'Sigue la épica travesía del protagonista a través de capítulos emocionantes.',
-  viewAllChapters: 'Ver Todos los Capítulos',
+  viewAllChapters: 'Ver Todos os Capítulos',
 
   characterGallery: 'Galería de Personajes',
   characterGalleryDesc: 'Conoce a héroes, villanos y personajes secundarios del mundo.',
+  meetHeroesVillains: 'Conoce a los héroes y villanos que dan forma al destino de los reinos.',
   viewCharacterProfiles: 'Ver Perfiles de Personajes',
 
   exploreRealms: 'Explorar Reinos',
@@ -234,6 +243,9 @@ const es: Translations = {
   oneWeekAgo: '1 semana atrás',
   twoWeeksAgo: '2 semanas atrás',
   threeWeeksAgo: '3 semanas atrás',
+  // Chapter card labels
+  chapterLabel: 'Capítulo',
+  minRead: 'min',
 
   // Chapters page
   allChapters: 'Todos los Capítulos',
@@ -241,7 +253,7 @@ const es: Translations = {
   searchChapters: 'Buscar capítulos...',
   noChapters: 'Aún no hay capítulos disponíveis.',
   noChaptersFound: 'No se encontraron capítulos para su búsqueda.',
-  adjustSearchTerms: 'Intenta ajustar tus términos de búsqueda.',
+  adjustSearchTerms: 'Intenta ajustar tus termos de busca.',
   chaptersWillAppear: 'Los capítulos aparecerán aquí a medida que se publiquen.',
 
   // Characters
@@ -252,14 +264,14 @@ const es: Translations = {
   // Codex
   magicSystems: 'Sistemas de Magia',
   elementalMagic: 'Magia Elemental',
-  elementalMagicDesc: 'Dominio sobre los elementos naturales.',
+  elementalMagicDesc: 'Dominio sobre los elementos naturais.',
   shadowWeaving: 'Trenzado de Sombras',
-  shadowWeavingDesc: 'Magia que manipula sombras y esencia.',
-  divineChanneling: 'Canalización Divina',
+  shadowWeavingDesc: 'Magia que manipula sombras e essência.',
+  divineChanneling: 'Canalização Divina',
   divineChannelingDesc: 'Poderes concedidos por entidades divinas.',
   creaturesBeasts: 'Criaturas y Bestias',
   skyfireDragons: 'Dragones de Fuego Celeste',
-  skyfireDragonsDesc: 'Dragones que dominan llamas etéreas.',
+  skyfireDragonsDesc: 'Dragones que dominam llamas etéreas.',
   shadowWraiths: 'Espectros Sombríos',
   shadowWraithsDesc: 'Entidades formadas por la oscuridad.',
   crystalSprites: 'Duendecillos de Cristal',
@@ -268,15 +280,15 @@ const es: Translations = {
   sunspireTower: 'Torre del Sol',
   sunspireTowerDesc: 'Una torre que toca los cielos.',
   nethermoorCaverns: 'Cavernas de Nethermoor',
-  nethermoorCavernsDesc: 'Cavernas profundas llenas de misterio.',
+  nethermoorCavernsDesc: 'Cavernas profundas llenas de mistério.',
   eternalForge: 'Forja Eterna',
-  eternalForgeDesc: 'Forja donde se forjan artefactos eternos.',
+  eternalForgeDesc: 'Forja onde se forjam artefatos eternos.',
 
   // Blog
   authorsChronicles: 'Crónicas del Autor',
   behindScenesInsights: 'Detrás de cámaras y perspectivas del autor',
   blogTitle: 'Crónicas del Autor',
-  blogDesc: 'Perspectivas entre bastidores y actualizaciones del autor',
+  blogDesc: 'Perspectivas entre bastidores y atualizações del autor',
   searchBlog: 'Buscar en el blog...',
   all: 'Todos',
   behindScenes: 'Detrás de cámaras',
@@ -291,7 +303,7 @@ const es: Translations = {
   readMore: 'Leer más',
   admin: 'Admin',
   adminPanel: 'Panel de Admin',
-  addNew: 'Agregar Nuevo',
+  addNew: 'Agregar Novo',
   edit: 'Editar',
   delete: 'Eliminar',
   save: 'Guardar',

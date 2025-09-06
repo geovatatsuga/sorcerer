@@ -9,7 +9,7 @@ import {
   chapters, characters, locations, codexEntries, blogPosts, readingProgress, users
 } from "@shared/schema";
 import { db } from "./db";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import fs from 'fs';
 import path from 'path';
 import { randomUUID } from "crypto";
@@ -32,6 +32,7 @@ export interface IStorage {
   // Character operations
   getCharacters(): Promise<Character[]>;
   getCharacterById(id: string): Promise<Character | undefined>;
+  getCharacterBySlug(slug: string): Promise<Character | undefined>;
   createCharacter(character: InsertCharacter): Promise<Character>;
   updateCharacter(id: string, character: Partial<InsertCharacter>): Promise<Character | undefined>;
   deleteCharacter(id: string): Promise<boolean>;
@@ -69,6 +70,31 @@ export class DatabaseStorage implements IStorage {
     this.seedData();
   }
 
+  // Helper: create a filesystem-safe, url-friendly slug
+  private slugify(input?: string) {
+    const s = (input || "").toString().trim().toLowerCase();
+    // remove diacritics
+    const normalized = s.normalize ? s.normalize('NFD').replace(/[\u0300-\u036f]/g, '') : s;
+    return normalized.replace(/[^a-z0-9]+/g, '-').replace(/^[-]+|[-]+$/g, '');
+  }
+
+  // Ensure the slug is unique in `characters`. If `ignoreId` is provided, that row is excluded
+  private async ensureUniqueCharacterSlug(desiredSlug: string, ignoreId?: string) {
+    let base = this.slugify(desiredSlug) || this.slugify(desiredSlug) || 'char';
+    let slug = base;
+    let i = 0;
+    // loop until we find a slug that isn't taken
+    while (true) {
+      const rows: any[] = await db.select().from(characters).where(eq(characters.slug, slug));
+      const existing = rows.find((r) => (ignoreId ? r.id !== ignoreId : true));
+      if (!existing) return slug;
+      i += 1;
+      slug = `${base}-${i}`;
+      // safety: avoid infinite loops
+      if (i > 50) return `${base}-${Date.now()}`;
+    }
+  }
+
   // User operations
   // (IMPORTANT) these user operations are mandatory for Replit Auth.
   async getUser(id: string): Promise<User | undefined> {
@@ -84,7 +110,7 @@ export class DatabaseStorage implements IStorage {
         target: users.id,
         set: {
           ...userData,
-          updatedAt: new Date(),
+          updatedAt: new Date().toISOString(),
         },
       })
       .returning();
@@ -107,17 +133,40 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createChapter(chapter: InsertChapter): Promise<Chapter> {
-    const [newChapter] = await db.insert(chapters).values(chapter).returning();
-    return newChapter;
+    // Ensure we have an id so we can reliably read back the inserted row
+    const payload: any = { ...chapter };
+    if (!payload.id) payload.id = randomUUID();
+
+    try {
+      const [newChapter] = await db.insert(chapters).values(payload).returning();
+      if (newChapter) return newChapter;
+    } catch (e) {
+      // Some drivers/adapters (or SQLite builds) may not support returning();
+      // fallthrough to SELECT-based fallback below.
+      console.warn('Insert returning not supported or failed for chapters, falling back to SELECT:', e);
+    }
+
+    // Fallback: select by id
+    const [f] = await db.select().from(chapters).where(eq(chapters.id, payload.id));
+    if (f) return f;
+    // As a last resort, return the payload (best-effort)
+    return payload as Chapter;
   }
 
   async updateChapter(id: string, chapter: Partial<InsertChapter>): Promise<Chapter | undefined> {
-    const [updatedChapter] = await db
-      .update(chapters)
-      .set(chapter)
-      .where(eq(chapters.id, id))
-      .returning();
-    return updatedChapter;
+    try {
+      const [updatedChapter] = await db
+        .update(chapters)
+        .set(chapter)
+        .where(eq(chapters.id, id))
+        .returning();
+      if (updatedChapter) return updatedChapter;
+    } catch (e) {
+      console.warn('Update returning not supported or failed for chapters, falling back to SELECT:', e);
+    }
+
+    const [f] = await db.select().from(chapters).where(eq(chapters.id, id));
+    return f;
   }
 
   async deleteChapter(id: string): Promise<boolean> {
@@ -135,18 +184,55 @@ export class DatabaseStorage implements IStorage {
     return character;
   }
 
+  async getCharacterBySlug(slug: string): Promise<Character | undefined> {
+    const [character] = await db.select().from(characters).where(eq(characters.slug, slug));
+    return character;
+  }
+
   async createCharacter(character: InsertCharacter): Promise<Character> {
-    const [newCharacter] = await db.insert(characters).values(character).returning();
-    return newCharacter;
+    const payload: any = { ...character };
+    if (!payload.id) payload.id = randomUUID();
+    // Ensure slug exists and is unique
+    try {
+      payload.slug = await this.ensureUniqueCharacterSlug(payload.slug || payload.name || payload.id);
+    } catch (e) {
+      // best-effort: fallback to slugify
+      payload.slug = this.slugify(payload.slug || payload.name || payload.id);
+    }
+    try {
+      const [newCharacter] = await db.insert(characters).values(payload).returning();
+      if (newCharacter) return newCharacter;
+    } catch (e) {
+      console.warn('Insert returning not supported or failed for characters, falling back to SELECT:', e);
+    }
+    const [f] = await db.select().from(characters).where(eq(characters.id, payload.id));
+    if (f) return f;
+    return payload as Character;
   }
 
   async updateCharacter(id: string, character: Partial<InsertCharacter>): Promise<Character | undefined> {
-    const [updatedCharacter] = await db
-      .update(characters)
-      .set(character)
-      .where(eq(characters.id, id))
-      .returning();
-    return updatedCharacter;
+    // If slug provided (or name changed), ensure uniqueness ignoring this id
+    const toUpdate: any = { ...character };
+    if (toUpdate.slug || toUpdate.name) {
+      try {
+        toUpdate.slug = await this.ensureUniqueCharacterSlug(toUpdate.slug || toUpdate.name || id, id);
+      } catch (e) {
+        toUpdate.slug = this.slugify(toUpdate.slug || toUpdate.name || id);
+      }
+    }
+
+    try {
+      const [updatedCharacter] = await db
+        .update(characters)
+        .set(toUpdate)
+        .where(eq(characters.id, id))
+        .returning();
+      if (updatedCharacter) return updatedCharacter;
+    } catch (e) {
+      console.warn('Update returning not supported or failed for characters, falling back to SELECT:', e);
+    }
+    const [f] = await db.select().from(characters).where(eq(characters.id, id));
+    return f;
   }
 
   async deleteCharacter(id: string): Promise<boolean> {
@@ -165,17 +251,32 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createLocation(location: InsertLocation): Promise<Location> {
-    const [newLocation] = await db.insert(locations).values(location).returning();
-    return newLocation;
+    const payload: any = { ...location };
+    if (!payload.id) payload.id = randomUUID();
+    try {
+      const [newLocation] = await db.insert(locations).values(payload).returning();
+      if (newLocation) return newLocation;
+    } catch (e) {
+      console.warn('Insert returning not supported or failed for locations, falling back to SELECT:', e);
+    }
+    const [f] = await db.select().from(locations).where(eq(locations.id, payload.id));
+    if (f) return f;
+    return payload as Location;
   }
 
   async updateLocation(id: string, location: Partial<InsertLocation>): Promise<Location | undefined> {
-    const [updatedLocation] = await db
-      .update(locations)
-      .set(location)
-      .where(eq(locations.id, id))
-      .returning();
-    return updatedLocation;
+    try {
+      const [updatedLocation] = await db
+        .update(locations)
+        .set(location)
+        .where(eq(locations.id, id))
+        .returning();
+      if (updatedLocation) return updatedLocation;
+    } catch (e) {
+      console.warn('Update returning not supported or failed for locations, falling back to SELECT:', e);
+    }
+    const [f] = await db.select().from(locations).where(eq(locations.id, id));
+    return f;
   }
 
   async deleteLocation(id: string): Promise<boolean> {
@@ -198,17 +299,32 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createCodexEntry(entry: InsertCodexEntry): Promise<CodexEntry> {
-    const [newEntry] = await db.insert(codexEntries).values(entry).returning();
-    return newEntry;
+    const payload: any = { ...entry };
+    if (!payload.id) payload.id = randomUUID();
+    try {
+      const [newEntry] = await db.insert(codexEntries).values(payload).returning();
+      if (newEntry) return newEntry;
+    } catch (e) {
+      console.warn('Insert returning not supported or failed for codex entries, falling back to SELECT:', e);
+    }
+    const [f] = await db.select().from(codexEntries).where(eq(codexEntries.id, payload.id));
+    if (f) return f;
+    return payload as CodexEntry;
   }
 
   async updateCodexEntry(id: string, entry: Partial<InsertCodexEntry>): Promise<CodexEntry | undefined> {
-    const [updatedEntry] = await db
-      .update(codexEntries)
-      .set(entry)
-      .where(eq(codexEntries.id, id))
-      .returning();
-    return updatedEntry;
+    try {
+      const [updatedEntry] = await db
+        .update(codexEntries)
+        .set(entry)
+        .where(eq(codexEntries.id, id))
+        .returning();
+      if (updatedEntry) return updatedEntry;
+    } catch (e) {
+      console.warn('Update returning not supported or failed for codex entries, falling back to SELECT:', e);
+    }
+    const [f] = await db.select().from(codexEntries).where(eq(codexEntries.id, id));
+    return f;
   }
 
   async deleteCodexEntry(id: string): Promise<boolean> {
@@ -232,17 +348,47 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createBlogPost(post: InsertBlogPost): Promise<BlogPost> {
-    const [newPost] = await db.insert(blogPosts).values(post).returning();
-    return newPost;
+    const payload: any = { ...post };
+    if (!payload.id) payload.id = randomUUID();
+    // Ensure slug exists and is unique for blog posts
+    try {
+      payload.slug = await this.ensureUniqueCharacterSlug(payload.slug || payload.title || payload.id);
+    } catch (e) {
+      payload.slug = this.slugify(payload.slug || payload.title || payload.id);
+    }
+    try {
+      const [newPost] = await db.insert(blogPosts).values(payload).returning();
+      if (newPost) return newPost;
+    } catch (e) {
+      console.warn('Insert returning not supported or failed for blog posts, falling back to SELECT:', e);
+    }
+    const [f] = await db.select().from(blogPosts).where(eq(blogPosts.id, payload.id));
+    if (f) return f;
+    return payload as BlogPost;
   }
 
   async updateBlogPost(id: string, post: Partial<InsertBlogPost>): Promise<BlogPost | undefined> {
-    const [updatedPost] = await db
-      .update(blogPosts)
-      .set(post)
-      .where(eq(blogPosts.id, id))
-      .returning();
-    return updatedPost;
+    const toUpdate: any = { ...post };
+    if (toUpdate.slug || toUpdate.title) {
+      try {
+        toUpdate.slug = await this.ensureUniqueCharacterSlug(toUpdate.slug || toUpdate.title || id, id);
+      } catch (e) {
+        toUpdate.slug = this.slugify(toUpdate.slug || toUpdate.title || id);
+      }
+    }
+
+    try {
+      const [updatedPost] = await db
+        .update(blogPosts)
+        .set(toUpdate)
+        .where(eq(blogPosts.id, id))
+        .returning();
+      if (updatedPost) return updatedPost;
+    } catch (e) {
+      console.warn('Update returning not supported or failed for blog posts, falling back to SELECT:', e);
+    }
+    const [f] = await db.select().from(blogPosts).where(eq(blogPosts.id, id));
+    return f;
   }
 
   async deleteBlogPost(id: string): Promise<boolean> {
@@ -255,7 +401,7 @@ export class DatabaseStorage implements IStorage {
     const [progress] = await db
       .select()
       .from(readingProgress)
-      .where(eq(readingProgress.sessionId, sessionId) && eq(readingProgress.chapterId, chapterId));
+      .where(and(eq(readingProgress.sessionId, sessionId), eq(readingProgress.chapterId, chapterId)));
     return progress;
   }
 
@@ -263,11 +409,11 @@ export class DatabaseStorage implements IStorage {
     // Try to update existing record first
     const [existingProgress] = await db
       .update(readingProgress)
-      .set({
+      .set(({
         progress,
-        lastReadAt: new Date(),
-      })
-      .where(eq(readingProgress.sessionId, sessionId) && eq(readingProgress.chapterId, chapterId))
+    lastReadAt: new Date().toISOString(),
+      } as any))
+      .where(and(eq(readingProgress.sessionId, sessionId), eq(readingProgress.chapterId, chapterId)))
       .returning();
 
     if (existingProgress) {
@@ -277,12 +423,12 @@ export class DatabaseStorage implements IStorage {
     // Create new record if doesn't exist
     const [newProgress] = await db
       .insert(readingProgress)
-      .values({
+      .values(({
         sessionId,
         chapterId,
         progress,
-        lastReadAt: new Date(),
-      })
+        lastReadAt: new Date().toISOString(),
+      } as any))
       .returning();
 
     return newProgress;
@@ -312,7 +458,7 @@ O Primeiro Feiticeiro havia retornado, mas o mundo que ele conhecia se foi para 
         excerpt: "Eldric descobre a câmara oculta sob a Grande Biblioteca, onde os primeiros feitiços já escritos ainda pulsam com energia adormecida...",
         chapterNumber: 15,
         readingTime: 12,
-        publishedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
+  publishedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
         imageUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=250",
       };
 
@@ -323,7 +469,7 @@ O Primeiro Feiticeiro havia retornado, mas o mundo que ele conhecia se foi para 
         excerpt: "Os exércitos dos Reinos do Norte se reúnem enquanto presságios sombrios aparecem pelo céu. A guerra parece inevitável...",
         chapterNumber: 14,
         readingTime: 15,
-        publishedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+  publishedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
         imageUrl: "https://images.unsplash.com/photo-1518709268805-4e9042af2176?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=250",
       };
 
@@ -334,7 +480,7 @@ O Primeiro Feiticeiro havia retornado, mas o mundo que ele conhecia se foi para 
         excerpt: "Lyanna se aventura na floresta proibida, guiada apenas por profecias antigas e suas crescentes habilidades mágicas...",
         chapterNumber: 13,
         readingTime: 18,
-        publishedAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000),
+  publishedAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
         imageUrl: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=250",
       };
 
@@ -416,7 +562,7 @@ O Primeiro Feiticeiro havia retornado, mas o mundo que ele conhecia se foi para 
         content: "Mergulhe na inspiração e pesquisa por trás do complexo framework mágico que alimenta esta épica narrativa. Exploramos como os Anéis de Mana funcionam e como diferentes níveis determinam o poder dos feiticeiros...",
         excerpt: "Mergulhe na inspiração e pesquisa por trás do complexo framework mágico que alimenta esta épica narrativa...",
         category: "construção-de-mundo",
-        publishedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
+  publishedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
         imageUrl: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=300",
       };
 
@@ -476,6 +622,7 @@ class FileStorage implements IStorage {
 
   async getCharacters() { return this.readFile<any[]>('offline-characters.json', []); }
   async getCharacterById(id: string) { const arr = await this.getCharacters(); return arr.find((c) => c.id === id); }
+  async getCharacterBySlug(slug: string) { const arr = await this.getCharacters(); return arr.find((c) => c.slug === slug); }
   async createCharacter(character: any) { character.id = character.id ?? randomUUID(); const arr = await this.getCharacters(); arr.push(character); await this.writeFile('offline-characters.json', arr); return character; }
   async updateCharacter(id: string, character: any) { const arr = await this.getCharacters(); const idx = arr.findIndex((c) => c.id === id); if (idx < 0) return undefined; arr[idx] = { ...arr[idx], ...character }; await this.writeFile('offline-characters.json', arr); return arr[idx]; }
   async deleteCharacter(id: string) { const arr = await this.getCharacters(); const idx = arr.findIndex((c) => c.id === id); if (idx < 0) return false; arr.splice(idx, 1); await this.writeFile('offline-characters.json', arr); return true; }

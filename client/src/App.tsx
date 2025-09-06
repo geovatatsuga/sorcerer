@@ -11,8 +11,11 @@ import ChapterReader from "@/pages/chapter-reader";
 import Characters from "@/pages/characters";
 import CharacterProfile from "@/pages/character-profile";
 import World from "@/pages/world";
+import LocationProfile from "@/pages/location-profile";
 import Codex from "@/pages/codex";
+import CodexEntryProfile from "@/pages/codex-entry";
 import Blog from "@/pages/blog";
+import BlogPostProfile from "@/pages/blog-post";
 import Admin from "@/pages/admin";
 import NotFound from "@/pages/not-found";
 
@@ -40,10 +43,13 @@ function Router() {
       <Route path="/chapters" component={Chapters} />
       <Route path="/chapters/:slug" component={ChapterReader} />
       <Route path="/characters" component={Characters} />
-  <Route path="/characters/:id" component={CharacterProfile} />
+  <Route path="/characters/:slug" component={CharacterProfile} />
       <Route path="/world" component={World} />
+      <Route path="/world/:id" component={LocationProfile} />
       <Route path="/codex" component={Codex} />
+      <Route path="/codex/:id" component={CodexEntryProfile} />
       <Route path="/blog" component={Blog} />
+      <Route path="/blog/:slug" component={BlogPostProfile} />
       <Route path="/admin" component={Admin} />
       <Route component={NotFound} />
     </Switch>

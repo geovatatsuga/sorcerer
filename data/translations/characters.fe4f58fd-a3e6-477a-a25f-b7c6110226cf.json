@@ -1,0 +1,20 @@
+{
+  "pt": {
+    "name": "Teste PT",
+    "title": "Titulo PT",
+    "description": "Desc PT",
+    "story": "<p>PT story</p>"
+  },
+  "en": {
+    "name": "Test EN",
+    "title": "Title EN",
+    "description": "Desc EN",
+    "story": "<p>EN story</p>"
+  },
+  "es": {
+    "name": "Test ES",
+    "title": "Title ES",
+    "description": "Desc ES",
+    "story": "<p>ES story</p>"
+  }
+}

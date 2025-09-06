@@ -1,1 +1,11 @@
 node_modules
+.env
+dev.sqlite
+*.sqlite
+dist/
+dist/public/
+stable-version.bundle
+cookies.session
+tmp_commit_backup/
+.vscode/
+.DS_Store

@@ -1,0 +1,17 @@
+{
+  "pt": {
+    "name": "Reino de Valaria (PT)",
+    "description": "Descricao PT",
+    "details": "<p>Historia PT</p>"
+  },
+  "en": {
+    "name": "Valaria Kingdom",
+    "description": "English description",
+    "details": "<p>English history</p>"
+  },
+  "es": {
+    "name": "Reino Valaria ES",
+    "description": "Descripcion ES",
+    "details": "<p>Historia ES</p>"
+  }
+}

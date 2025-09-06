@@ -1,0 +1,20 @@
+{
+  "pt": {
+    "name": "Teste Personagem Atualizado",
+    "story": "<p>Historia principal salva no DB???</p>",
+    "title": "Historia Principal Atualizada",
+    "description": "Descricao atualizada"
+  },
+  "en": {
+    "name": "",
+    "story": "",
+    "title": "",
+    "description": ""
+  },
+  "es": {
+    "name": "",
+    "title": "",
+    "description": "",
+    "story": ""
+  }
+}

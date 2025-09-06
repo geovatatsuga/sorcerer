@@ -3,23 +3,30 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Link } from "wouter";
 import type { Chapter } from "@shared/schema";
+import { useLanguage } from '@/contexts/LanguageContext';
+import { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 
 interface ChapterCardProps {
   chapter: Chapter;
 }
 
 export default function ChapterCard({ chapter }: ChapterCardProps) {
+  const { t } = useLanguage();
+  // Translation system disabled: always use primary (Portuguese) fields
+  const translation = null;
+
   const timeAgo = (date: Date | string) => {
     const now = new Date();
     const publishedDate = new Date(date);
     const diffTime = Math.abs(now.getTime() - publishedDate.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     
-    if (diffDays === 1) return "1 day ago";
-    if (diffDays < 7) return `${diffDays} days ago`;
-    if (diffDays < 14) return "1 week ago";
-    if (diffDays < 21) return "2 weeks ago";
-    return "3 weeks ago";
+    if (diffDays === 1) return t.oneDayAgo;
+    if (diffDays < 7) return `${diffDays} ${t.daysAgo}`;
+    if (diffDays < 14) return t.oneWeekAgo;
+    if (diffDays < 21) return t.twoWeeksAgo;
+    return t.threeWeeksAgo;
   };
 
   return (
@@ -34,7 +41,7 @@ export default function ChapterCard({ chapter }: ChapterCardProps) {
       <CardContent className="p-6">
         <div className="flex justify-between items-start mb-3">
           <span className="text-sm text-accent font-medium" data-testid={`text-chapter-${chapter.chapterNumber}`}>
-            Chapter {chapter.chapterNumber}
+            {t.chapterLabel} {chapter.chapterNumber}
           </span>
           <span className="text-sm text-muted-foreground" data-testid={`text-date-${chapter.slug}`}>
             {timeAgo(chapter.publishedAt)}
@@ -43,14 +50,14 @@ export default function ChapterCard({ chapter }: ChapterCardProps) {
         <h3 className="font-display text-xl font-semibold text-card-foreground mb-3" data-testid={`text-title-${chapter.slug}`}>
           {chapter.title}
         </h3>
-        <p className="text-muted-foreground text-sm mb-4" data-testid={`text-excerpt-${chapter.slug}`}>
-          {chapter.excerpt}
+          <p className="text-muted-foreground text-sm mb-4" data-testid={`text-excerpt-${chapter.slug}`}>
+          <span dangerouslySetInnerHTML={{ __html: chapter.excerpt || '' }} />
         </p>
         <div className="flex justify-between items-center">
           <div className="flex items-center text-xs text-muted-foreground">
             <Clock className="h-3 w-3 mr-1" />
             <span data-testid={`text-reading-time-${chapter.slug}`}>
-              {chapter.readingTime} min read
+              {chapter.readingTime} {t.minRead}
             </span>
           </div>
           <Link href={`/chapters/${chapter.slug}`}>

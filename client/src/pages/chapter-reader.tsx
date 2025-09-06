@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ChevronLeft, ChevronRight, Bookmark, Settings } from "lucide-react";
 import { useReadingProgress } from "@/hooks/use-reading-progress";
 import type { Chapter } from "@shared/schema";
+import DOMPurify from 'dompurify';
 
 export default function ChapterReader() {
   const { slug } = useParams<{ slug: string }>();
@@ -129,11 +130,8 @@ export default function ChapterReader() {
             
             <CardContent className="p-8">
               <div className="prose prose-lg max-w-none" data-testid="content-chapter-text">
-                {chapter.content.split('\n\n').map((paragraph, index) => (
-                  <p key={index} className="text-card-foreground leading-relaxed mb-6 text-lg">
-                    {paragraph}
-                  </p>
-                ))}
+                {/* Render sanitized HTML produced by the RichEditor so formatting and images are preserved */}
+                <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(chapter.content ?? '') }} />
               </div>
               
               <ReadingProgress progress={progress} />
