@@ -11,7 +11,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Wand2, Crown, MapPin } from "lucide-react";
 import { Link } from "wouter";
 import type { Chapter, Character, Location, BlogPost } from "@shared/schema";
-import { useLanguage } from "@/contexts/LanguageContext";
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function Home() {
   const { t } = useLanguage();
@@ -30,6 +30,13 @@ export default function Home() {
   const { data: blogPosts = [], isLoading: blogLoading } = useQuery<BlogPost[]>({
     queryKey: ['/api/blog'],
   });
+
+  const { language } = useLanguage();
+
+  const localized = (item: any, field: string) => {
+    const i18n = item[`${field}I18n`];
+    return (i18n?.[language] as string) || item[field] || '';
+  };
 
   const latestChapters = chapters.slice(0, 3);
   const mainCharacters = characters.slice(0, 4);

@@ -17,11 +17,22 @@ export default function Characters() {
     queryKey: ['/api/characters'],
   });
 
+  const { language, t } = useLanguage();
+
   const roles = ["all", "protagonist", "antagonist", "supporting"];
 
+  const localized = (item: any, field: string) => {
+    try {
+      return (item?.[`${field}I18n`]?.[language] as string) || item?.[field] || '';
+    } catch (e) {
+      return item?.[field] || '';
+    }
+  };
+
   const filteredCharacters = characters.filter(character => {
-    const matchesSearch = character.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         character.description.toLowerCase().includes(searchQuery.toLowerCase());
+    const name = (character.name || '').toLowerCase();
+    const desc = (localized(character, 'description') || '').toLowerCase();
+    const matchesSearch = name.includes(searchQuery.toLowerCase()) || desc.includes(searchQuery.toLowerCase());
     const matchesRole = selectedRole === "all" || character.role === selectedRole;
     return matchesSearch && matchesRole;
   });
@@ -41,9 +52,15 @@ export default function Characters() {
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center max-w-2xl mx-auto">
+<<<<<<< HEAD
                 <Input
                   type="text"
                   placeholder={t.searchCharacters}
+=======
+              <Input
+                type="text"
+                placeholder={t.searchCharacters}
+>>>>>>> 62c653961657e3119ed8e2a10375ecbc1fa9a36a
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="bg-input border-border text-foreground placeholder:text-muted-foreground"
@@ -60,7 +77,7 @@ export default function Characters() {
                     className="capitalize"
                     data-testid={`button-filter-${role}`}
                   >
-                    {role}
+                    {t[role as keyof typeof t] ?? role}
                   </Button>
                 ))}
               </div>

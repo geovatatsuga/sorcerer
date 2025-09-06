@@ -1,9 +1,16 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
+<<<<<<< HEAD
 
 export default defineConfig({
   plugins: [react()],
+=======
+export default defineConfig({
+  plugins: [
+  react(),
+  ],
+>>>>>>> 62c653961657e3119ed8e2a10375ecbc1fa9a36a
   resolve: {
     alias: {
       "@": path.resolve(import.meta.dirname, "client", "src"),

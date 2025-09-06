@@ -4,7 +4,11 @@
   "type": "module",
   "license": "MIT",
   "scripts": {
+<<<<<<< HEAD
     "dev": "kill-port 5000 && tsx watch server/index.ts",
+=======
+    "dev": "cross-env NODE_ENV=development tsx server/index.ts",
+>>>>>>> 62c653961657e3119ed8e2a10375ecbc1fa9a36a
     "build": "vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist",
     "start": "cross-env NODE_ENV=production node dist/index.js",
     "check": "tsc",
@@ -62,6 +66,12 @@
     "lucide-react": "^0.453.0",
     "memorystore": "^1.6.7",
     "next-themes": "^0.4.6",
+<<<<<<< HEAD
+=======
+    "openid-client": "^6.7.1",
+    "passport": "^0.7.0",
+    "passport-local": "^1.0.0",
+>>>>>>> 62c653961657e3119ed8e2a10375ecbc1fa9a36a
     "postgres": "^3.4.7",
     "react": "^18.3.1",
     "react-day-picker": "^8.10.1",
@@ -94,7 +104,11 @@
     "@vitejs/plugin-react": "^4.3.2",
     "autoprefixer": "^10.4.20",
     "cross-env": "^7.0.3",
+<<<<<<< HEAD
     "dotenv": "^16.6.1",
+=======
+    "dotenv": "^16.3.1",
+>>>>>>> 62c653961657e3119ed8e2a10375ecbc1fa9a36a
     "drizzle-kit": "^0.30.4",
     "esbuild": "^0.25.0",
     "kill-port": "^2.0.1",

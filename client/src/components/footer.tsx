@@ -17,8 +17,12 @@ const supportLinks = [
 ];
 
 export default function Footer() {
+<<<<<<< HEAD
   const { t } = useLanguage();
 
+=======
+  const { t, language } = useLanguage();
+>>>>>>> 62c653961657e3119ed8e2a10375ecbc1fa9a36a
   return (
     <footer className="bg-card border-t border-border py-12 px-4">
       <div className="max-w-7xl mx-auto">

@@ -15,9 +15,18 @@ export default function Chapters() {
     queryKey: ['/api/chapters'],
   });
 
-  const filteredChapters = chapters.filter(chapter =>
-    chapter.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    chapter.excerpt.toLowerCase().includes(searchQuery.toLowerCase())
+  const { language, t } = useLanguage();
+
+  const localizedFields = (item: any, field: string) => {
+    try {
+      return (item?.[`${field}I18n`] as any)?.[language] || item?.[field] || '';
+    } catch (e) {
+      return item?.[field] || '';
+    }
+  };
+
+  const filteredChapters = chapters.filter((chapter) =>
+    `${localizedFields(chapter, 'title')} ${localizedFields(chapter, 'excerpt')}`.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
@@ -35,9 +44,15 @@ export default function Chapters() {
             </p>
             
             <div className="max-w-md mx-auto">
+<<<<<<< HEAD
                 <Input
                   type="text"
                   placeholder={t.searchChapters}
+=======
+              <Input
+                type="text"
+                placeholder={t.searchChapters}
+>>>>>>> 62c653961657e3119ed8e2a10375ecbc1fa9a36a
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="bg-input border-border text-foreground placeholder:text-muted-foreground"

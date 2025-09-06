@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 node_modules
 .env
 dev.sqlite
@@ -9,3 +10,27 @@ cookies.session
 tmp_commit_backup/
 .vscode/
 .DS_Store
+=======
+node_modules/
+dist/
+build/
+.env
+.env.local
+.env.*.local
+server.log
+uploads/
+data/
+server/data/
+server/dev-admins.json
+client/.env
+*.log
+.DS_Store
+/.vite
+/.idea
+/.vscode
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+package-lock.jsonnode_modules
+>>>>>>> 62c653961657e3119ed8e2a10375ecbc1fa9a36a

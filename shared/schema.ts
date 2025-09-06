@@ -6,9 +6,13 @@ import { z } from "zod";
 export const chapters = sqliteTable("chapters", {
   id: text("id").primaryKey(),
   title: text("title").notNull(),
+  // Localized versions for UI content (optional)
+  titleI18n: jsonb("title_i18n"),
   slug: text("slug").notNull().unique(),
   content: text("content").notNull(),
+  contentI18n: jsonb("content_i18n"),
   excerpt: text("excerpt").notNull(),
+  excerptI18n: jsonb("excerpt_i18n"),
   chapterNumber: integer("chapter_number").notNull(),
   readingTime: integer("reading_time").notNull(), // in minutes
   publishedAt: text("published_at").notNull(),
@@ -18,10 +22,16 @@ export const chapters = sqliteTable("chapters", {
 export const characters = sqliteTable("characters", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
+  nameI18n: jsonb("name_i18n"),
   title: text("title").notNull(),
+  titleI18n: jsonb("title_i18n"),
   description: text("description").notNull(),
+<<<<<<< HEAD
   story: text("story"),
   slug: text("slug").notNull().unique(),
+=======
+  descriptionI18n: jsonb("description_i18n"),
+>>>>>>> 62c653961657e3119ed8e2a10375ecbc1fa9a36a
   imageUrl: text("image_url"),
   role: text("role").notNull(), // protagonist, antagonist, supporting
 });
@@ -29,7 +39,9 @@ export const characters = sqliteTable("characters", {
 export const locations = sqliteTable("locations", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
+  nameI18n: jsonb("name_i18n"),
   description: text("description").notNull(),
+  descriptionI18n: jsonb("description_i18n"),
   mapX: integer("map_x").notNull(), // x coordinate on map (percentage)
   mapY: integer("map_y").notNull(), // y coordinate on map (percentage)
   type: text("type").notNull(), // kingdom, forest, ruins, etc.
@@ -38,7 +50,9 @@ export const locations = sqliteTable("locations", {
 export const codexEntries = sqliteTable("codex_entries", {
   id: text("id").primaryKey(),
   title: text("title").notNull(),
+  titleI18n: jsonb("title_i18n"),
   description: text("description").notNull(),
+  descriptionI18n: jsonb("description_i18n"),
   category: text("category").notNull(), // magic, creatures, locations
   imageUrl: text("image_url"),
 });
@@ -46,9 +60,12 @@ export const codexEntries = sqliteTable("codex_entries", {
 export const blogPosts = sqliteTable("blog_posts", {
   id: text("id").primaryKey(),
   title: text("title").notNull(),
+  titleI18n: jsonb("title_i18n"),
   slug: text("slug").notNull().unique(),
   content: text("content").notNull(),
+  contentI18n: jsonb("content_i18n"),
   excerpt: text("excerpt").notNull(),
+  excerptI18n: jsonb("excerpt_i18n"),
   category: text("category").notNull(), // update, world-building, behind-scenes, research
   publishedAt: text("published_at").notNull(),
   imageUrl: text("image_url"),

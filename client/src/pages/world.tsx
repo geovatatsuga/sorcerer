@@ -5,7 +5,10 @@ import Footer from "@/components/footer";
 import { Card, CardContent } from "@/components/ui/card";
 import type { Location } from "@shared/schema";
 import { useLanguage } from '@/contexts/LanguageContext';
+<<<<<<< HEAD
 import { useLocation } from 'wouter';
+=======
+>>>>>>> 62c653961657e3119ed8e2a10375ecbc1fa9a36a
 
 export default function World() {
   const { data: locations = [], isLoading } = useQuery<Location[]>({
@@ -13,6 +16,8 @@ export default function World() {
   });
   const { t } = useLanguage();
   const [, setLocation] = useLocation();
+
+  const { t, language } = useLanguage();
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -43,27 +48,39 @@ export default function World() {
               [1, 2, 3, 4, 5, 6].map((i) => (
                 <div key={i} className="bg-card border border-border rounded-lg h-64 animate-pulse" />
               ))
-            ) : locations.length === 0 ? (
+      ) : locations.length === 0 ? (
               <div className="col-span-full text-center py-20">
                 <h3 className="font-display text-2xl font-semibold text-muted-foreground mb-4" data-testid="text-no-locations">
+<<<<<<< HEAD
                     {t.noLocations}
                   </h3>
                   <p className="text-muted-foreground">
                     {t.locationsWillAppear}
                   </p>
+=======
+          {t.noLocations}
+                </h3>
+                <p className="text-muted-foreground">
+          {t.locationsWillAppear}
+                </p>
+>>>>>>> 62c653961657e3119ed8e2a10375ecbc1fa9a36a
               </div>
             ) : (
               locations.map((location) => (
                 <Card key={location.id} className="bg-card border border-border rounded-lg hover-glow cursor-pointer transition-transform hover:scale-105">
                   <CardContent className="p-6" onClick={() => setLocation(`/world/${location.id}`)}>
                     <h3 className="font-display text-xl font-semibold text-card-foreground mb-3" data-testid={`text-location-name-${location.id}`}>
-                      {location.name}
+                      {(location.nameI18n as any)?.[language] ?? location.name}
                     </h3>
                     <div className="text-accent text-sm font-medium mb-3 capitalize" data-testid={`text-location-type-${location.id}`}>
                       {location.type}
                     </div>
                     <p className="text-muted-foreground text-sm" data-testid={`text-location-description-${location.id}`}>
+<<<<<<< HEAD
                       <span dangerouslySetInnerHTML={{ __html: location.description ?? '' }} />
+=======
+                      {(location.descriptionI18n as any)?.[language] ?? location.description}
+>>>>>>> 62c653961657e3119ed8e2a10375ecbc1fa9a36a
                     </p>
                   </CardContent>
                 </Card>

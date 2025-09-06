@@ -1,4 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
+import { Link } from "wouter";
 import type { Character } from "@shared/schema";
 import { Link } from "wouter";
 import { useEffect, useState } from "react";
@@ -29,7 +30,11 @@ export default function CharacterCard({ character }: CharacterCardProps) {
   const linkTarget = character.slug || character.id;
 
   return (
+<<<<<<< HEAD
     <Link href={`/characters/${linkTarget}`} className="block">
+=======
+    <Link href={`/characters/${character.id}`} className="block">
+>>>>>>> 62c653961657e3119ed8e2a10375ecbc1fa9a36a
       <Card className="bg-card border border-border rounded-lg overflow-hidden hover-glow">
         {character.imageUrl && (
           <img 
@@ -44,10 +49,17 @@ export default function CharacterCard({ character }: CharacterCardProps) {
             {character.name}
           </h3>
           <p className={`text-sm font-medium mb-3 ${getRoleColor(character.role)}`} data-testid={`text-title-${character.id}`}>
+<<<<<<< HEAD
             {title}
           </p>
           <p className="text-muted-foreground text-sm" data-testid={`text-description-${character.id}`}>
             <span dangerouslySetInnerHTML={{ __html: story || '' }} />
+=======
+            {character.title}
+          </p>
+          <p className="text-muted-foreground text-sm" data-testid={`text-description-${character.id}`}>
+            {character.description}
+>>>>>>> 62c653961657e3119ed8e2a10375ecbc1fa9a36a
           </p>
         </CardContent>
       </Card>

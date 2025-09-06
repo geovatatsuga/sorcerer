@@ -17,7 +17,9 @@ export default function Blog() {
     queryKey: ['/api/blog'],
   });
 
-  const categories = ["all", "update", "world-building", "behind-scenes", "research"];
+  const { language, t } = useLanguage();
+
+  const categories = ["all", "update", "worldBuilding", "behindScenes", "research"];
 
   const filteredPosts = blogPosts.filter(post => {
     const matchesSearch = post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -32,11 +34,11 @@ export default function Blog() {
     const diffTime = Math.abs(now.getTime() - publishedDate.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     
-    if (diffDays === 1) return "1 day ago";
-    if (diffDays < 7) return `${diffDays} days ago`;
-    if (diffDays < 14) return "1 week ago";
-    if (diffDays < 21) return "2 weeks ago";
-    return "3 weeks ago";
+  if (diffDays === 1) return t.oneDayAgo || '1 day ago';
+  if (diffDays < 7) return `${diffDays} ${t.daysAgo}`;
+  if (diffDays < 14) return t.oneWeekAgo || '1 week ago';
+  if (diffDays < 21) return t.twoWeeksAgo || '2 weeks ago';
+  return t.threeWeeksAgo || '3 weeks ago';
   };
 
   const getCategoryColor = (category: string) => {
@@ -62,10 +64,17 @@ export default function Blog() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h1 className="font-display text-4xl md:text-5xl font-bold text-primary mb-4" data-testid="text-blog-title">
+<<<<<<< HEAD
               {t.blogTitle}
             </h1>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto mb-8">
               {t.blogDesc}
+=======
+              {t.authorsChronicles}
+            </h1>
+            <p className="text-muted-foreground text-lg max-w-2xl mx-auto mb-8">
+              {t.authorsChroniclesDesc}
+>>>>>>> 62c653961657e3119ed8e2a10375ecbc1fa9a36a
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center max-w-3xl mx-auto">
@@ -88,7 +97,11 @@ export default function Blog() {
                     className="capitalize"
                     data-testid={`button-filter-${category}`}
                   >
+<<<<<<< HEAD
           {category === 'all' ? t.all : category === 'behind-scenes' ? t.behindScenes || 'Behind Scenes' : category}
+=======
+                    { (t as any)[category] || category }
+>>>>>>> 62c653961657e3119ed8e2a10375ecbc1fa9a36a
                   </Button>
                 ))}
               </div>
@@ -104,10 +117,20 @@ export default function Blog() {
           ) : filteredPosts.length === 0 ? (
             <div className="text-center py-20">
               <h3 className="font-display text-2xl font-semibold text-muted-foreground mb-4" data-testid="text-no-blog-posts">
+<<<<<<< HEAD
                 {searchQuery || selectedCategory !== 'all' ? t.noBlogPostsFound : t.noBlogPosts}
               </h3>
               <p className="text-muted-foreground">
                 {searchQuery || selectedCategory !== 'all' ? t.adjustFilters : t.blogWillAppear}
+=======
+                {searchQuery || selectedCategory !== "all" ? t.noBlogPostsFound : t.noBlogPosts}
+              </h3>
+              <p className="text-muted-foreground">
+                {searchQuery || selectedCategory !== "all"
+                  ? t.adjustSearchTerms
+                  : t.blogWillAppear
+                }
+>>>>>>> 62c653961657e3119ed8e2a10375ecbc1fa9a36a
               </p>
             </div>
           ) : (
