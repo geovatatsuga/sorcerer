@@ -6,28 +6,23 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import type { Character } from "@shared/schema";
+// translations removed — single-language
 import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function Characters() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedRole, setSelectedRole] = useState<string>("all");
-  // useLanguage provides translations and current language
+  // single-language: use primary fields only
   
   const { data: characters = [], isLoading } = useQuery<Character[]>({
     queryKey: ['/api/characters'],
   });
 
-  const { language, t } = useLanguage();
+  const { t } = useLanguage();
 
   const roles = ["all", "protagonist", "antagonist", "supporting"];
 
-  const localized = (item: any, field: string) => {
-    try {
-      return (item?.[`${field}I18n`]?.[language] as string) || item?.[field] || '';
-    } catch (e) {
-      return item?.[field] || '';
-    }
-  };
+  const localized = (item: any, field: string) => item?.[field] || '';
 
   const filteredCharacters = characters.filter(character => {
     const name = (character.name || '').toLowerCase();

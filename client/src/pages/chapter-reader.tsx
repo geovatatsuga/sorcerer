@@ -69,7 +69,7 @@ export default function ChapterReader() {
 
   const localized = (item: any, field: string) => {
     try {
-      return (item?.[`${field}I18n`]?.[language] as string) || item?.[field] || '';
+  return item?.[field] || '';
     } catch (e) {
       return item?.[field] || '';
     }
@@ -153,7 +153,7 @@ export default function ChapterReader() {
                   <Link href={`/chapters/${previousChapter.slug}`}>
                     <Button variant="outline" className="flex items-center gap-2" data-testid="button-previous-nav">
                       <ChevronLeft className="h-4 w-4" />
-                      {t.previous}: {(previousChapter.titleI18n as any)?.[language] ?? previousChapter.title}
+                      {t.previous}: {previousChapter.title}
                     </Button>
                   </Link>
                 ) : (
@@ -163,7 +163,7 @@ export default function ChapterReader() {
                 {nextChapter ? (
                   <Link href={`/chapters/${nextChapter.slug}`}>
                     <Button className="flex items-center gap-2" data-testid="button-next-nav">
-                      {t.next}: {(nextChapter.titleI18n as any)?.[language] ?? nextChapter.title}
+                      {t.next}: {nextChapter.title}
                       <ChevronRight className="h-4 w-4" />
                     </Button>
                   </Link>

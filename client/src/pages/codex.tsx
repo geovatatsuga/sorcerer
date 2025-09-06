@@ -8,7 +8,7 @@ import { Wand2, Crown, MapPin } from "lucide-react";
 import { Link } from 'wouter';
 import { useState } from "react";
 import type { CodexEntry } from "@shared/schema";
-import { useLanguage } from '@/contexts/LanguageContext';
+// translations removed — use primary fields only
 
 export default function Codex() {
   const [selectedCategory, setSelectedCategory] = useState("magic");
@@ -23,7 +23,7 @@ export default function Codex() {
     locations: codexEntries.filter(entry => entry.category === "locations"),
   };
 
-  const { t, language } = useLanguage();
+  // single-language app: use t from LanguageContext if available elsewhere; no language switching here
 
   const getCategoryIcon = (category: string) => {
     switch (category) {
@@ -134,7 +134,7 @@ export default function Codex() {
                             </div>
                           </div>
                           <p className="text-muted-foreground text-sm" data-testid={`text-entry-description-${entry.id}`}>
-                            {(entry.descriptionI18n as any)?.[language] ?? entry.description}
+                            {entry.description}
                           </p>
                         </CardContent>
                       </Card>

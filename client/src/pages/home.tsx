@@ -34,8 +34,7 @@ export default function Home() {
   const { language } = useLanguage();
 
   const localized = (item: any, field: string) => {
-    const i18n = item[`${field}I18n`];
-    return (i18n?.[language] as string) || item[field] || '';
+  return item[field] || '';
   };
 
   const latestChapters = chapters.slice(0, 3);

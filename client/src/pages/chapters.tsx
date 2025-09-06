@@ -5,25 +5,20 @@ import Footer from "@/components/footer";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import type { Chapter } from "@shared/schema";
+// translations removed — single-language
 import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function Chapters() {
   const [searchQuery, setSearchQuery] = useState("");
-  // useLanguage provides translations and current language
+  // single-language: use primary fields only
   
   const { data: chapters = [], isLoading } = useQuery<Chapter[]>({
     queryKey: ['/api/chapters'],
   });
 
-  const { language, t } = useLanguage();
+  const { t } = useLanguage();
 
-  const localizedFields = (item: any, field: string) => {
-    try {
-      return (item?.[`${field}I18n`] as any)?.[language] || item?.[field] || '';
-    } catch (e) {
-      return item?.[field] || '';
-    }
-  };
+  const localizedFields = (item: any, field: string) => item?.[field] || '';
 
   const filteredChapters = chapters.filter((chapter) =>
     `${localizedFields(chapter, 'title')} ${localizedFields(chapter, 'excerpt')}`.toLowerCase().includes(searchQuery.toLowerCase())

@@ -52,8 +52,8 @@ export default function LocationPage() {
         <div className="max-w-4xl mx-auto">
           <Card className="bg-card border border-border rounded-xl overflow-hidden">
             <CardContent className="p-6">
-              <h1 className="font-display text-2xl font-semibold text-card-foreground mb-2">{(location.nameI18n as any)?.[language] ?? location.name}</h1>
-              <p className="text-muted-foreground mb-4">{(location.descriptionI18n as any)?.[language] ?? location.description}</p>
+              <h1 className="font-display text-2xl font-semibold text-card-foreground mb-2">{location.name}</h1>
+              <p className="text-muted-foreground mb-4">{location.description}</p>
               <div className="flex gap-2">
                 <Link href="/world"><Button variant="ghost">{t.world}</Button></Link>
               </div>

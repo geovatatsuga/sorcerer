@@ -23,7 +23,7 @@ export default function CodexEntryProfile() {
     }
   });
 
-  // Translation disabled: always use primary fields
+  // Single-language: use primary fields
   const title = entry?.title ?? null;
   const description = entry?.description ?? null;
 
