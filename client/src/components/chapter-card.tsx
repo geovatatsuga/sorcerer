@@ -13,8 +13,6 @@ interface ChapterCardProps {
 
 export default function ChapterCard({ chapter }: ChapterCardProps) {
   const { t } = useLanguage();
-  // Translation system disabled: always use primary (Portuguese) fields
-  const translation = null;
 
   const timeAgo = (date: Date | string) => {
     const now = new Date();
@@ -31,11 +29,7 @@ export default function ChapterCard({ chapter }: ChapterCardProps) {
 
   const { language } = useLanguage();
 
-  const localized = (field: string | null | undefined, i18n?: Record<string, string> | null) => {
-    if (!field && !i18n) return '';
-    if (i18n && i18n[language]) return i18n[language];
-    return field || '';
-  };
+  const localized = (field: string | null | undefined) => field || '';
 
   return (
     <Link href={`/chapters/${chapter.slug}`} className="block">
@@ -57,7 +51,7 @@ export default function ChapterCard({ chapter }: ChapterCardProps) {
           </span>
         </div>
           <h3 className="font-display text-xl font-semibold text-card-foreground mb-3" data-testid={`text-title-${chapter.slug}`}>
-          {localized(chapter.title, chapter.titleI18n as any)}
+          {localized(chapter.title)}
         </h3>
           <p className="text-muted-foreground text-sm mb-4" data-testid={`text-excerpt-${chapter.slug}`}>
           <span dangerouslySetInnerHTML={{ __html: chapter.excerpt || '' }} />

@@ -13,7 +13,7 @@ export default function World() {
   });
   const [, setLocation] = useLocation();
 
-  const { t, language } = useLanguage();
+  const { t } = useLanguage();
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -58,7 +58,7 @@ export default function World() {
                 <Card key={location.id} className="bg-card border border-border rounded-lg hover-glow cursor-pointer transition-transform hover:scale-105">
                   <CardContent className="p-6" onClick={() => setLocation(`/world/${location.id}`)}>
                     <h3 className="font-display text-xl font-semibold text-card-foreground mb-3" data-testid={`text-location-name-${location.id}`}>
-                      {(location.nameI18n as any)?.[language] ?? location.name}
+                      {location.name}
                     </h3>
                     <div className="text-accent text-sm font-medium mb-3 capitalize" data-testid={`text-location-type-${location.id}`}>
                       {location.type}

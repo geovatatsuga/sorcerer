@@ -9,6 +9,7 @@ import { Link } from 'wouter';
 import { useState } from "react";
 import type { CodexEntry } from "@shared/schema";
 // translations removed — use primary fields only
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function Codex() {
   const [selectedCategory, setSelectedCategory] = useState("magic");
@@ -24,6 +25,7 @@ export default function Codex() {
   };
 
   // single-language app: use t from LanguageContext if available elsewhere; no language switching here
+  const { t } = useLanguage();
 
   const getCategoryIcon = (category: string) => {
     switch (category) {
