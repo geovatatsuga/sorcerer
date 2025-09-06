@@ -1,14 +1,11 @@
-import { useQuery } from "@tanstack/react-query";
+﻿import { useQuery } from "@tanstack/react-query";
 import Navigation from "@/components/navigation";
 import WorldMap from "@/components/world-map";
 import Footer from "@/components/footer";
 import { Card, CardContent } from "@/components/ui/card";
 import type { Location } from "@shared/schema";
 import { useLanguage } from '@/contexts/LanguageContext';
-<<<<<<< HEAD
 import { useLocation } from 'wouter';
-=======
->>>>>>> 62c653961657e3119ed8e2a10375ecbc1fa9a36a
 
 export default function World() {
   const { data: locations = [], isLoading } = useQuery<Location[]>({
@@ -51,19 +48,11 @@ export default function World() {
       ) : locations.length === 0 ? (
               <div className="col-span-full text-center py-20">
                 <h3 className="font-display text-2xl font-semibold text-muted-foreground mb-4" data-testid="text-no-locations">
-<<<<<<< HEAD
                     {t.noLocations}
                   </h3>
                   <p className="text-muted-foreground">
                     {t.locationsWillAppear}
                   </p>
-=======
-          {t.noLocations}
-                </h3>
-                <p className="text-muted-foreground">
-          {t.locationsWillAppear}
-                </p>
->>>>>>> 62c653961657e3119ed8e2a10375ecbc1fa9a36a
               </div>
             ) : (
               locations.map((location) => (
@@ -76,11 +65,7 @@ export default function World() {
                       {location.type}
                     </div>
                     <p className="text-muted-foreground text-sm" data-testid={`text-location-description-${location.id}`}>
-<<<<<<< HEAD
                       <span dangerouslySetInnerHTML={{ __html: location.description ?? '' }} />
-=======
-                      {(location.descriptionI18n as any)?.[language] ?? location.description}
->>>>>>> 62c653961657e3119ed8e2a10375ecbc1fa9a36a
                     </p>
                   </CardContent>
                 </Card>
@@ -94,3 +79,5 @@ export default function World() {
     </div>
   );
 }
+
+

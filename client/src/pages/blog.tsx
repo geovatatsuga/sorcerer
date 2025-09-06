@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+﻿import { useQuery } from "@tanstack/react-query";
 import Navigation from "@/components/navigation";
 import Footer from "@/components/footer";
 import { Card, CardContent } from "@/components/ui/card";
@@ -64,17 +64,10 @@ export default function Blog() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h1 className="font-display text-4xl md:text-5xl font-bold text-primary mb-4" data-testid="text-blog-title">
-<<<<<<< HEAD
               {t.blogTitle}
             </h1>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto mb-8">
               {t.blogDesc}
-=======
-              {t.authorsChronicles}
-            </h1>
-            <p className="text-muted-foreground text-lg max-w-2xl mx-auto mb-8">
-              {t.authorsChroniclesDesc}
->>>>>>> 62c653961657e3119ed8e2a10375ecbc1fa9a36a
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center max-w-3xl mx-auto">
@@ -97,11 +90,7 @@ export default function Blog() {
                     className="capitalize"
                     data-testid={`button-filter-${category}`}
                   >
-<<<<<<< HEAD
           {category === 'all' ? t.all : category === 'behind-scenes' ? t.behindScenes || 'Behind Scenes' : category}
-=======
-                    { (t as any)[category] || category }
->>>>>>> 62c653961657e3119ed8e2a10375ecbc1fa9a36a
                   </Button>
                 ))}
               </div>
@@ -117,20 +106,10 @@ export default function Blog() {
           ) : filteredPosts.length === 0 ? (
             <div className="text-center py-20">
               <h3 className="font-display text-2xl font-semibold text-muted-foreground mb-4" data-testid="text-no-blog-posts">
-<<<<<<< HEAD
                 {searchQuery || selectedCategory !== 'all' ? t.noBlogPostsFound : t.noBlogPosts}
               </h3>
               <p className="text-muted-foreground">
                 {searchQuery || selectedCategory !== 'all' ? t.adjustFilters : t.blogWillAppear}
-=======
-                {searchQuery || selectedCategory !== "all" ? t.noBlogPostsFound : t.noBlogPosts}
-              </h3>
-              <p className="text-muted-foreground">
-                {searchQuery || selectedCategory !== "all"
-                  ? t.adjustSearchTerms
-                  : t.blogWillAppear
-                }
->>>>>>> 62c653961657e3119ed8e2a10375ecbc1fa9a36a
               </p>
             </div>
           ) : (
@@ -178,3 +157,5 @@ export default function Blog() {
     </div>
   );
 }
+
+

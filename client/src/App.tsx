@@ -1,4 +1,4 @@
-import { Switch, Route } from "wouter";
+﻿import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -46,19 +46,11 @@ function Router() {
       <Route path="/chapters" component={Chapters} />
       <Route path="/chapters/:slug" component={ChapterReader} />
       <Route path="/characters" component={Characters} />
-<<<<<<< HEAD
   <Route path="/characters/:slug" component={CharacterProfile} />
       <Route path="/world" component={World} />
       <Route path="/world/:id" component={LocationProfile} />
       <Route path="/codex" component={Codex} />
       <Route path="/codex/:id" component={CodexEntryProfile} />
-=======
-  <Route path="/characters/:id" component={CharacterPage} />
-      <Route path="/world" component={World} />
-  <Route path="/world/:id" component={LocationPage} />
-      <Route path="/codex" component={Codex} />
-  <Route path="/codex/:id" component={CodexEntryPage} />
->>>>>>> 62c653961657e3119ed8e2a10375ecbc1fa9a36a
       <Route path="/blog" component={Blog} />
       <Route path="/blog/:slug" component={BlogPostProfile} />
       <Route path="/admin" component={Admin} />
@@ -82,3 +74,5 @@ function App() {
 }
 
 export default App;
+
+

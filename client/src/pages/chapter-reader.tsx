@@ -1,4 +1,4 @@
-import { useParams, Link } from "wouter";
+﻿import { useParams, Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import Navigation from "@/components/navigation";
 import ReadingProgress from "@/components/reading-progress";
@@ -141,16 +141,8 @@ export default function ChapterReader() {
             
             <CardContent className="p-8">
               <div className="prose prose-lg max-w-none" data-testid="content-chapter-text">
-<<<<<<< HEAD
                 {/* Render sanitized HTML produced by the RichEditor so formatting and images are preserved */}
                 <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(chapter.content ?? '') }} />
-=======
-                { (localized(chapter, 'content') || chapter.content).split('\n\n').map((paragraph: string, index: number) => (
-                  <p key={index} className="text-card-foreground leading-relaxed mb-6 text-lg">
-                    {paragraph}
-                  </p>
-                ))}
->>>>>>> 62c653961657e3119ed8e2a10375ecbc1fa9a36a
               </div>
               
               <ReadingProgress progress={progress} />
@@ -188,3 +180,5 @@ export default function ChapterReader() {
     </div>
   );
 }
+
+

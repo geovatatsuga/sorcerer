@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+﻿import { useQuery } from "@tanstack/react-query";
 import Navigation from "@/components/navigation";
 import Footer from "@/components/footer";
 import { Card, CardContent } from "@/components/ui/card";
@@ -94,13 +94,8 @@ export default function Codex() {
             
             {["magic", "creatures", "locations"].map((category) => (
               <TabsContent key={category} value={category}>
-<<<<<<< HEAD
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                   {isLoading ? (
-=======
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                      {isLoading ? (
->>>>>>> 62c653961657e3119ed8e2a10375ecbc1fa9a36a
                     [1, 2, 3, 4, 5, 6].map((i) => (
                       <div key={i} className="bg-card border border-border rounded-lg h-64 animate-pulse" />
                     ))
@@ -125,7 +120,6 @@ export default function Codex() {
                     ))
                   ) : (
                     categorizedEntries[category as keyof typeof categorizedEntries].map((entry) => (
-<<<<<<< HEAD
                       <Card key={entry.id} className="bg-card border border-border rounded-lg hover-glow cursor-pointer transition-transform hover:scale-105">
                         {entry.imageUrl && (
                           <img 
@@ -138,25 +132,6 @@ export default function Codex() {
                           <div className="flex items-center gap-3 mb-4">
                             <div className="w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center">
                               {getCategoryIcon(category)}
-=======
-                      <Link key={entry.id} href={`/codex/${entry.id}`} className="block">
-                        <Card className="bg-card border border-border rounded-lg hover-glow">
-                          {entry.imageUrl && (
-                            <img 
-                              src={entry.imageUrl} 
-                              alt={(entry.titleI18n as any)?.[language] ?? entry.title}
-                              className="w-full h-32 object-cover rounded-t-lg"
-                            />
-                          )}
-                          <CardContent className="p-6">
-                            <div className="flex items-center gap-3 mb-4">
-                              <div className="w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center">
-                                {getCategoryIcon(category)}
-                              </div>
-                              <h3 className="font-display text-lg font-semibold text-card-foreground" data-testid={`text-entry-title-${entry.id}`}>
-                                {(entry.titleI18n as any)?.[language] ?? entry.title}
-                              </h3>
->>>>>>> 62c653961657e3119ed8e2a10375ecbc1fa9a36a
                             </div>
                             <p className="text-muted-foreground text-sm" data-testid={`text-entry-description-${entry.id}`}>
                               {(entry.descriptionI18n as any)?.[language] ?? entry.description}
@@ -177,3 +152,5 @@ export default function Codex() {
     </div>
   );
 }
+
+

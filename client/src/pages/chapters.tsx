@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+﻿import { useQuery } from "@tanstack/react-query";
 import Navigation from "@/components/navigation";
 import ChapterCard from "@/components/chapter-card";
 import Footer from "@/components/footer";
@@ -44,15 +44,9 @@ export default function Chapters() {
             </p>
             
             <div className="max-w-md mx-auto">
-<<<<<<< HEAD
                 <Input
                   type="text"
                   placeholder={t.searchChapters}
-=======
-              <Input
-                type="text"
-                placeholder={t.searchChapters}
->>>>>>> 62c653961657e3119ed8e2a10375ecbc1fa9a36a
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="bg-input border-border text-foreground placeholder:text-muted-foreground"
@@ -90,3 +84,5 @@ export default function Chapters() {
     </div>
   );
 }
+
+

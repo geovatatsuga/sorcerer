@@ -1,14 +1,11 @@
-import { ArrowRight, Clock } from "lucide-react";
+﻿import { ArrowRight, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Link } from "wouter";
 import type { Chapter } from "@shared/schema";
 import { useLanguage } from '@/contexts/LanguageContext';
-<<<<<<< HEAD
 import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-=======
->>>>>>> 62c653961657e3119ed8e2a10375ecbc1fa9a36a
 
 interface ChapterCardProps {
   chapter: Chapter;
@@ -62,13 +59,8 @@ export default function ChapterCard({ chapter }: ChapterCardProps) {
           <h3 className="font-display text-xl font-semibold text-card-foreground mb-3" data-testid={`text-title-${chapter.slug}`}>
           {localized(chapter.title, chapter.titleI18n as any)}
         </h3>
-<<<<<<< HEAD
           <p className="text-muted-foreground text-sm mb-4" data-testid={`text-excerpt-${chapter.slug}`}>
           <span dangerouslySetInnerHTML={{ __html: chapter.excerpt || '' }} />
-=======
-        <p className="text-muted-foreground text-sm mb-4" data-testid={`text-excerpt-${chapter.slug}`}>
-          {localized(chapter.excerpt, chapter.excerptI18n as any)}
->>>>>>> 62c653961657e3119ed8e2a10375ecbc1fa9a36a
         </p>
         <div className="flex justify-between items-center">
           <div className="flex items-center text-xs text-muted-foreground">
@@ -91,3 +83,5 @@ export default function ChapterCard({ chapter }: ChapterCardProps) {
     </Link>
   );
 }
+
+

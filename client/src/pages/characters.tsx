@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+﻿import { useQuery } from "@tanstack/react-query";
 import Navigation from "@/components/navigation";
 import CharacterCard from "@/components/character-card";
 import Footer from "@/components/footer";
@@ -52,15 +52,9 @@ export default function Characters() {
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center max-w-2xl mx-auto">
-<<<<<<< HEAD
                 <Input
                   type="text"
                   placeholder={t.searchCharacters}
-=======
-              <Input
-                type="text"
-                placeholder={t.searchCharacters}
->>>>>>> 62c653961657e3119ed8e2a10375ecbc1fa9a36a
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="bg-input border-border text-foreground placeholder:text-muted-foreground"
@@ -113,3 +107,5 @@ export default function Characters() {
     </div>
   );
 }
+
+

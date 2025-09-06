@@ -1,4 +1,4 @@
-import { sql } from "drizzle-orm";
+﻿import { sql } from "drizzle-orm";
 import { sqliteTable, text, integer, index } from "drizzle-orm/sqlite-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -26,12 +26,8 @@ export const characters = sqliteTable("characters", {
   title: text("title").notNull(),
   titleI18n: jsonb("title_i18n"),
   description: text("description").notNull(),
-<<<<<<< HEAD
   story: text("story"),
   slug: text("slug").notNull().unique(),
-=======
-  descriptionI18n: jsonb("description_i18n"),
->>>>>>> 62c653961657e3119ed8e2a10375ecbc1fa9a36a
   imageUrl: text("image_url"),
   role: text("role").notNull(), // protagonist, antagonist, supporting
 });
@@ -150,3 +146,5 @@ export const users = sqliteTable("users", {
 
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
+
+
