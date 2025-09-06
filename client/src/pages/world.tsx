@@ -23,10 +23,10 @@ export default function World() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h1 className="font-display text-4xl md:text-5xl font-bold text-primary mb-4" data-testid="text-world-title">
-              {t.worldTitle}
+              {t.worldTitle || 'Explore o Mundo'}
             </h1>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              {t.worldDesc}
+              {t.worldDesc || 'Mapa interativo e locais do reino.'}
             </p>
           </div>
           
@@ -47,10 +47,10 @@ export default function World() {
       ) : locations.length === 0 ? (
               <div className="col-span-full text-center py-20">
                 <h3 className="font-display text-2xl font-semibold text-muted-foreground mb-4" data-testid="text-no-locations">
-                    {t.noLocations}
+                    {t.noLocations || 'Ainda não há locais'}
                   </h3>
                   <p className="text-muted-foreground">
-                    {t.locationsWillAppear}
+                    {t.locationsWillAppear || 'Os locais aparecerão aqui quando estiverem disponíveis.'}
                   </p>
               </div>
             ) : (

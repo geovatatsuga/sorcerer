@@ -40,16 +40,16 @@ export default function Characters() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h1 className="font-display text-4xl md:text-5xl font-bold text-primary mb-4" data-testid="text-characters-title">
-              {t.characterGallery}
+              {t.characterGallery || 'Personagens'}
             </h1>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto mb-8">
-              {t.characterGalleryDesc}
+              {t.characterGalleryDesc || 'Navegue pela galeria de personagens da história.'}
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center max-w-2xl mx-auto">
                 <Input
                   type="text"
-                  placeholder={t.searchCharacters}
+                  placeholder={t.searchCharacters || 'Pesquisar personagens...'}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="bg-input border-border text-foreground placeholder:text-muted-foreground"
@@ -57,7 +57,7 @@ export default function Characters() {
               />
               
               <div className="flex gap-2">
-                {roles.map((role) => (
+                    {roles.map((role) => (
                   <Button
                     key={role}
                     variant={selectedRole === role ? "default" : "outline"}

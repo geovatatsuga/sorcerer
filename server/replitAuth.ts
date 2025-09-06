@@ -17,30 +17,51 @@ export const isDevAdmin: RequestHandler = (req, res, next) => {
 
 export function getSession() {
   const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
-
-  // If DATABASE_URL is provided, prefer a Postgres-backed session store.
-  if (process.env.DATABASE_URL) {
-    const pgStore = connectPg(session);
-    const sessionStore = new pgStore({
-      conString: process.env.DATABASE_URL,
-      createTableIfMissing: false,
-      ttl: sessionTtl,
-      tableName: "sessions",
-    });
+  // In development prefer a simple in-memory session store to avoid
+  // attempting to connect to Postgres or rely on an existing SQLite schema.
+  // MemoryStore is fine for local dev and tests.
+  if (process.env.NODE_ENV === 'development') {
+    const MemoryStore = session.MemoryStore;
     return session({
-      secret: process.env.SESSION_SECRET!,
-      store: sessionStore,
+      store: new MemoryStore(),
+      secret: process.env.SESSION_SECRET || 'dev-secret',
       resave: false,
       saveUninitialized: false,
       cookie: {
         httpOnly: true,
-        secure: true,
+        secure: false, // Secure must be false for localhost HTTP
         maxAge: sessionTtl,
       },
     });
   }
 
-  // Local development fallback: sqlite-backed session store
+  // If DATABASE_URL is provided, prefer a Postgres-backed session store in non-dev envs.
+  if (process.env.DATABASE_URL) {
+    try {
+      const pgStore = connectPg(session);
+      const sessionStore = new pgStore({
+        conString: process.env.DATABASE_URL,
+        createTableIfMissing: false,
+        ttl: sessionTtl,
+        tableName: "sessions",
+      });
+      return session({
+        secret: process.env.SESSION_SECRET!,
+        store: sessionStore,
+        resave: false,
+        saveUninitialized: false,
+        cookie: {
+          httpOnly: true,
+          secure: true,
+          maxAge: sessionTtl,
+        },
+      });
+    } catch (err) {
+      console.warn('Postgres session store initialization failed, falling back to SQLite store:', err);
+    }
+  }
+
+  // Local fallback if nothing else matched: sqlite-backed session store
   const SQLiteStore = connectSqlite3(session);
   return session({
     store: new SQLiteStore({

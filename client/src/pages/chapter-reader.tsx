@@ -23,6 +23,8 @@ export default function ChapterReader() {
     queryKey: ['/api/chapters'],
   });
 
+  const { language, t } = useLanguage();
+
   const { progress } = useReadingProgress(chapter?.id || '');
 
   if (isLoading) {
@@ -44,17 +46,17 @@ export default function ChapterReader() {
         <Navigation />
         <main className="pt-24 pb-20 px-4">
           <div className="max-w-4xl mx-auto text-center">
-            <h1 className="font-display text-3xl font-bold text-destructive mb-4" data-testid="text-chapter-not-found">
-              Chapter Not Found
-            </h1>
-            <p className="text-muted-foreground mb-8">
-              The chapter you're looking for doesn't exist or has been moved.
-            </p>
-            <Link href="/chapters">
-              <Button data-testid="button-back-to-chapters">
-                Back to Chapters
-              </Button>
-            </Link>
+              <h1 className="font-display text-3xl font-bold text-destructive mb-4" data-testid="text-chapter-not-found">
+                {t.chapterNotFound || 'Capítulo não encontrado'}
+              </h1>
+              <p className="text-muted-foreground mb-8">
+                {t.chapterNotFoundDesc || 'O capítulo que você procura não existe ou foi movido.'}
+              </p>
+              <Link href="/chapters">
+                <Button data-testid="button-back-to-chapters">
+                  {t.backToChapters || 'Voltar aos capítulos'}
+                </Button>
+              </Link>
           </div>
         </main>
       </div>
@@ -64,8 +66,6 @@ export default function ChapterReader() {
   const currentIndex = allChapters.findIndex(c => c.id === chapter.id);
   const previousChapter = currentIndex > 0 ? allChapters[currentIndex - 1] : null;
   const nextChapter = currentIndex < allChapters.length - 1 ? allChapters[currentIndex + 1] : null;
-
-  const { language, t } = useLanguage();
 
   const localized = (item: any, field: string) => {
     try {
@@ -109,7 +109,7 @@ export default function ChapterReader() {
                   variant="ghost" 
                   size="icon"
                   className="text-muted-foreground hover:text-primary transition-colors"
-                  title="Bookmark"
+                  title={t.bookmark || 'Favoritar'}
                   data-testid="button-bookmark"
                 >
                   <Bookmark className="h-5 w-5" />
@@ -118,7 +118,7 @@ export default function ChapterReader() {
                   variant="ghost" 
                   size="icon"
                   className="text-muted-foreground hover:text-primary transition-colors"
-                  title="Settings"
+                  title={t.settings || 'Configurações'}
                   data-testid="button-settings"
                 >
                   <Settings className="h-5 w-5" />

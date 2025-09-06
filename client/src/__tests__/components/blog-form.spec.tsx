@@ -1,0 +1,27 @@
+import React from 'react';
+import { screen, fireEvent } from '@testing-library/react';
+import { vi, describe, it, expect, beforeEach } from 'vitest';
+import AdminPage from '@/pages/admin';
+import { renderWithProviders } from '../test-utils';
+
+vi.mock('@/hooks/useAuth', () => ({ useAuth: () => ({ user: { id: 'u' }, isLoading: false, isAuthenticated: true, isAdmin: true }) }));
+vi.mock('@/components/rich-editor', () => ({ default: (props: any) => React.createElement('textarea', { placeholder: props?.placeholder || 'editor', value: props?.value || '', onChange: (e: any) => props?.onChange?.(e.target.value) }) }));
+
+describe('BlogForm via AdminPage', () => {
+  beforeEach(() => { globalThis.fetch = vi.fn(() => Promise.resolve({ ok: true, json: async () => ({ id: 'new' }) } as any)) as any; });
+
+  it('creates a blog post', async () => {
+    renderWithProviders(<AdminPage />);
+  const blogTab = await screen.findByTestId('tab-blog');
+  fireEvent.click(blogTab);
+  const btn = await screen.findByTestId('new-blog-btn');
+    fireEvent.click(btn);
+    fireEvent.change(await screen.findByPlaceholderText(/Título do post/i), { target: { value: 'Lançamento' } });
+    fireEvent.change(await screen.findByPlaceholderText(/Resumo breve do post/i), { target: { value: 'Resumo' } });
+    const form = (await screen.findByPlaceholderText(/Título do post/i)).closest('form')!;
+    fireEvent.submit(form);
+    const calls = (globalThis.fetch as any).mock.calls;
+    const post = calls.find((c: any[]) => c[0].includes('/api/admin/blog'));
+    expect(post).toBeTruthy();
+  });
+});

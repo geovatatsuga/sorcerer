@@ -21,7 +21,9 @@ export default function Codex() {
   const categorizedEntries = {
     magic: codexEntries.filter(entry => entry.category === "magic"),
     creatures: codexEntries.filter(entry => entry.category === "creatures"),
-    locations: codexEntries.filter(entry => entry.category === "locations"),
+  locations: codexEntries.filter(entry => entry.category === "locations"),
+  items: codexEntries.filter(entry => entry.category === "items"),
+  other: codexEntries.filter(entry => entry.category === "other"),
   };
 
   // single-language app: use t from LanguageContext if available elsewhere; no language switching here
@@ -35,6 +37,10 @@ export default function Codex() {
         return <Crown className="h-5 w-5" />;
       case "locations":
         return <MapPin className="h-5 w-5" />;
+      case "items":
+        return <Wand2 className="h-5 w-5" />;
+      case "other":
+        return <Wand2 className="h-5 w-5" />;
       default:
         return <Wand2 className="h-5 w-5" />;
     }
@@ -60,6 +66,18 @@ export default function Codex() {
       { title: "The Eternal Forge", description: "Where legendary weapons are crafted using starfire and dragon breath" },
       { title: "Whispering Woods", description: "A mystical forest where the trees themselves hold ancient memories" },
     ],
+    items: [
+      { title: "Ancient Relic", description: "A mysterious artifact imbued with lost magic." },
+      { title: "Enchanted Blade", description: "A sword forged with runes to slay otherworldly beings." },
+      { title: "Potion of Sight", description: "Grants temporary visions of other planes." },
+      { title: "Sealing Charm", description: "Used to bind spirits to objects or places." },
+    ],
+    other: [
+      { title: "Legends & Lore", description: "Collected myths and oral histories from across the realm." },
+      { title: "Occult Symbols", description: "Catalog of sigils and their meanings." },
+      { title: "Lost Tongues", description: "Fragments of ancient languages used in ritual magic." },
+      { title: "Curiosities", description: "Miscellaneous oddities that defy easy categorization." },
+    ],
   };
 
   return (
@@ -70,31 +88,39 @@ export default function Codex() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h1 className="font-display text-4xl md:text-5xl font-bold text-primary mb-4" data-testid="text-codex-title">
-              {t.codexPageTitle}
+              {t.codexPageTitle || 'O Códex'}
             </h1>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              {t.codexPageDesc}
+              {t.codexPageDesc || 'Navegue por entradas do lore sobre magia, criaturas e locais.'}
             </p>
           </div>
           
           <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="w-full">
-            <TabsList className="grid w-full max-w-md mx-auto grid-cols-3 mb-12">
-              <TabsTrigger value="magic" className="flex items-center gap-2" data-testid="tab-magic">
-                <Wand2 className="h-4 w-4" />
-                {t.magic}
-              </TabsTrigger>
-              <TabsTrigger value="creatures" className="flex items-center gap-2" data-testid="tab-creatures">
-                <Crown className="h-4 w-4" />
-                {t.creatures}
-              </TabsTrigger>
-              <TabsTrigger value="locations" className="flex items-center gap-2" data-testid="tab-locations">
-                <MapPin className="h-4 w-4" />
-                {t.locations}
-              </TabsTrigger>
-            </TabsList>
-            
-            {["magic", "creatures", "locations"].map((category) => (
-              <TabsContent key={category} value={category}>
+            <TabsList className="grid w-full max-w-md mx-auto grid-cols-5 mb-12">
+                <TabsTrigger value="magic" className="flex items-center gap-2" data-testid="tab-magic">
+                  <Wand2 className="h-4 w-4" />
+                  {t.magic || 'Magia'}
+                </TabsTrigger>
+                <TabsTrigger value="creatures" className="flex items-center gap-2" data-testid="tab-creatures">
+                  <Crown className="h-4 w-4" />
+                  {t.creatures || 'Criaturas'}
+                </TabsTrigger>
+                <TabsTrigger value="locations" className="flex items-center gap-2" data-testid="tab-locations">
+                  <MapPin className="h-4 w-4" />
+                  {t.locations || 'Locais'}
+                </TabsTrigger>
+                <TabsTrigger value="items" className="flex items-center gap-2" data-testid="tab-items">
+                  <Wand2 className="h-4 w-4" />
+                  {'Itens'}
+                </TabsTrigger>
+                <TabsTrigger value="other" className="flex items-center gap-2" data-testid="tab-other">
+                  <Wand2 className="h-4 w-4" />
+                  {'Outros'}
+                </TabsTrigger>
+              </TabsList>
+
+              {["magic", "creatures", "locations", "items", "other"].map((category) => (
+                <TabsContent key={category} value={category}>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                   {isLoading ? (
                     [1, 2, 3, 4, 5, 6].map((i) => (

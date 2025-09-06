@@ -11,14 +11,24 @@ export default function HeroSection() {
       id="home" 
       className="relative min-h-screen flex items-center justify-center overflow-hidden"
     >
-      {/* Background Image */}
-      <div 
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-        style={{
-          backgroundImage: "url('https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&h=1080')"
-        }}
-      />
-      <div className="absolute inset-0 magical-gradient opacity-80" />
+      {/* Background video (optimized: WebM first, MP4 fallback). Poster + preload none to improve LCP */}
+      <video
+        className="absolute inset-0 w-full h-full object-cover"
+        autoPlay
+        muted
+        loop
+        playsInline
+        preload="none"
+        poster="/uploads/tensorpix-poster.jpg"
+        aria-hidden
+      >
+        <source src="/uploads/tensorpix-1280.webm" type="video/webm" />
+        <source src="/uploads/tensorpix-1280.mp4" type="video/mp4" />
+        {/* fallback text */}
+      </video>
+
+  {/* Dark overlay so the title remains readable (increased by ~15% overall) */}
+    <div className="absolute inset-0" style={{ backgroundColor: 'rgba(0,0,0,0.85)' }} />
       
       <div className="relative z-10 text-center max-w-4xl mx-auto px-4">
         <h1 className="font-display text-4xl md:text-6xl lg:text-7xl font-bold text-primary text-shadow-gold mb-6">
@@ -29,23 +39,21 @@ export default function HeroSection() {
           {t.heroSubtitle}
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Link href="/chapters">
-            <Button 
-              className="bg-primary text-primary-foreground px-8 py-3 font-semibold hover-glow"
-              data-testid="button-start-reading"
-            >
-              {t.startReading}
-            </Button>
-          </Link>
-          <Link href="/world">
-            <Button 
-              variant="outline"
-              className="border-border text-foreground px-8 py-3 font-semibold hover:bg-muted transition-colors"
-              data-testid="button-explore-world"
-            >
-              {t.exploreWorld}
-            </Button>
-          </Link>
+          <Button
+            asChild
+            className="bg-yellow-500 hover:bg-yellow-600 text-black px-8 py-3 font-semibold shadow hover-glow"
+            data-testid="button-start-reading"
+          >
+            <Link href="/chapters">{t.startReading || 'Começar a ler'}</Link>
+          </Button>
+
+          <Button
+            asChild
+            className="bg-gray-800 hover:bg-gray-700 text-white px-8 py-3 font-semibold transition-colors"
+            data-testid="button-explore-world"
+          >
+            <Link href="/world">{t.exploreWorld || 'Explorar o mundo'}</Link>
+          </Button>
         </div>
       </div>
       

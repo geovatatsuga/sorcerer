@@ -34,11 +34,11 @@ export default function Blog() {
     const diffTime = Math.abs(now.getTime() - publishedDate.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     
-  if (diffDays === 1) return t.oneDayAgo || '1 day ago';
+  if (diffDays === 1) return t.oneDayAgo || '1 dia atrás';
   if (diffDays < 7) return `${diffDays} ${t.daysAgo}`;
-  if (diffDays < 14) return t.oneWeekAgo || '1 week ago';
-  if (diffDays < 21) return t.twoWeeksAgo || '2 weeks ago';
-  return t.threeWeeksAgo || '3 weeks ago';
+  if (diffDays < 14) return t.oneWeekAgo || '1 semana atrás';
+  if (diffDays < 21) return t.twoWeeksAgo || '2 semanas atrás';
+  return t.threeWeeksAgo || '3 semanas atrás';
   };
 
   const getCategoryColor = (category: string) => {
@@ -81,7 +81,7 @@ export default function Blog() {
               />
               
               <div className="flex gap-2 flex-wrap">
-        {categories.map((category) => (
+  {categories.map((category) => (
                   <Button
                     key={category}
                     variant={selectedCategory === category ? "default" : "outline"}
@@ -90,7 +90,7 @@ export default function Blog() {
                     className="capitalize"
                     data-testid={`button-filter-${category}`}
                   >
-          {category === 'all' ? t.all : category === 'behind-scenes' ? t.behindScenes || 'Behind Scenes' : category}
+          {category === 'all' ? t.all : category === 'behindScenes' ? t.behindScenes || 'Bastidores' : category}
                   </Button>
                 ))}
               </div>
@@ -126,7 +126,7 @@ export default function Blog() {
                   <CardContent className="p-6" onClick={() => window.location.href = `/blog/${post.slug}`}>
                     <div className="flex items-center mb-3">
                       <span className={`px-3 py-1 rounded-full text-sm font-medium ${getCategoryColor(post.category)}`}>
-                        {post.category === "behind-scenes" ? "Behind Scenes" : post.category}
+                        {post.category === "behind-scenes" ? t.behindScenes || 'Bastidores' : post.category}
                       </span>
                       <span className="text-muted-foreground text-sm ml-4" data-testid={`text-blog-date-${post.id}`}>
                         {timeAgo(post.publishedAt)}
@@ -143,7 +143,7 @@ export default function Blog() {
                       className="text-primary hover:text-accent transition-colors font-medium p-0"
                       data-testid={`button-read-blog-${post.id}`}
                     >
-                      Read More →
+                      {t.readMore || 'Ler mais'} →
                     </Button>
                   </CardContent>
                 </Card>

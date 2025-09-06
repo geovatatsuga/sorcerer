@@ -13,10 +13,17 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/hooks/useAuth";
 
 export default function Navigation() {
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isDevLocal, setIsDevLocal] = useState(false);
   const { t } = useLanguage();
   const { user, isAuthenticated, isAdmin } = useAuth();
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setIsDevLocal(localStorage.getItem('devAdmin') === 'true');
+    }
+  }, []);
   
   const navigationItems = [
     { name: t.home, href: "/" },
@@ -73,6 +80,27 @@ export default function Navigation() {
                         ? "text-primary"
                         : "text-foreground hover:text-primary"
                     }`}
+                    onClick={() => {
+                      // Debug log and SPA navigation; fallback to hard reload if it doesn't change the path
+                      try {
+                        // eslint-disable-next-line no-console
+                        console.debug('[nav] click', item.href, 'current', location);
+                        setLocation(item.href);
+                        setTimeout(() => {
+                          try {
+                            if (window.location.pathname !== item.href) {
+                              // eslint-disable-next-line no-console
+                              console.debug('[nav] SPA navigation failed, falling back to full navigation', item.href);
+                              window.location.href = item.href;
+                            }
+                          } catch (err) {
+                            // ignore
+                          }
+                        }, 100);
+                      } catch (err) {
+                        // nothing — allow default behavior
+                      }
+                    }}
                   >
                     {item.name}
                   </Link>
@@ -96,6 +124,21 @@ export default function Navigation() {
               )}
               
               {/* Single-language app: Portuguese only. Language selector removed. */}
+
+              {/* Dev-mode quick entry (useful for Simple Browser which may not persist session cookies) */}
+              {!isDevLocal && (
+                <button
+                  type="button"
+                  className="ml-4 px-3 py-1 rounded-md text-sm font-medium border border-border text-foreground hover:bg-muted"
+                  onClick={() => {
+                    try { localStorage.setItem('devAdmin', 'true'); } catch (e) {}
+                    window.location.reload();
+                  }}
+                  data-testid="button-enter-dev"
+                >
+                  Entrar modo dev
+                </button>
+              )}
               
               {/* Authentication */}
               {isAuthenticated ? (
@@ -111,6 +154,17 @@ export default function Navigation() {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
+                    {isDevLocal && (
+                      <>
+                        <DropdownMenuItem onSelect={() => {
+                          try { localStorage.removeItem('devAdmin'); setIsDevLocal(false); } catch(e) {}
+                          window.location.reload();
+                        }}>
+                          Sair do modo dev
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                      </>
+                    )}
                     {isAdmin && (
                       <>
                         <DropdownMenuItem asChild>
@@ -229,6 +283,22 @@ export default function Navigation() {
                   <div className="px-3 py-2 text-sm text-muted-foreground">
                     {user?.firstName || user?.email || 'Usuário'}
                   </div>
+                  {isDevLocal && (
+                    <a
+                      onClick={() => { try { localStorage.removeItem('devAdmin'); } catch(e) {} ; window.location.reload(); }}
+                      className="flex items-center px-3 py-2 rounded-md font-medium transition-colors text-foreground hover:text-primary hover:bg-muted cursor-pointer"
+                    >
+                      Sair do modo dev
+                    </a>
+                  )}
+                  {!isDevLocal && (
+                    <a
+                      onClick={() => { try { localStorage.setItem('devAdmin','true'); } catch(e) {} ; window.location.reload(); }}
+                      className="flex items-center px-3 py-2 rounded-md font-medium transition-colors text-foreground hover:text-primary hover:bg-muted cursor-pointer"
+                    >
+                      Entrar modo dev
+                    </a>
+                  )}
                   <a
                     href="/api/logout"
                     className="flex items-center px-3 py-2 rounded-md font-medium transition-colors text-foreground hover:text-primary hover:bg-muted"

@@ -89,7 +89,12 @@ app.use((req, res, next) => {
   const port = parseInt(process.env.PORT || "5000", 10);
   // On some platforms (Windows) the `reusePort` option is not supported.
   // Use the simpler listen signature for cross-platform compatibility.
-  server.listen(port, "0.0.0.0", () => {
+  // Omit the explicit host so Node can bind to the system's default
+  // unspecified address. This improves compatibility when `localhost`
+  // resolves to an IPv6 address (::1) in some environments (VS Code
+  // Simple Browser may prefer IPv6), avoiding "connection refused"
+  // errors that occur when the server only listens on IPv4 (0.0.0.0).
+  server.listen(port, () => {
     log(`serving on port ${port}`);
   });
 })();

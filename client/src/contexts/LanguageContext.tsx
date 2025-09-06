@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, ReactNode } from 'react';
 
 // Minimal, Portuguese-only translation map kept here as the single source of truth.
 // This removes the separate translations module and prevents accidental

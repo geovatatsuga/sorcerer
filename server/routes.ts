@@ -655,6 +655,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     });
 
+    // Development debug endpoint - returns session and request headers so
+    // the developer can compare what the Simple Browser sends vs the system
+    // browser. This is intentionally development-only.
+    app.get('/api/dev/debug', (req, res) => {
+      try {
+        const sessionUser = (req.session as any)?.user || null;
+        const info = {
+          sessionUser,
+          headers: {
+            host: req.headers.host,
+            origin: req.headers.origin,
+            referer: req.headers.referer,
+            cookie: req.headers.cookie,
+            ua: req.headers['user-agent'],
+            forwarded: req.headers['x-forwarded-for'] || null,
+          },
+          url: req.originalUrl,
+        };
+        return res.json(info);
+      } catch (err) {
+        console.error('Dev debug error:', err);
+        return res.status(500).json({ message: 'Dev debug failed' });
+      }
+    });
+
     // Development translation helpers are disabled but kept as harmless stubs so
     // existing client code that tries to read/write translations doesn't fail.
     app.get('/api/dev/translations/:resource/:id', async (req, res) => {

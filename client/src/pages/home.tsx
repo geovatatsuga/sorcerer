@@ -11,10 +11,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Wand2, Crown, MapPin } from "lucide-react";
 import { Link } from "wouter";
 import type { Chapter, Character, Location, BlogPost } from "@shared/schema";
-import { useLanguage } from '@/contexts/LanguageContext';
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function Home() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { data: chapters = [], isLoading: chaptersLoading } = useQuery<Chapter[]>({
     queryKey: ['/api/chapters'],
   });
@@ -31,10 +31,8 @@ export default function Home() {
     queryKey: ['/api/blog'],
   });
 
-  const { language } = useLanguage();
-
   const localized = (item: any, field: string) => {
-  return item[field] || '';
+    return item[field] || '';
   };
 
   const latestChapters = chapters.slice(0, 3);
@@ -65,10 +63,10 @@ export default function Home() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="font-display text-3xl md:text-4xl font-bold text-primary mb-4" data-testid="text-latest-chapters">
-              {t.latestChapters}
+              {t.latestChapters || 'Últimos Capítulos'}
             </h2>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              {t.followEpicJourney}
+              {t.followEpicJourney || 'Acompanhe a jornada épica em cada capítulo.'}
             </p>
           </div>
           
@@ -89,8 +87,8 @@ export default function Home() {
           <div className="text-center mt-12">
             <Link href="/chapters">
               <Button className="bg-secondary text-secondary-foreground px-8 py-3 font-semibold hover-glow" data-testid="button-view-all-chapters">
-                {t.viewAllChapters}
-              </Button>
+                  {t.viewAllChapters || 'Ver todos os capítulos'}
+                </Button>
             </Link>
           </div>
         </div>
@@ -101,10 +99,10 @@ export default function Home() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="font-display text-3xl md:text-4xl font-bold text-primary mb-4" data-testid="text-characters">
-              {t.characters}
+              {t.characters || 'Personagens'}
             </h2>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              {t.meetHeroesVillains}
+              {t.meetHeroesVillains || 'Conheça heróis, vilões e rostos memoráveis do reino.'}
             </p>
           </div>
           
@@ -129,7 +127,7 @@ export default function Home() {
                 className="border-border text-foreground px-8 py-3 font-semibold hover:bg-muted transition-colors"
                 data-testid="button-view-character-profiles"
               >
-                {t.viewCharacterProfiles}
+                {t.viewCharacterProfiles || 'Ver perfis de personagens'}
               </Button>
             </Link>
           </div>
@@ -141,10 +139,10 @@ export default function Home() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="font-display text-3xl md:text-4xl font-bold text-primary mb-4" data-testid="text-explore-realms">
-              {t.exploreRealms}
+              {t.exploreRealms || 'Explore os Reinos'}
             </h2>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              {t.discoverVastWorld}
+              {t.discoverVastWorld || 'Descubra o vasto mundo, locais e segredos ocultos.'}
             </p>
           </div>
           
@@ -161,10 +159,11 @@ export default function Home() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="font-display text-3xl md:text-4xl font-bold text-primary mb-4" data-testid="text-codex">
-              {t.theCodex}
+              {t.theCodex || 'O Códex'}
             </h2>
+            
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              {t.comprehensiveGuide}
+              {t.comprehensiveGuide || 'Um guia completo sobre magia, criaturas e locais.'}
             </p>
           </div>
           
@@ -175,22 +174,22 @@ export default function Home() {
                 <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Wand2 className="text-primary text-2xl h-8 w-8" />
                 </div>
-                <h3 className="font-display text-xl font-semibold text-card-foreground" data-testid="text-magic-systems">
-                  {t.magicSystems}
-                </h3>
+                  <h3 className="font-display text-xl font-semibold text-card-foreground" data-testid="text-magic-systems">
+                    {t.magicSystems || 'Sistemas Mágicos'}
+                  </h3>
               </div>
               <div className="space-y-4">
                 <div className="border-l-2 border-accent pl-4">
-                  <h4 className="font-semibold text-card-foreground">{t.elementalMagic}</h4>
-                  <p className="text-muted-foreground text-sm">{t.elementalMagicDesc}</p>
+                  <h4 className="font-semibold text-card-foreground">{t.elementalMagic || 'Magia Elemental'}</h4>
+                    <p className="text-muted-foreground text-sm">{t.elementalMagicDesc || 'Controle sobre fogo, água, terra e ar.'}</p>
                 </div>
                 <div className="border-l-2 border-accent pl-4">
-                  <h4 className="font-semibold text-card-foreground">{t.shadowWeaving}</h4>
-                  <p className="text-muted-foreground text-sm">{t.shadowWeavingDesc}</p>
+                  <h4 className="font-semibold text-card-foreground">{t.shadowWeaving || 'Tecelagem das Sombras'}</h4>
+                  <p className="text-muted-foreground text-sm">{t.shadowWeavingDesc || 'Manipulação da escuridão e da energia do vazio.'}</p>
                 </div>
                 <div className="border-l-2 border-accent pl-4">
-                  <h4 className="font-semibold text-card-foreground">{t.divineChanneling}</h4>
-                  <p className="text-muted-foreground text-sm">{t.divineChannelingDesc}</p>
+                  <h4 className="font-semibold text-card-foreground">{t.divineChanneling || 'Canalização Divina'}</h4>
+                  <p className="text-muted-foreground text-sm">{t.divineChannelingDesc || 'Extrair poder de seres celestiais.'}</p>
                 </div>
               </div>
             </Card>
@@ -202,21 +201,21 @@ export default function Home() {
                   <Crown className="text-primary text-2xl h-8 w-8" />
                 </div>
                 <h3 className="font-display text-xl font-semibold text-card-foreground" data-testid="text-creatures-beasts">
-                  {t.creaturesBeasts}
+                  {t.creaturesBeasts || 'Criaturas e Bestas'}
                 </h3>
               </div>
               <div className="space-y-4">
                 <div className="border-l-2 border-accent pl-4">
-                  <h4 className="font-semibold text-card-foreground">{t.skyfireDragons}</h4>
-                  <p className="text-muted-foreground text-sm">{t.skyfireDragonsDesc}</p>
+                  <h4 className="font-semibold text-card-foreground">{t.skyfireDragons || 'Dragões de Fogo Celeste'}</h4>
+                  <p className="text-muted-foreground text-sm">{t.skyfireDragonsDesc || 'Antigos guardiões dos cumes montanhosos.'}</p>
                 </div>
                 <div className="border-l-2 border-accent pl-4">
-                  <h4 className="font-semibold text-card-foreground">{t.shadowWraiths}</h4>
-                  <p className="text-muted-foreground text-sm">{t.shadowWraithsDesc}</p>
+                  <h4 className="font-semibold text-card-foreground">{t.shadowWraiths || 'Espectros das Sombras'}</h4>
+                  <p className="text-muted-foreground text-sm">{t.shadowWraithsDesc || 'Almas corrompidas vinculadas à escuridão.'}</p>
                 </div>
                 <div className="border-l-2 border-accent pl-4">
-                  <h4 className="font-semibold text-card-foreground">{t.crystalSprites}</h4>
-                  <p className="text-muted-foreground text-sm">{t.crystalSpritesDesc}</p>
+                  <h4 className="font-semibold text-card-foreground">{t.crystalSprites || 'Sprites de Cristal'}</h4>
+                  <p className="text-muted-foreground text-sm">{t.crystalSpritesDesc || 'Seres benevolentes de pura energia mágica.'}</p>
                 </div>
               </div>
             </Card>
@@ -228,21 +227,21 @@ export default function Home() {
                   <MapPin className="text-primary text-2xl h-8 w-8" />
                 </div>
                 <h3 className="font-display text-xl font-semibold text-card-foreground" data-testid="text-legendary-locations">
-                  {t.legendaryLocations}
+                  {t.legendaryLocations || 'Locais Lendários'}
                 </h3>
               </div>
               <div className="space-y-4">
                 <div className="border-l-2 border-accent pl-4">
-                  <h4 className="font-semibold text-card-foreground">{t.sunspireTower}</h4>
-                  <p className="text-muted-foreground text-sm">{t.sunspireTowerDesc}</p>
+                  <h4 className="font-semibold text-card-foreground">{t.sunspireTower || 'Torre Sunspire'}</h4>
+                  <p className="text-muted-foreground text-sm">{t.sunspireTowerDesc || 'A maior academia mágica, flutuando acima das nuvens.'}</p>
                 </div>
                 <div className="border-l-2 border-accent pl-4">
-                  <h4 className="font-semibold text-card-foreground">{t.nethermoorCaverns}</h4>
-                  <p className="text-muted-foreground text-sm">{t.nethermoorCavernsDesc}</p>
+                  <h4 className="font-semibold text-card-foreground">{t.nethermoorCaverns || 'Cavernas de Nethermoor'}</h4>
+                  <p className="text-muted-foreground text-sm">{t.nethermoorCavernsDesc || 'Túneis subterrâneos repletos de magia sombria.'}</p>
                 </div>
                 <div className="border-l-2 border-accent pl-4">
-                  <h4 className="font-semibold text-card-foreground">{t.eternalForge}</h4>
-                  <p className="text-muted-foreground text-sm">{t.eternalForgeDesc}</p>
+                  <h4 className="font-semibold text-card-foreground">{t.eternalForge || 'Forja Eterna'}</h4>
+                  <p className="text-muted-foreground text-sm">{t.eternalForgeDesc || 'Onde armas lendárias são forjadas.'}</p>
                 </div>
               </div>
             </Card>

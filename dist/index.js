@@ -36,9 +36,13 @@ import { createInsertSchema } from "drizzle-zod";
 var chapters = sqliteTable("chapters", {
   id: text("id").primaryKey(),
   title: text("title").notNull(),
+  // Localized versions for UI content (optional)
+  titleI18n: text("title_i18n"),
   slug: text("slug").notNull().unique(),
   content: text("content").notNull(),
+  contentI18n: text("content_i18n"),
   excerpt: text("excerpt").notNull(),
+  excerptI18n: text("excerpt_i18n"),
   chapterNumber: integer("chapter_number").notNull(),
   readingTime: integer("reading_time").notNull(),
   // in minutes
@@ -48,7 +52,9 @@ var chapters = sqliteTable("chapters", {
 var characters = sqliteTable("characters", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
+  nameI18n: text("name_i18n"),
   title: text("title").notNull(),
+  titleI18n: text("title_i18n"),
   description: text("description").notNull(),
   story: text("story"),
   slug: text("slug").notNull().unique(),
@@ -59,7 +65,9 @@ var characters = sqliteTable("characters", {
 var locations = sqliteTable("locations", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
+  nameI18n: text("name_i18n"),
   description: text("description").notNull(),
+  descriptionI18n: text("description_i18n"),
   mapX: integer("map_x").notNull(),
   // x coordinate on map (percentage)
   mapY: integer("map_y").notNull(),
@@ -70,7 +78,9 @@ var locations = sqliteTable("locations", {
 var codexEntries = sqliteTable("codex_entries", {
   id: text("id").primaryKey(),
   title: text("title").notNull(),
+  titleI18n: text("title_i18n"),
   description: text("description").notNull(),
+  descriptionI18n: text("description_i18n"),
   category: text("category").notNull(),
   // magic, creatures, locations
   imageUrl: text("image_url")
@@ -78,9 +88,12 @@ var codexEntries = sqliteTable("codex_entries", {
 var blogPosts = sqliteTable("blog_posts", {
   id: text("id").primaryKey(),
   title: text("title").notNull(),
+  titleI18n: text("title_i18n"),
   slug: text("slug").notNull().unique(),
   content: text("content").notNull(),
+  contentI18n: text("content_i18n"),
   excerpt: text("excerpt").notNull(),
+  excerptI18n: text("excerpt_i18n"),
   category: text("category").notNull(),
   // update, world-building, behind-scenes, research
   publishedAt: text("published_at").notNull(),
@@ -302,15 +315,30 @@ var DatabaseStorage = class {
   }
   // Chapter methods
   async getChapters() {
-    return await db.select().from(chapters).orderBy(chapters.chapterNumber);
+    try {
+      return await db.select().from(chapters).orderBy(chapters.chapterNumber);
+    } catch (error) {
+      console.error("DB error in getChapters:", error);
+      return [];
+    }
   }
   async getChapterBySlug(slug) {
-    const [chapter] = await db.select().from(chapters).where(eq(chapters.slug, slug));
-    return chapter;
+    try {
+      const [chapter] = await db.select().from(chapters).where(eq(chapters.slug, slug));
+      return chapter;
+    } catch (error) {
+      console.error("DB error in getChapterBySlug:", error);
+      return void 0;
+    }
   }
   async getChapterById(id) {
-    const [chapter] = await db.select().from(chapters).where(eq(chapters.id, id));
-    return chapter;
+    try {
+      const [chapter] = await db.select().from(chapters).where(eq(chapters.id, id));
+      return chapter;
+    } catch (error) {
+      console.error("DB error in getChapterById:", error);
+      return void 0;
+    }
   }
   async createChapter(chapter) {
     const payload = { ...chapter };
@@ -341,11 +369,35 @@ var DatabaseStorage = class {
   }
   // Character methods
   async getCharacters() {
-    return await db.select().from(characters);
+    try {
+      return await db.select().from(characters);
+    } catch (error) {
+      console.error("DB error in getCharacters:", error);
+      try {
+        const offlineFile = path.resolve(process.cwd(), "data", "offline-characters.json");
+        const data = await fs.promises.readFile(offlineFile, "utf-8");
+        const arr = JSON.parse(data || "[]");
+        return arr;
+      } catch (fileErr) {
+        return [];
+      }
+    }
   }
   async getCharacterById(id) {
-    const [character] = await db.select().from(characters).where(eq(characters.id, id));
-    return character;
+    try {
+      const [character] = await db.select().from(characters).where(eq(characters.id, id));
+      return character;
+    } catch (error) {
+      console.error("DB error in getCharacterById:", error);
+      try {
+        const offlineFile = path.resolve(process.cwd(), "data", "offline-characters.json");
+        const data = await fs.promises.readFile(offlineFile, "utf-8");
+        const arr = JSON.parse(data || "[]");
+        return arr.find((c) => c.id === id);
+      } catch (fileErr) {
+        return void 0;
+      }
+    }
   }
   async getCharacterBySlug(slug) {
     const [character] = await db.select().from(characters).where(eq(characters.slug, slug));
@@ -393,11 +445,28 @@ var DatabaseStorage = class {
   }
   // Location methods
   async getLocations() {
-    return await db.select().from(locations);
+    try {
+      return await db.select().from(locations);
+    } catch (error) {
+      console.error("DB error in getLocations:", error);
+      try {
+        const offlineFile = path.resolve(process.cwd(), "data", "offline-locations.json");
+        const data = await fs.promises.readFile(offlineFile, "utf-8");
+        const arr = JSON.parse(data || "[]");
+        return arr;
+      } catch (fileErr) {
+        return [];
+      }
+    }
   }
   async getLocationById(id) {
-    const [location] = await db.select().from(locations).where(eq(locations.id, id));
-    return location;
+    try {
+      const [location] = await db.select().from(locations).where(eq(locations.id, id));
+      return location;
+    } catch (error) {
+      console.error("DB error in getLocationById:", error);
+      return void 0;
+    }
   }
   async createLocation(location) {
     const payload = { ...location };
@@ -428,14 +497,36 @@ var DatabaseStorage = class {
   }
   // Codex methods
   async getCodexEntries() {
-    return await db.select().from(codexEntries);
+    try {
+      return await db.select().from(codexEntries);
+    } catch (error) {
+      console.error("DB error in getCodexEntries:", error);
+      try {
+        const offlineFile = path.resolve(process.cwd(), "data", "offline-codex.json");
+        const data = await fs.promises.readFile(offlineFile, "utf-8");
+        const arr = JSON.parse(data || "[]");
+        return arr;
+      } catch (fileErr) {
+        return [];
+      }
+    }
   }
   async getCodexEntriesByCategory(category) {
-    return await db.select().from(codexEntries).where(eq(codexEntries.category, category));
+    try {
+      return await db.select().from(codexEntries).where(eq(codexEntries.category, category));
+    } catch (error) {
+      console.error("DB error in getCodexEntriesByCategory:", error);
+      return [];
+    }
   }
   async getCodexEntryById(id) {
-    const [entry] = await db.select().from(codexEntries).where(eq(codexEntries.id, id));
-    return entry;
+    try {
+      const [entry] = await db.select().from(codexEntries).where(eq(codexEntries.id, id));
+      return entry;
+    } catch (error) {
+      console.error("DB error in getCodexEntryById:", error);
+      return void 0;
+    }
   }
   async createCodexEntry(entry) {
     const payload = { ...entry };
@@ -466,11 +557,21 @@ var DatabaseStorage = class {
   }
   // Blog methods
   async getBlogPosts() {
-    return await db.select().from(blogPosts).orderBy(blogPosts.publishedAt);
+    try {
+      return await db.select().from(blogPosts).orderBy(blogPosts.publishedAt);
+    } catch (error) {
+      console.error("DB error in getBlogPosts:", error);
+      return [];
+    }
   }
   async getBlogPostBySlug(slug) {
-    const [post] = await db.select().from(blogPosts).where(eq(blogPosts.slug, slug));
-    return post;
+    try {
+      const [post] = await db.select().from(blogPosts).where(eq(blogPosts.slug, slug));
+      return post;
+    } catch (error) {
+      console.error("DB error in getBlogPostBySlug:", error);
+      return void 0;
+    }
   }
   async getBlogPostById(id) {
     const [post] = await db.select().from(blogPosts).where(eq(blogPosts.id, id));
@@ -522,20 +623,25 @@ var DatabaseStorage = class {
     return progress;
   }
   async updateReadingProgress(sessionId, chapterId, progress) {
-    const [existingProgress] = await db.update(readingProgress).set({
-      progress,
-      lastReadAt: (/* @__PURE__ */ new Date()).toISOString()
-    }).where(and(eq(readingProgress.sessionId, sessionId), eq(readingProgress.chapterId, chapterId))).returning();
-    if (existingProgress) {
-      return existingProgress;
+    try {
+      const [existingProgress] = await db.update(readingProgress).set({
+        progress,
+        lastReadAt: (/* @__PURE__ */ new Date()).toISOString()
+      }).where(and(eq(readingProgress.sessionId, sessionId), eq(readingProgress.chapterId, chapterId))).returning();
+      if (existingProgress) {
+        return existingProgress;
+      }
+      const [newProgress] = await db.insert(readingProgress).values({
+        sessionId,
+        chapterId,
+        progress,
+        lastReadAt: (/* @__PURE__ */ new Date()).toISOString()
+      }).returning();
+      return newProgress;
+    } catch (error) {
+      console.error("DB error in updateReadingProgress:", error);
+      throw error;
     }
-    const [newProgress] = await db.insert(readingProgress).values({
-      sessionId,
-      chapterId,
-      progress,
-      lastReadAt: (/* @__PURE__ */ new Date()).toISOString()
-    }).returning();
-    return newProgress;
   }
   async seedData() {
     try {
@@ -894,25 +1000,44 @@ var isDevAdmin = (req, res, next) => {
 };
 function getSession() {
   const sessionTtl = 7 * 24 * 60 * 60 * 1e3;
-  if (process.env.DATABASE_URL) {
-    const pgStore = connectPg(session);
-    const sessionStore = new pgStore({
-      conString: process.env.DATABASE_URL,
-      createTableIfMissing: false,
-      ttl: sessionTtl,
-      tableName: "sessions"
-    });
+  if (process.env.NODE_ENV === "development") {
+    const MemoryStore = session.MemoryStore;
     return session({
-      secret: process.env.SESSION_SECRET,
-      store: sessionStore,
+      store: new MemoryStore(),
+      secret: process.env.SESSION_SECRET || "dev-secret",
       resave: false,
       saveUninitialized: false,
       cookie: {
         httpOnly: true,
-        secure: true,
+        secure: false,
+        // Secure must be false for localhost HTTP
         maxAge: sessionTtl
       }
     });
+  }
+  if (process.env.DATABASE_URL) {
+    try {
+      const pgStore = connectPg(session);
+      const sessionStore = new pgStore({
+        conString: process.env.DATABASE_URL,
+        createTableIfMissing: false,
+        ttl: sessionTtl,
+        tableName: "sessions"
+      });
+      return session({
+        secret: process.env.SESSION_SECRET,
+        store: sessionStore,
+        resave: false,
+        saveUninitialized: false,
+        cookie: {
+          httpOnly: true,
+          secure: true,
+          maxAge: sessionTtl
+        }
+      });
+    } catch (err) {
+      console.warn("Postgres session store initialization failed, falling back to SQLite store:", err);
+    }
   }
   const SQLiteStore = connectSqlite3(session);
   return session({
@@ -1492,6 +1617,27 @@ async function registerRoutes(app2) {
         return res.status(500).json({ message: "Failed to create admin user" });
       }
     });
+    app2.get("/api/dev/debug", (req, res) => {
+      try {
+        const sessionUser = req.session?.user || null;
+        const info = {
+          sessionUser,
+          headers: {
+            host: req.headers.host,
+            origin: req.headers.origin,
+            referer: req.headers.referer,
+            cookie: req.headers.cookie,
+            ua: req.headers["user-agent"],
+            forwarded: req.headers["x-forwarded-for"] || null
+          },
+          url: req.originalUrl
+        };
+        return res.json(info);
+      } catch (err) {
+        console.error("Dev debug error:", err);
+        return res.status(500).json({ message: "Dev debug failed" });
+      }
+    });
     app2.get("/api/dev/translations/:resource/:id", async (req, res) => {
       return res.json({ ok: true, translation: null });
     });
@@ -1610,6 +1756,8 @@ function serveStatic(app2) {
 }
 
 // server/index.ts
+import fs4 from "fs";
+import path6 from "path";
 var app = express2();
 app.use(
   cors({
@@ -1623,7 +1771,7 @@ app.use(express2.json());
 app.use(express2.urlencoded({ extended: false }));
 app.use((req, res, next) => {
   const start = Date.now();
-  const path6 = req.path;
+  const path7 = req.path;
   let capturedJsonResponse = void 0;
   const originalResJson = res.json;
   res.json = function(bodyJson, ...args) {
@@ -1632,8 +1780,8 @@ app.use((req, res, next) => {
   };
   res.on("finish", () => {
     const duration = Date.now() - start;
-    if (path6.startsWith("/api")) {
-      let logLine = `${req.method} ${path6} ${res.statusCode} in ${duration}ms`;
+    if (path7.startsWith("/api")) {
+      let logLine = `${req.method} ${path7} ${res.statusCode} in ${duration}ms`;
       if (capturedJsonResponse) {
         logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
       }
@@ -1650,16 +1798,25 @@ app.use((req, res, next) => {
   app.use((err, _req, res, _next) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
-    res.status(status).json({ message });
-    throw err;
+    if (!res.headersSent) {
+      res.status(status).json({ message });
+    } else {
+      console.warn("Error after headers sent:", message);
+    }
+    console.error(err);
   });
+  const uploadsPath = path6.resolve(process.cwd(), "uploads");
+  if (!fs4.existsSync(uploadsPath)) {
+    fs4.mkdirSync(uploadsPath, { recursive: true });
+  }
+  app.use("/uploads", express2.static(uploadsPath));
   if (app.get("env") === "development") {
     await setupVite(app, server);
   } else {
     serveStatic(app);
   }
   const port = parseInt(process.env.PORT || "5000", 10);
-  server.listen(port, "0.0.0.0", () => {
+  server.listen(port, () => {
     log(`serving on port ${port}`);
   });
 })();

@@ -74,6 +74,7 @@ export default function RichEditor({ value, onChange, uploadFile, placeholder }:
         onFocus={() => setFocused(true)}
         className={`min-h-[360px] lg:min-h-[520px] p-4 rounded-md border ${focused ? 'border-primary' : 'border-gray-200'} bg-white dark:bg-gray-800 text-black dark:text-white text-base leading-relaxed`} 
         data-placeholder={placeholder}
+        data-testid="rich-editor-content"
         style={{ outline: 'none' }}
       />
 
