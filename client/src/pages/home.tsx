@@ -67,7 +67,7 @@ export default function Home() {
   <Reveal className="w-full">
   <section id="chapters" className="py-20 px-4">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
+          <div className="text-center mb-16 flex flex-col items-center justify-center min-h-32">
             <h2 className="section-title font-display text-3xl md:text-4xl font-bold text-primary mb-4" data-testid="text-latest-chapters">
               <SectionIcon type="rune" />{t.latestChapters || 'Últimos Capítulos'}
             </h2>
@@ -92,7 +92,7 @@ export default function Home() {
             </div>
           )}
 
-          <div className="text-center mt-12">
+          <div className="text-center mt-12 flex flex-col items-center justify-center min-h-32">
             <Link href="/chapters">
               <Button className="btn-gold btn-font px-8 py-3 font-semibold hover-glow btn-micro" data-testid="button-view-all-chapters">
                   {t.viewAllChapters || 'Ver todos os capítulos'}
@@ -110,7 +110,7 @@ export default function Home() {
   <Reveal className="w-full">
   <section id="characters" className="py-20 px-4 bg-muted/30">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mt-12">
+          <div className="text-center mt-12 mb-12">
             <h2 className="section-title font-display text-3xl md:text-4xl font-bold text-primary mb-4" data-testid="text-characters">
               <SectionIcon type="leaf" />{t.characters || 'Personagens'}
             </h2>
@@ -152,9 +152,9 @@ export default function Home() {
 
   {/* Interactive World Map */}
   <Reveal className="w-full">
-  <section id="world" className="py-20 px-4">
+  <section id="world" className="py-24 px-4">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
+          <div className="text-center mb-16 flex flex-col items-center justify-center min-h-32">
             <h2 className="section-title font-display text-3xl md:text-4xl font-bold text-primary mb-4" data-testid="text-explore-realms">
               <SectionIcon type="spark" />{t.exploreRealms || 'Explore os Reinos'}
             </h2>
@@ -168,10 +168,10 @@ export default function Home() {
           ) : (
             <WorldMap locations={locations} />
           )}
-          <div className="text-center mt-8">
+          <div className="text-center mt-12">
             <Link href="/world">
               <Button className="btn-gold btn-font px-8 py-3 font-semibold hover-glow btn-micro" data-testid="button-world">
-                {t.world || 'Mundo'}
+                Explore as Localizações
               </Button>
             </Link>
           </div>
@@ -181,27 +181,24 @@ export default function Home() {
       
   {/* Codex Section */}
   <Reveal className="w-full">
-  <section id="codex" className="py-20 px-4 bg-muted/30">
+  <section id="codex" className="py-24 px-4 bg-muted/30">
         <div className="max-w-7xl mx-auto codex-wrapper">
-          <div className="codex-bg" aria-hidden>
+          <div className="codex-bg">
             {/* Poster fallback image behind the video (shows if video doesn't load) */}
-            <img src="/uploads/nOVOCOVER-poster.jpg" alt="codex poster" className="codex-poster poster-hidden" />
-            <video autoPlay muted loop playsInline preload="auto" poster="/uploads/nOVOCOVER-poster.jpg" className="hero-like-video" aria-hidden>
+            <img src="/uploads/nOVOCOVER-poster.jpg" alt="" className="codex-bg-poster" />
+            <video autoPlay muted loop playsInline preload="auto" className="hero-like-video" aria-hidden>
               <source src="/uploads/nOVOCOVER.webm" type="video/webm" />
               <source src="/uploads/nOVOCOVER.mp4" type="video/mp4" />
             </video>
-            <div className="codex-bg-overlay" aria-hidden />
-            {/* replicate hero light effects */}
+            {/* Full-bleed dark overlay (same pattern as HeroSection) */}
+            <div className="absolute inset-0" style={{ backgroundColor: 'rgba(0,0,0,0.70)', zIndex: 2 }} aria-hidden />
+            {/* Hero-like decorative layers copied from HeroSection: place inside codex-bg so they align to the video box */}
             <HeroParticles />
-            <Starfield count={24} />
+            <Starfield count={36} />
           </div>
-
-          {/* Animated darkening overlay behind title/subtitle */}
-          <div className="codex-title-overlay" aria-hidden />
-
-          <div className="codex-content relative z-10">
-            <div className="text-center mb-16">
-              <h2 className="section-title font-display text-3xl md:text-4xl font-bold text-primary mb-4" data-testid="text-codex">
+      <div className="codex-content relative z-10">
+            <div className="text-center mb-16 flex flex-col items-center justify-center min-h-32">
+        <h2 className="section-title font-display text-3xl md:text-4xl font-bold text-primary text-shadow-gold mb-4" data-testid="text-codex">
                 {t.theCodex || 'O Códex'}
               </h2>
               
@@ -293,7 +290,7 @@ export default function Home() {
         {/* CTA overlay - positioned over the video */}
         <div className="codex-cta-over" aria-hidden={false}>
           <Link href="/codex">
-            <Button className="btn-gold btn-font px-8 py-3 font-semibold hover-glow btn-micro" data-testid="button-codex">
+            <Button className="btn-gold btn-font px-12 py-4 text-lg font-semibold hover-glow" data-testid="button-codex">
               {t.theCodex || 'Ver o Códex'}
             </Button>
           </Link>
@@ -304,9 +301,9 @@ export default function Home() {
       
   {/* Blog Section */}
   <Reveal className="w-full">
-  <section id="blog" className="py-20 px-4">
+  <section id="blog" className="py-20 px-4 mt-32">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
+          <div className="text-center mb-16 flex flex-col items-center justify-center min-h-32">
             <h2 className="section-title font-display text-3xl md:text-4xl font-bold text-primary mb-4" data-testid="text-authors-chronicles">
               {t.authorsChronicles || 'Crônicas do Autor'}
             </h2>

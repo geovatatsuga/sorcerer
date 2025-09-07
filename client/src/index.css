@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Cinzel+Decorative:wght@400;700&family=Cinzel:wght@400;500;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -41,6 +41,7 @@
   --font-body: 'Crimson Text', serif;
   --font-sans: 'Crimson Text', serif;
   --font-serif: 'Crimson Text', serif;
+  --font-map: 'Cinzel Decorative', 'Cinzel', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
   --font-mono: 'Fira Code', monospace;
   --radius: 0.75rem;
 }
@@ -121,6 +122,46 @@
     box-shadow: none;
     text-shadow: none;
   }
+
+    /* Map card stat title hover glow */
+    .map-stat-title {
+      transition: color 200ms ease, text-shadow 200ms ease, transform 160ms ease;
+    }
+    .map-stat-title:hover {
+      color: #ffe8a6;
+      text-shadow: 0 0 18px rgba(255, 200, 75, 0.85), 0 2px 6px rgba(0,0,0,0.6);
+      transform: translateY(-2px);
+    }
+
+    /* Interactive SVG map styles */
+    .interactive-svg-wrapper {
+      width: 100%;
+      display: block;
+    }
+    .interactive-svg svg {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    .interactive-svg [data-continent] {
+      transition: fill 180ms ease, opacity 180ms ease, filter 180ms ease;
+      cursor: pointer;
+    }
+    .interactive-svg [data-continent].active {
+      filter: drop-shadow(0 6px 18px rgba(255,200,80,0.45));
+      opacity: 1 !important;
+    }
+    .map-tooltip { background: rgba(0,0,0,0.8); color: #fff; padding: 6px 8px; border-radius: 6px; font-size: 12px; }
+
+  /* overlay badges removed; no-op */
+
+    /* make svg continent groups transition opacity smoothly */
+    .interactive-svg-wrapper svg g { transition: opacity 160ms ease; }
+  /* selected vertex highlight */
+  .interactive-svg-wrapper svg circle { transition: transform 100ms ease, fill 100ms ease; }
+  /* preview points and polyline for multi-add */
+  .interactive-svg-wrapper svg circle.preview { fill: #ffcc33; stroke: none; }
+  .interactive-svg-wrapper svg polyline.preview { stroke: #ffcc33; stroke-width: 2px; stroke-dasharray: 6 4; fill: none; }
 
   .btn-muted:hover {
     transform: translateY(-1px);
@@ -211,19 +252,24 @@
     --parallax-x: 0;
     --parallax-y: 0;
   }
-
   .hero-particles .particle {
     position: absolute;
     border-radius: 50%;
-    /* static small glints */
-    background: radial-gradient(circle at 35% 35%, rgba(255,245,200,0.9), rgba(255,200,80,0.5));
+    /* subtle moving glints */
+    background: radial-gradient(circle at 35% 35%, rgba(255,245,200,0.95), rgba(255,200,80,0.55));
     filter: blur(1.6px);
     transform: translateZ(0) scale(1);
-    transition: none;
+    transition: transform 420ms ease, opacity 420ms ease;
     mix-blend-mode: screen;
-    will-change: opacity;
-    /* no animation — particles are static */
-    animation: none !important;
+    will-change: transform, opacity;
+    animation: particle-float var(--d, 8s) ease-in-out infinite;
+  }
+
+  @keyframes particle-float {
+    0% { transform: translateY(6px) scale(0.96); opacity: 0.18; }
+    40% { transform: translateY(-10px) scale(1.06); opacity: 0.9; }
+    70% { transform: translateY(-18px) scale(1.02); opacity: 0.7; }
+    100% { transform: translateY(6px) scale(0.98); opacity: 0.18; }
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -232,6 +278,7 @@
       transform: none !important;
       filter: none;
       opacity: 0.06 !important;
+      animation: none !important;
     }
   }
 
@@ -534,17 +581,17 @@
 /* User requested: remove the footer/section transition stripe entirely */
 .section-divider { display: none !important; }
 
-/* Codex video background helper - prepares a video container behind the cards */
 .codex-wrapper { position: relative; overflow: visible; }
 .codex-bg {
-  /* full-bleed video container that spans the viewport width */
+  /* full-bleed video container that spans the viewport width and extends to match visual framing */
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
   width: 100vw; /* force full viewport width */
   max-width: none;
-  top: 0;
-  bottom: 0;
+  /* extend both above and below the section so the visual framing matches the video crop */
+  top: -6rem;
+  height: calc(100% + 22rem);
   z-index: 0;
   pointer-events: none;
   overflow: hidden;
@@ -552,16 +599,17 @@
 .codex-bg video {
   position: absolute;
   left: 50%;
-  /* extend both above and below the section so the visual framing feels centered */
-  top: -6rem;
   transform: translateX(-50%);
+  /* video fills the codex-bg box so overlay (which matches the box) covers it entirely */
+  top: 0;
   width: 100vw;
-  height: calc(100% + 22rem); /* increased vertical coverage */
+  height: 100%;
   object-fit: cover;
   display: block;
+  z-index: 1;
 }
 .hero-like-video { filter: brightness(0.36) saturate(0.9) contrast(0.9) blur(0px); transform: scale(1.03); }
-.codex-bg-overlay { position: absolute; left: 0; right: 0; top: 0; bottom: 0; background: linear-gradient(180deg, rgba(6,8,12,0.55), rgba(6,8,12,0.72)); mix-blend-mode: multiply; z-index: 2; pointer-events: none; }
+.codex-bg-overlay { position: absolute; left: 0; right: 0; top: 0; bottom: 0; background-color: rgba(0,0,0,0.70); z-index: 2; pointer-events: none; }
 .codex-content { position: relative; z-index: 40; }
 
 /* Reduced card sizing for Codex section so a video background fits better */
@@ -575,31 +623,33 @@
 .codex-wrapper { padding-bottom: 10rem; }
 
 /* CTA overlay centered above video */
-.codex-cta-over { position: absolute; left: 50%; transform: translateX(-50%); bottom: 2.5rem; z-index: 60; }
+.codex-cta-over { position: absolute; left: 50%; transform: translateX(-50%); bottom: 0.35rem; z-index: 140; }
+
+.codex-cta-over .btn-gold {
+  padding-left: 4rem; padding-right: 4rem; padding-top: 1rem; padding-bottom: 1rem;
+  font-size: 1.125rem; /* ~18px */
+  line-height: 1;
+  border-radius: 0.75rem;
+  box-shadow: 0 22px 56px rgba(255,180,70,0.14);
+  transition: transform 180ms cubic-bezier(.2,.9,.2,1), box-shadow 240ms ease, filter 220ms ease, text-shadow 180ms ease;
+  text-shadow: 0 0 6px rgba(255,230,140,0.25);
+}
+
+.codex-cta-over .btn-gold:hover {
+  transform: translateY(-6px) scale(1.06);
+  box-shadow: 0 34px 88px rgba(255,190,80,0.28), 0 10px 28px rgba(255,160,50,0.06) inset;
+  filter: saturate(1.08) brightness(1.03);
+  text-shadow: 0 0 18px rgba(255,245,180,0.95), 0 6px 28px rgba(255,180,70,0.12);
+}
+
+/* optional stronger focus/glow for accessibility */
+.codex-cta-over .btn-gold:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(255,220,140,0.06), 0 36px 96px rgba(255,190,80,0.22);
+}
 
 /* Animated darkening strip for title/subtitle area that sits above the video but below content */
-.codex-title-overlay {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  top: 2.25rem; /* align with the title area */
-  width: min(88vw, 1200px);
-  height: 7.5rem; /* covers title + subtitle */
-  background: linear-gradient(180deg, rgba(6,8,12,0.9), rgba(6,8,12,0.2));
-  mix-blend-mode: multiply;
-  z-index: 30; /* below .codex-content (z-40) but above the video (z-0) */
-  pointer-events: none;
-  opacity: 0.36;
-  border-radius: 0.75rem;
-  filter: blur(8px) saturate(0.96);
-  animation: codexTitlePulse 6s ease-in-out infinite;
-}
-
-@keyframes codexTitlePulse {
-  0%   { opacity: 0.32; transform: translateX(-50%) translateY(0); }
-  50%  { opacity: 0.48; transform: translateX(-50%) translateY(-4px); }
-  100% { opacity: 0.32; transform: translateX(-50%) translateY(0); }
-}
+/* codex-title-overlay removed in favor of full-bleed overlay + particles like HeroSection */
 
 /* Gentle section transition: blend gradient and slight fade */
 .section-transition { position: relative; }
@@ -656,5 +706,25 @@
 @media (max-width: 768px) {
   .codex-bg video { transform: scale(1.05); }
 }
+
+/* Map background wrapper for WorldMap component */
+.map-bg { position: relative; overflow: hidden; }
+.map-bg img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.map-bg::after { content: ''; position: absolute; inset: 0; background: rgba(0,0,0,0.28); pointer-events: none; z-index: 0; }
+
+/* Map editor modal overrides: ensure it's interactive and sits above background overlays */
+.map-editor-modal { position: absolute; inset: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; pointer-events: auto; }
+.map-editor { display: flex; gap: 12px; width: calc(100% - 4rem); max-width: 1100px; pointer-events: auto; }
+.map-editor-sidebar { pointer-events: auto; }
+.map-editor-canvas { flex: 1; position: relative; pointer-events: auto; height: 640px; background: rgba(8,8,12,0.6); border-radius: 8px; overflow: hidden; }
+.map-editor-canvas-inner { position: relative; width: 100%; height: 100%; user-select: none; }
+.map-editor-svg { width: 100%; height: 100%; }
+.editor-marker { width: 18px; height: 18px; cursor: grab; }
+.editor-marker .marker-dot { width: 12px; height: 12px; border-radius: 999px; background: linear-gradient(180deg,#ffd77a,#ffb94a); border: 2px solid rgba(40,10,0,0.2); box-shadow: 0 6px 20px rgba(0,0,0,0.32); }
+.map-editor-masks path { pointer-events: none; }
+
+/* overlay badges used to position labels on the map */
+/* overlay badges removed */
+
 
 

@@ -564,6 +564,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Public map save endpoint - saves a map package (svg, markers, masks) to uploads/maps/<id>.json
+  app.post('/api/maps', async (req, res) => {
+    try {
+      const { svg, markers, masks, name } = req.body || {};
+      if (!markers || !Array.isArray(markers)) return res.status(400).json({ message: 'markers array required' });
+      const id = randomUUID();
+      const uploadsDir = path.resolve(process.cwd(), 'uploads', 'maps');
+      await fs.promises.mkdir(uploadsDir, { recursive: true });
+      const out = {
+        id,
+        name: name || `map-${id}`,
+        svg: svg || null,
+        markers,
+        masks: masks || [],
+        createdAt: new Date().toISOString(),
+      };
+      const filePath = path.join(uploadsDir, `${id}.json`);
+      await fs.promises.writeFile(filePath, JSON.stringify(out, null, 2), 'utf8');
+      return res.json({ id, url: `/uploads/maps/${id}.json` });
+    } catch (err) {
+      console.error('Save map error:', err);
+      return res.status(500).json({ message: 'Failed to save map' });
+    }
+  });
+
+  // Public map fetch endpoint - returns saved map package
+  app.get('/api/maps/:id', async (req, res) => {
+    try {
+      const id = req.params.id;
+      const filePath = path.resolve(process.cwd(), 'uploads', 'maps', `${id}.json`);
+      if (!fs.existsSync(filePath)) return res.status(404).json({ message: 'Map not found' });
+      const content = await fs.promises.readFile(filePath, 'utf8');
+      return res.type('application/json').send(content);
+    } catch (err) {
+      console.error('Get map error:', err);
+      return res.status(500).json({ message: 'Failed to read map' });
+    }
+  });
+
   app.put("/api/admin/blog/:id", isDevAdmin, async (req, res) => {
     try {
       const { data, translations } = req.body;
