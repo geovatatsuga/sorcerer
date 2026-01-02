@@ -35,4 +35,5 @@ npm-debug.log
 uploads/*.mp4.bak
 uploads/*.orig.*
 uploads/*.mp3
+uploads/
 

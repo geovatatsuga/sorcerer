@@ -7,21 +7,27 @@ const path = require('path');
 require('dotenv').config();
 const { createClient } = require('@supabase/supabase-js');
 const { Pool } = require('pg');
+const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
 
 const UPLOADS_DIR = path.join(__dirname, '..', 'uploads');
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const connectionString = process.env.DATABASE_URL;
 
-if (!SUPABASE_URL || !SUPABASE_KEY || !connectionString) {
-  console.error('ERROR: set SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY and DATABASE_URL in env');
+if (!connectionString) {
+  console.error('ERROR: set DATABASE_URL in env');
   process.exit(1);
 }
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: false } });
+// create supabase client only if credentials present
+const supabase = (SUPABASE_URL && SUPABASE_KEY) ? createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: false } }) : null;
 const pool = new Pool({ connectionString, ssl: { rejectUnauthorized: false } });
 
 async function ensureBucket(name) {
+  if (!supabase) {
+    // if no supabase client, assume S3-compatible endpoint will accept bucket
+    return;
+  }
   const { data: buckets, error } = await supabase.storage.listBuckets();
   if (error) throw error;
   if (!buckets.find(b => b.name === name)) {
@@ -32,19 +38,56 @@ async function ensureBucket(name) {
 
 async function uploadFileBuffer(bucket, filePath, destPath) {
   const file = fs.readFileSync(filePath);
+  // If AWS S3 credentials provided, prefer S3-compatible upload (Supabase S3 gateway)
+  if (process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY && process.env.S3_ENDPOINT) {
+    const s3 = new S3Client({
+      region: process.env.AWS_REGION || 'us-east-1',
+      endpoint: process.env.S3_ENDPOINT,
+      credentials: {
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+      },
+      forcePathStyle: true,
+    });
+    const body = fs.readFileSync(filePath);
+    const cmd = new PutObjectCommand({ Bucket: bucket, Key: destPath, Body: body });
+    await s3.send(cmd);
+    const supabaseUrl = process.env.SUPABASE_URL || process.env.S3_PUBLIC_BASE || '';
+    const publicUrl = `${supabaseUrl.replace(/\/$/, '')}/storage/v1/object/public/${bucket}/${encodeURIComponent(destPath)}`;
+    return publicUrl;
+  }
+
   const { data, error } = await supabase.storage.from(bucket).upload(destPath, file, { upsert: true });
   if (error) throw error;
-  const publicUrl = supabase.storage.from(bucket).getPublicUrl(destPath).publicURL;
+  const publicUrl = supabase.storage.from(bucket).getPublicUrl(destPath).data.publicUrl;
   return publicUrl;
 }
 
 async function uploadFileStream(bucket, filePath, destPath) {
   // Attempt to stream the file. supabase-js accepts Readable in Node environments.
   const stream = fs.createReadStream(filePath);
+  // If AWS S3 credentials provided, stream to S3-compatible endpoint
+  if (process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY && process.env.S3_ENDPOINT) {
+    const s3 = new S3Client({
+      region: process.env.AWS_REGION || 'us-east-1',
+      endpoint: process.env.S3_ENDPOINT,
+      credentials: {
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+      },
+      forcePathStyle: true,
+    });
+    const cmd = new PutObjectCommand({ Bucket: bucket, Key: destPath, Body: stream });
+    await s3.send(cmd);
+    const supabaseUrl = process.env.SUPABASE_URL || process.env.S3_PUBLIC_BASE || '';
+    const publicUrl = `${supabaseUrl.replace(/\/$/, '')}/storage/v1/object/public/${bucket}/${encodeURIComponent(destPath)}`;
+    return publicUrl;
+  }
+
   try {
     const { data, error } = await supabase.storage.from(bucket).upload(destPath, stream, { upsert: true });
     if (error) throw error;
-    const publicUrl = supabase.storage.from(bucket).getPublicUrl(destPath).publicURL;
+    const publicUrl = supabase.storage.from(bucket).getPublicUrl(destPath).data.publicUrl;
     return publicUrl;
   } catch (err) {
     // Re-throw to be handled by caller

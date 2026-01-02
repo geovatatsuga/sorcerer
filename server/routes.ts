@@ -4,6 +4,7 @@ import { storage } from "./storage";
 import { setupAuth, isAuthenticated, isAdmin, isDevAdmin, isAllowedAdminIdentity } from "./replitAuth";
 import fs from 'fs';
 import path from 'path';
+import { createClient } from '@supabase/supabase-js';
 import { randomUUID } from 'crypto';
 import { ZodError } from 'zod';
 import bcrypt from 'bcryptjs';
@@ -47,6 +48,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     ? path.resolve(process.env.UPLOADS_DIR)
     : path.resolve(process.cwd(), 'uploads');
   const uploadsPath = (...parts: string[]) => path.join(uploadsRoot, ...parts);
+
+  // Optional: Supabase Storage client (requires SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY)
+  const supabaseClient = (process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY)
+    ? createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false } })
+    : null;
+
+  async function uploadToSupabase(bucket: string, destPath: string, fileBuffer: Buffer) {
+    if (!supabaseClient) throw new Error('Supabase client not configured');
+    try {
+      // ensure bucket exists (best-effort)
+      try {
+        const { data: buckets } = await supabaseClient.storage.listBuckets();
+        if (!buckets.find((b: any) => b.name === bucket)) {
+          await supabaseClient.storage.createBucket(bucket, { public: true });
+        }
+      } catch (e) {
+        // ignore bucket-list/create failures; upload may still work
+      }
+
+      const { error } = await supabaseClient.storage.from(bucket).upload(destPath, fileBuffer, { upsert: true });
+      if (error) throw error;
+      const { data: publicData } = supabaseClient.storage.from(bucket).getPublicUrl(destPath);
+      const publicUrl = (publicData as any)?.publicUrl || (publicData as any)?.publicURL || '';
+      return publicUrl;
+    } catch (e) {
+      throw e;
+    }
+  }
 
   // Offline user helpers (for dev / DB-down fallback)
   async function readOfflineUsers(): Promise<any[]> {
@@ -429,6 +458,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const base64 = data.includes('base64,') ? data.split('base64,')[1] : data;
       const ext = path.extname(filename) || '';
       const name = `${randomUUID()}${ext}`;
+      // If Supabase configured, upload there and return public URL
+      if (supabaseClient) {
+        try {
+          const buffer = Buffer.from(base64, 'base64');
+          const dest = `avatars/${name}`;
+          const publicUrl = await uploadToSupabase('uploads', dest, buffer);
+          res.setHeader('Content-Type', 'application/json');
+          return res.json({ url: publicUrl });
+        } catch (e) {
+          console.error('Supabase avatar upload failed, falling back to disk:', e);
+          // continue to disk fallback
+        }
+      }
+
       const uploadsDir = uploadsPath('avatars');
       await fs.promises.mkdir(uploadsDir, { recursive: true });
       const filePath = path.join(uploadsDir, name);
@@ -1284,6 +1327,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const base64 = data.includes('base64,') ? data.split('base64,')[1] : data;
       const ext = path.extname(filename) || '';
       const name = `${randomUUID()}${ext}`;
+      // If Supabase configured, upload there and return public URL
+      if (supabaseClient) {
+        try {
+          const buffer = Buffer.from(base64, 'base64');
+          const dest = name;
+          const publicUrl = await uploadToSupabase('uploads', dest, buffer);
+          return res.json({ url: publicUrl });
+        } catch (e) {
+          console.error('Supabase admin upload failed, falling back to disk:', e);
+          // continue to disk fallback
+        }
+      }
+
       const uploadsDir = uploadsRoot;
       await fs.promises.mkdir(uploadsDir, { recursive: true });
       const filePath = path.join(uploadsDir, name);
