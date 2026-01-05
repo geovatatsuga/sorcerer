@@ -7,6 +7,7 @@ import CharacterCard from "@/components/character-card";
 import WorldMap from "@/components/world-map";
 import SectionDivider from "@/components/section-divider";
 import SectionDividerAlt from "@/components/section-divider-alt";
+import PageDividerUltrawide from "@/components/page-divider-ultrawide";
 import SectionIcon from "@/components/section-icon";
 import NewsletterSignup from "@/components/newsletter-signup";
 import Footer from "@/components/footer";
@@ -268,7 +269,7 @@ export default function Home() {
 
       {/* Latest Chapters */}
       <Reveal className="w-full">
-        <section id="chapters" className="py-20 px-4 soft-fade">
+        <section id="chapters" className="py-20 px-4">
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-16 flex flex-col items-center justify-center min-h-32">
               <h2 className="section-title font-display text-3xl md:text-4xl font-bold text-primary mb-4" data-testid="text-latest-chapters">
@@ -302,13 +303,16 @@ export default function Home() {
                 </Button>
               </Link>
             </div>
+
+            <PageDividerUltrawide ratio="21:9" className="mt-14" />
+
           </div>
         </section>
       </Reveal>
 
       {/* Characters Gallery */}
       <Reveal className="w-full">
-        <section id="characters" className="py-20 px-4 bg-muted/30 soft-fade">
+        <section id="characters" className="py-20 px-4 bg-muted/30 !mt-0">
           <div className="max-w-7xl mx-auto">
             <div className="text-center mt-12 mb-12">
               <h2 className="section-title font-display text-3xl md:text-4xl font-bold text-primary mb-4" data-testid="text-characters">
@@ -345,13 +349,15 @@ export default function Home() {
                 </Button>
               </Link>
             </div>
+
+            <PageDividerUltrawide ratio="21:9" className="mt-14" />
           </div>
         </section>
       </Reveal>
 
       {/* Interactive World Map */}
       <Reveal className="w-full">
-        <section id="world" className="py-24 px-4 soft-fade">
+        <section id="world" className="py-24 px-4 !mt-0">
           <div className="mx-auto max-w-[1600px] xl:max-w-[1760px] 2xl:max-w-[1920px]">
             <div className="text-center mb-16 flex flex-col items-center justify-center min-h-32">
               <h2 className="section-title font-display text-3xl md:text-4xl font-bold text-primary mb-4" data-testid="text-explore-realms">
@@ -374,13 +380,17 @@ export default function Home() {
                 </Button>
               </Link>
             </div>
+
+            <div className="max-w-7xl mx-auto">
+              <PageDividerUltrawide ratio="21:9" className="mt-14" />
+            </div>
           </div>
         </section>
       </Reveal>
 
       {/* Codex Section (title + cards now overlay the background video) */}
       <Reveal className="w-full">
-        <section id="codex" className="py-24 bg-muted/30 soft-fade">
+        <section id="codex" className="py-24 bg-muted/30 !mt-0">
           <div className="codex-wrapper">
             {/* Video container with overlayed content */}
             <div
@@ -430,8 +440,7 @@ export default function Home() {
               {/* Soft mask to blend bottom/top edges while crossfading */}
               <div className="absolute inset-0 pointer-events-none codex-mask" aria-hidden />
 
-              {/* Bottom shadow to ground the transition into the next section (static, non-animated) */}
-              <div className="absolute inset-0 pointer-events-none codex-bottom-shadow" aria-hidden />
+              {/* Bottom shadow removed: divider handles section separation */}
 
               {/* Overlay content: title, cards and CTA over the video */}
               <div className="absolute inset-0 z-40 flex items-center justify-center px-4" data-testid="codex-overlay">
@@ -539,14 +548,18 @@ export default function Home() {
               </div>
             </div>
           </div>
+
+          <div className="px-4">
+            <div className="max-w-7xl mx-auto">
+              <PageDividerUltrawide ratio="21:9" className="mt-14" />
+            </div>
+          </div>
         </section>
       </Reveal>
 
-  {/* Removed animated divider to keep transition above blog simpler and cleaner */}
-
       {/* Blog Section */}
       <Reveal className="w-full">
-  <section id="blog" className="py-20 px-4 mt-40 soft-fade gradient-bridge-top">
+  <section id="blog" className="py-20 px-4 !mt-0">
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-16 flex flex-col items-center justify-center min-h-32">
               <h2 className="section-title font-display text-3xl md:text-4xl font-bold text-primary mb-4" data-testid="text-authors-chronicles">
@@ -632,18 +645,18 @@ export default function Home() {
                 </div>
               </div>
             )}
+
+            {/* Blog CTA (kept inside the section to avoid a separate background band) */}
+            <div className="text-center mt-10">
+              <Link href="/blog">
+                <Button className="btn-gold btn-font px-8 py-3 font-semibold hover-glow btn-micro" data-testid="button-chronicles">
+                  {t.processCreation || 'Processo de criação'}
+                </Button>
+              </Link>
+            </div>
           </div>
         </section>
       </Reveal>
-
-      {/* Blog CTA (moved under the two blog cards) */}
-      <div className="max-w-7xl mx-auto text-center mt-8">
-        <Link href="/blog">
-          <Button className="btn-gold btn-font px-8 py-3 font-semibold hover-glow btn-micro" data-testid="button-chronicles">
-            {t.processCreation || 'Processo de criação'}
-          </Button>
-        </Link>
-      </div>
 
       <NewsletterSignup />
       <Footer />

@@ -138,8 +138,13 @@ async function withRetry<T>(fn: () => Promise<T>, tries = 2, baseDelayMs = 120):
         arc_title TEXT,
         reading_time INTEGER NOT NULL,
         published_at TEXT NOT NULL,
-        image_url TEXT
+        image_url TEXT,
+        images JSONB
       )`;
+
+      // Idempotent evolution for existing DBs (Render/Supabase): add missing columns.
+      // Note: IF NOT EXISTS keeps this safe across restarts.
+      await sqlWrite`ALTER TABLE chapters ADD COLUMN IF NOT EXISTS images JSONB`;
       await sqlWrite`CREATE TABLE IF NOT EXISTS characters (
         id TEXT PRIMARY KEY,
         name TEXT NOT NULL,

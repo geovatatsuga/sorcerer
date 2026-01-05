@@ -35,7 +35,8 @@ async function main() {
         arc_title TEXT,
         reading_time INTEGER NOT NULL,
         published_at TEXT NOT NULL,
-        image_url TEXT
+        image_url TEXT,
+        images JSONB
       );`,
       `CREATE TABLE IF NOT EXISTS characters (
         id TEXT PRIMARY KEY,

@@ -105,21 +105,39 @@ export default function Navigation() {
               
               {/* Admin link for admins */}
               {isAdmin && (
-                <Link
-                  href="/admin"
-                  data-testid="link-admin"
-                  aria-label="Admin"
-                  className={`nav-link font-medium transition-colors duration-200 ${
-                    location === "/admin"
-                      ? "text-primary"
-                      : "text-foreground hover:text-primary"
-                  }`}
-                  aria-current={location === '/admin' ? 'page' : undefined}
-                  data-active={location === '/admin' ? 'true' : 'false'}
+                  <Link
+                    href="/admin"
+                    data-testid="link-admin"
+                    aria-label="Admin"
+                    className={`nav-link font-medium transition-colors duration-200 ${
+                      location === "/admin"
+                        ? "text-primary"
+                        : "text-foreground hover:text-primary"
+                    }`}
+                    aria-current={location === '/admin' ? 'page' : undefined}
+                    data-active={location === '/admin' ? 'true' : 'false'}
+                  >
+                    <Settings className="h-4 w-4 inline" />
+                    <span className="sr-only">Admin</span>
+                  </Link>
+                )}
+              {/* Dev helper: quick login when running locally (uses /api/dev/login) */}
+              {import.meta.env.DEV && !isAdmin && (
+                <button
+                  onClick={async () => {
+                    try {
+                      await fetch('/api/dev/login', { method: 'GET', credentials: 'include' });
+                      // give cookie/tokens a moment
+                      setTimeout(() => { try { setLocation('/admin'); } catch {} }, 80);
+                    } catch (e) {
+                      try { window.location.href = '/admin'; } catch {}
+                    }
+                  }}
+                  className="nav-link font-medium text-foreground hover:text-primary ml-2"
+                  title="Dev: entrar como admin"
                 >
                   <Settings className="h-4 w-4 inline" />
-                  <span className="sr-only">Admin</span>
-                </Link>
+                </button>
               )}
               
               {/* Single-language app: Portuguese only. Language selector removed. */}

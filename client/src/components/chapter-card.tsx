@@ -37,7 +37,8 @@ export default function ChapterCard({ chapter }: ChapterCardProps) {
       {chapter.imageUrl ? (
         <img 
           src={chapter.imageUrl} 
-          alt={chapter.title}
+          alt=""
+          aria-hidden="true"
           className="w-full h-48 object-cover"
         />
       ) : (
@@ -45,7 +46,7 @@ export default function ChapterCard({ chapter }: ChapterCardProps) {
       )}
       <CardContent className="p-6 flex-1 flex flex-col overflow-hidden">
         <div className="flex justify-between items-start mb-3">
-          <div className="flex flex-col">
+          <div className="flex flex-col select-none">
             <span className="text-sm text-accent font-medium" data-testid={`text-chapter-${chapter.chapterNumber}`}>
               {t.chapterLabel} {chapter.chapterNumber}
             </span>
@@ -55,7 +56,7 @@ export default function ChapterCard({ chapter }: ChapterCardProps) {
                 </div>
               ) : null}
           </div>
-          <span className="text-sm text-muted-foreground" data-testid={`text-date-${chapter.slug}`}>
+          <span className="text-sm text-muted-foreground select-none" data-testid={`text-date-${chapter.slug}`}>
             {timeAgo(chapter.publishedAt)}
           </span>
         </div>
@@ -65,7 +66,7 @@ export default function ChapterCard({ chapter }: ChapterCardProps) {
           <p className="text-muted-foreground text-sm mb-4 clamp-3 whitespace-normal break-all" data-testid={`text-excerpt-${chapter.slug}`}>
           <span dangerouslySetInnerHTML={{ __html: chapter.excerpt || '' }} />
         </p>
-          <div className="mt-auto flex justify-between items-center pt-1">
+          <div className="mt-auto flex justify-between items-center pt-1 select-none">
           <div className="flex items-center text-xs text-muted-foreground">
             <Clock className="h-3 w-3 mr-1" />
             <span data-testid={`text-reading-time-${chapter.slug}`}>

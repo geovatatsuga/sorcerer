@@ -320,7 +320,7 @@ export default function Chapters() {
                     className="my-3 rounded-lg border border-border bg-card/40 px-2"
                   >
                     <AccordionTrigger className="px-2">
-                      <div className="w-full flex items-center justify-between" ref={(el) => { arcRefs.current[group.key] = el; }}>
+                      <div className="w-full flex items-center justify-between select-none" ref={(el) => { arcRefs.current[group.key] = el; }}>
                         <div className="text-left">
                           <div className="font-display text-xl md:text-2xl text-primary">
                             Arco {group.arcNumber ?? '–'}{group.arcTitle ? `: ${group.arcTitle}` : ''}

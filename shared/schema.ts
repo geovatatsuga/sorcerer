@@ -20,6 +20,8 @@ export const chapters = pgTable("chapters", {
   readingTime: integer("reading_time").notNull(), // in minutes
   publishedAt: text("published_at").notNull(),
   imageUrl: text("image_url"),
+  // Optional gallery/meta images for the chapter (used by reader lightbox)
+  images: json("images"),
 });
 
 export const characters = pgTable("characters", {

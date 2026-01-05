@@ -5,7 +5,7 @@ import ReadingProgress from "@/components/reading-progress";
 import Footer from "@/components/footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ChevronLeft, ChevronRight, Bookmark, Settings } from "lucide-react";
+import { ChevronLeft, ChevronRight, Bookmark, Settings, Image as ImageIcon } from "lucide-react";
 import { useReadingProgress } from "@/hooks/use-reading-progress";
 import { useLanguage } from '@/contexts/LanguageContext';
 import type { Chapter } from "@shared/schema";
@@ -15,7 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import RichEditor from "@/components/rich-editor";
 import { ChapterForm } from './admin';
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAudio } from '@/contexts/AudioProvider';
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/components/ui/use-toast";
@@ -40,6 +40,23 @@ export default function ChapterReader() {
   });
 
   const { language, t } = useLanguage();
+
+  const { open: openImageLightbox } = useImageLightbox();
+
+  const [images, setImages] = useState<string[]>([]);
+  const galleryContainerRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    try {
+      const contentImgs = chapter?.content ? Array.from(new DOMParser().parseFromString(chapter.content || '', 'text/html').querySelectorAll('img')).map(i => (i as HTMLImageElement).src).filter(Boolean) : [];
+      const metaImgs = Array.isArray((chapter as any)?.images) ? (chapter as any).images.map((it: any) => (typeof it === 'string' ? it : it?.src)).filter(Boolean) : [];
+      // merge, keeping meta images first (these can be "invisible" in the editor but still appear in gallery)
+      const merged = Array.from(new Set([...metaImgs, ...contentImgs]));
+      setImages(merged);
+    } catch (e) {
+      setImages([]);
+    }
+  }, [chapter?.content, (chapter as any)?.images]);
 
   const { progress } = useReadingProgress(chapter?.id || '');
 
@@ -176,14 +193,45 @@ export default function ChapterReader() {
         <div className="max-w-4xl mx-auto">
           <Card className="bg-card border border-border rounded-xl overflow-hidden">
             <div className="flex items-center justify-between p-6 border-b border-border">
-              <div>
-                <h1 className="font-display text-2xl font-semibold text-card-foreground" data-testid="text-chapter-title">
-                  {localized(chapter, 'title')}
-                </h1>
-                <p className="text-muted-foreground text-sm" data-testid="text-chapter-meta">
-                  {(chapter as any).arcNumber ? `Arco ${(chapter as any).arcNumber}${(chapter as any).arcTitle ? `: ${(chapter as any).arcTitle}` : ''} • ` : ''}
-                  {t.published || 'Publicado'} {new Date(chapter.publishedAt).toLocaleDateString()} • {chapter.readingTime} {t.minRead || 'min'}
-                </p>
+              <div className="flex items-center gap-4">
+                {images.length > 0 && (
+                  <button
+                    onClick={() => {
+                      try {
+                        // Use a dedicated hidden container so the lightbox can build a gallery
+                        // that includes meta images (not necessarily present in the chapter HTML).
+                        openImageLightbox(images[0], `${chapter.title} — Ilustrações`, galleryContainerRef.current);
+                      } catch {}
+                    }}
+                    title={images.length === 1 ? '1 ilustração' : `${images.length} ilustrações`}
+                    data-testid="button-chapter-images-left"
+                    className="flex items-center gap-3 bg-gradient-to-br from-amber-400/6 to-amber-200/4 px-3 py-2 rounded-xl shadow-sm hover:shadow-md transition-all"
+                  >
+                    <div className="flex items-center justify-center bg-amber-400/12 rounded-full p-1.5">
+                      <ImageIcon className="h-6 w-6 text-amber-400" />
+                    </div>
+                    <div className="text-left leading-tight">
+                      <div className="text-sm font-medium text-amber-100">{images.length} {images.length === 1 ? 'Ilustração' : 'Ilustrações'}</div>
+                      <div className="text-xs text-muted-foreground">Clique para abrir a galeria</div>
+                    </div>
+                  </button>
+                )}
+
+                {/* Hidden gallery source for ImageLightbox (meta/gallery images) */}
+                <div ref={galleryContainerRef} className="content hidden" aria-hidden>
+                  {images.map((u, i) => (
+                    <img key={u + i} src={u} alt="" />
+                  ))}
+                </div>
+                <div>
+                  <h1 className="font-display text-2xl font-semibold text-card-foreground" data-testid="text-chapter-title">
+                    {localized(chapter, 'title')}
+                  </h1>
+                  <p className="text-muted-foreground text-sm" data-testid="text-chapter-meta">
+                    {(chapter as any).arcNumber ? `Arco ${(chapter as any).arcNumber}${(chapter as any).arcTitle ? `: ${(chapter as any).arcTitle}` : ''} • ` : ''}
+                    {t.published || 'Publicado'} {new Date(chapter.publishedAt).toLocaleDateString()} • {chapter.readingTime} {t.minRead || 'min'}
+                  </p>
+                </div>
               </div>
               <div className="flex items-center space-x-4">
                 {previousChapter && (

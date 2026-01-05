@@ -139,8 +139,7 @@ export default function Codex() {
       
       <main className="pt-24 pb-20 px-4">
           <div className="max-w-7xl mx-auto codex-wrapper">
-          <VideoBackground />
-
+          
           <div className="codex-content relative z-10">
             <div className="text-center mb-16">
               <h1 className="font-display text-4xl md:text-5xl font-bold text-primary mb-4" data-testid="text-codex-title">
