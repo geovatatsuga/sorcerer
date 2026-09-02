@@ -7,6 +7,7 @@ import { Link, useLocation } from "wouter";
 import { useEffect, useMemo, useState } from "react";
 import type { Chapter, BlogPost } from "@shared/schema";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { INITIAL_CHAPTERS } from "@/lib/initialData";
 
 const FALLBACK_HERO_IMAGE = "/rotativas/ChatGPT Image 1 de jul. de 2026, 14_56_27 (5).png";
 const HERO_ROTATION_INTERVAL_MS = 10000;
@@ -21,8 +22,9 @@ export default function Home() {
   const [heroImages, setHeroImages] = useState<string[]>([FALLBACK_HERO_IMAGE]);
   const [activeHeroImageIndex, setActiveHeroImageIndex] = useState(0);
 
-  const { data: chapters = [], isLoading: chaptersLoading } = useQuery<Chapter[]>({
+  const { data: chapters = INITIAL_CHAPTERS, isLoading: chaptersLoading } = useQuery<Chapter[]>({
     queryKey: ['/api/chapters'],
+    initialData: INITIAL_CHAPTERS,
   });
 
   const { data: blogPosts = [], isLoading: blogLoading } = useQuery<BlogPost[]>({
@@ -30,7 +32,7 @@ export default function Home() {
   });
 
   const latestChapters = useMemo(() => {
-    return chapters.slice(0, 4);
+    return (chapters && chapters.length > 0 ? chapters : INITIAL_CHAPTERS).slice(0, 4);
   }, [chapters]);
 
   useEffect(() => {

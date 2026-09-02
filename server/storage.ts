@@ -1,4 +1,4 @@
-﻿import { 
+import { 
   type Chapter, type InsertChapter,
   type Character, type InsertCharacter,
   type Location, type InsertLocation,
@@ -18,7 +18,19 @@ import path from 'path';
 import { randomUUID } from "crypto";
 import { parseFullNovelMarkdown } from './importers/fullnovel';
 import bcrypt from 'bcryptjs';
-import duckdb from 'duckdb';
+import os from 'os';
+
+let duckdbModule: any = null;
+async function getDuckDbModule() {
+  if (duckdbModule) return duckdbModule;
+  try {
+    const mod = await import('duckdb');
+    duckdbModule = mod.default || mod;
+    return duckdbModule;
+  } catch {
+    return null;
+  }
+}
 
 // Interface for storage operations
 export interface IStorage {
@@ -1144,12 +1156,10 @@ Aslam carrega uma essência marcada pela compaixão e pela solidão de quem já 
 class DuckDbStorage implements IStorage {
   private baseDir = path.resolve(process.cwd(), 'data');
   private duckDbPath = path.join(this.baseDir, 'sorcerer.duckdb');
-  private localDb: duckdb.Database;
+  private localDb: any = null;
   private ready: Promise<void>;
 
   constructor() {
-    fs.mkdirSync(this.baseDir, { recursive: true });
-    this.localDb = new duckdb.Database(this.duckDbPath);
     this.ready = this.initDuckDb().then(() => this.seedAdminFromEnv());
   }
 
@@ -1159,24 +1169,34 @@ class DuckDbStorage implements IStorage {
 
   private runSql(sql: string): Promise<void> {
     return new Promise((resolve, reject) => {
+      if (!this.localDb) return resolve();
       this.localDb.run(sql, (err: Error | null) => err ? reject(err) : resolve());
     });
   }
 
   private allSql<T = any>(sql: string): Promise<T[]> {
     return new Promise((resolve, reject) => {
+      if (!this.localDb) return resolve([]);
       this.localDb.all(sql, (err: Error | null, rows: T[]) => err ? reject(err) : resolve(rows || []));
     });
   }
 
   private async initDuckDb() {
-    await this.runSql(`
-      CREATE TABLE IF NOT EXISTS local_documents (
-        name VARCHAR PRIMARY KEY,
-        json_text VARCHAR NOT NULL,
-        updated_at VARCHAR NOT NULL
-      )
-    `);
+    try {
+      const duckdb = await getDuckDbModule();
+      if (!duckdb) return;
+      if (!fs.existsSync(this.baseDir)) fs.mkdirSync(this.baseDir, { recursive: true });
+      this.localDb = new duckdb.Database(this.duckDbPath);
+      await this.runSql(`
+        CREATE TABLE IF NOT EXISTS local_documents (
+          name VARCHAR PRIMARY KEY,
+          json_text VARCHAR NOT NULL,
+          updated_at VARCHAR NOT NULL
+        )
+      `);
+    } catch (e) {
+      console.warn('DuckDB initialization error, fallback enabled:', e);
+    }
   }
 
   private async seedAdminFromEnv() {
@@ -1320,8 +1340,6 @@ class DuckDbStorage implements IStorage {
 
   async getReadingProgress(sessionId: string, chapterId: string) { const arr = await this.readFile<any[]>('offline-progress.json', []); return arr.find((p) => p.sessionId === sessionId && p.chapterId === chapterId); }
   async updateReadingProgress(sessionId: string, chapterId: string, progress: number) { const arr = await this.readFile<any[]>('offline-progress.json', []); let p = arr.find((x) => x.sessionId === sessionId && x.chapterId === chapterId); if (p) { p.progress = progress; p.lastReadAt = new Date().toISOString(); } else { p = { id: randomUUID(), sessionId, chapterId, progress, lastReadAt: new Date().toISOString() }; arr.push(p); } await this.writeFile('offline-progress.json', arr); return p; }
-
-  // Audio storage (offline simple JSON persistence)
   private async readAudioTracks() { return this.readFile<any[]>('offline-audio-tracks.json', []); }
   private async writeAudioTracks(list: any[]) { return this.writeFile('offline-audio-tracks.json', list); }
   private async readAudioAssignments() { return this.readFile<any[]>('offline-audio-assignments.json', []); }
@@ -1331,8 +1349,7 @@ class DuckDbStorage implements IStorage {
   async getAudioTrack(id: string) { const arr = await this.readAudioTracks(); return arr.find(t => t.id === id); }
   async createAudioTrack(track: any) { const arr = await this.readAudioTracks(); const payload = { ...track, id: track.id || randomUUID(), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }; arr.push(payload); await this.writeAudioTracks(arr); return payload; }
   async updateAudioTrack(id: string, patch: any) { const arr = await this.readAudioTracks(); const idx = arr.findIndex(t => t.id === id); if (idx < 0) return undefined; arr[idx] = { ...arr[idx], ...patch, updatedAt: new Date().toISOString() }; await this.writeAudioTracks(arr); return arr[idx]; }
-  async deleteAudioTrack(id: string) { const arr = await this.readAudioTracks(); const idx = arr.findIndex(t => t.id === id); if (idx < 0) return false; arr.splice(idx,1); await this.writeAudioTracks(arr); // delete assignments referencing
-    const assigns = await this.readAudioAssignments(); const filtered = assigns.filter(a => a.trackId !== id); await this.writeAudioAssignments(filtered); return true; }
+  async deleteAudioTrack(id: string) { const arr = await this.readAudioTracks(); const idx = arr.findIndex(t => t.id === id); if (idx < 0) return false; arr.splice(idx,1); await this.writeAudioTracks(arr); const assigns = await this.readAudioAssignments(); const filtered = assigns.filter(a => a.trackId !== id); await this.writeAudioAssignments(filtered); return true; }
 
   async getAudioAssignments() { return this.readAudioAssignments(); }
   async getAudioAssignment(id: string) { const arr = await this.readAudioAssignments(); return arr.find(a => a.id === id); }
@@ -1365,14 +1382,123 @@ class DuckDbStorage implements IStorage {
   }
 }
 
+// Robust JSON file & in-memory storage fallback for Vercel Serverless and offline mode.
+class JsonFileStorage implements IStorage {
+  private baseDir = path.resolve(process.cwd(), 'data');
+  private tmpDir = os.tmpdir ? os.tmpdir() : '/tmp';
+  private memoryCache = new Map<string, any>();
+
+  private async readFile<T>(name: string, defaultValue: T): Promise<T> {
+    if (this.memoryCache.has(name)) {
+      return this.memoryCache.get(name) as T;
+    }
+    const candidates = [
+      path.join(this.baseDir, name),
+      path.join(process.cwd(), 'data', name),
+      path.join(this.tmpDir, name)
+    ];
+
+    for (const fp of candidates) {
+      try {
+        if (fs.existsSync(fp)) {
+          const txt = await fs.promises.readFile(fp, 'utf-8');
+          const parsed = JSON.parse(txt);
+          this.memoryCache.set(name, parsed);
+          return parsed as T;
+        }
+      } catch {}
+    }
+
+    return defaultValue;
+  }
+
+  private async writeFile(name: string, data: any) {
+    this.memoryCache.set(name, data);
+    try {
+      const fpTmp = path.join(this.tmpDir, name);
+      await fs.promises.writeFile(fpTmp, JSON.stringify(data, null, 2), 'utf-8');
+    } catch {}
+    try {
+      const fp = path.join(this.baseDir, name);
+      if (fs.existsSync(this.baseDir)) {
+        await fs.promises.writeFile(fp, JSON.stringify(data, null, 2), 'utf-8');
+      }
+    } catch {}
+  }
+
+  async getUser(id: string) { const users = await this.readFile<any[]>('offline-users.json', []); return users.find((u) => u.id === id); }
+  async getUserByEmail(email: string) { const users = await this.readFile<any[]>('offline-users.json', []); return users.find((u) => (u.email || '').toLowerCase() === email.toLowerCase()); }
+  async upsertUser(user: any) { const users = await this.readFile<any[]>('offline-users.json', []); const idx = users.findIndex((u) => u.id === user.id); if (idx >= 0) users[idx] = { ...users[idx], ...user }; else users.push(user); await this.writeFile('offline-users.json', users); return users.find((u) => u.id === user.id); }
+  async createUserIfNotExists(id: string, email: string, passwordHash: string, isAdmin: boolean) { const existing = await this.getUser(id); if (existing) return existing; return this.upsertUser({ id, email, passwordHash, isAdmin: isAdmin ? 1 : 0, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }); }
+
+  async getChapters() { return this.readFile<any[]>('offline-chapters.json', []); }
+  async getChapterBySlug(slug: string) { const arr = await this.getChapters(); return arr.find((c) => c.slug === slug); }
+  async getChapterById(id: string) { const arr = await this.getChapters(); return arr.find((c) => c.id === id); }
+  async createChapter(chapter: any) { chapter.id = chapter.id ?? randomUUID(); const arr = await this.getChapters(); arr.push(chapter); await this.writeFile('offline-chapters.json', arr); return chapter; }
+  async updateChapter(id: string, chapter: any) { const arr = await this.getChapters(); const idx = arr.findIndex((c) => c.id === id); if (idx < 0) return undefined; arr[idx] = { ...arr[idx], ...chapter }; await this.writeFile('offline-chapters.json', arr); return arr[idx]; }
+  async deleteChapter(id: string) { const arr = await this.getChapters(); const idx = arr.findIndex((c) => c.id === id); if (idx < 0) return false; arr.splice(idx, 1); await this.writeFile('offline-chapters.json', arr); return true; }
+
+  async getCharacters() { return this.readFile<any[]>('offline-characters.json', []); }
+  async getCharacterById(id: string) { const arr = await this.getCharacters(); return arr.find((c) => c.id === id); }
+  async getCharacterBySlug(slug: string) { const arr = await this.getCharacters(); return arr.find((c) => c.slug === slug); }
+  async createCharacter(character: any) { character.id = character.id ?? randomUUID(); const arr = await this.getCharacters(); arr.push(character); await this.writeFile('offline-characters.json', arr); return character; }
+  async updateCharacter(id: string, character: any) { const arr = await this.getCharacters(); const idx = arr.findIndex((c) => c.id === id); if (idx < 0) return undefined; arr[idx] = { ...arr[idx], ...character }; await this.writeFile('offline-characters.json', arr); return arr[idx]; }
+  async deleteCharacter(id: string) { const arr = await this.getCharacters(); const idx = arr.findIndex((c) => c.id === id); if (idx < 0) return false; arr.splice(idx, 1); await this.writeFile('offline-characters.json', arr); return true; }
+
+  async getLocations() { return this.readFile<any[]>('offline-locations.json', []); }
+  async getLocationById(id: string) { const arr = await this.getLocations(); return arr.find((c) => c.id === id); }
+  async createLocation(location: any) { location.id = location.id ?? randomUUID(); const arr = await this.getLocations(); arr.push(location); await this.writeFile('offline-locations.json', arr); return location; }
+  async updateLocation(id: string, location: any) { const arr = await this.getLocations(); const idx = arr.findIndex((c) => c.id === id); if (idx < 0) return undefined; arr[idx] = { ...arr[idx], ...location }; await this.writeFile('offline-locations.json', arr); return arr[idx]; }
+  async deleteLocation(id: string) { const arr = await this.getLocations(); const idx = arr.findIndex((c) => c.id === id); if (idx < 0) return false; arr.splice(idx, 1); await this.writeFile('offline-locations.json', arr); return true; }
+
+  async getCodexEntries() { return this.readFile<any[]>('offline-codex.json', []); }
+  async getCodexEntriesByCategory(category: string) { const arr = await this.getCodexEntries(); return arr.filter((e) => e.category === category); }
+  async getCodexEntryById(id: string) { const arr = await this.getCodexEntries(); return arr.find((c) => c.id === id); }
+  async createCodexEntry(entry: any) { entry.id = entry.id ?? randomUUID(); const arr = await this.getCodexEntries(); arr.push(entry); await this.writeFile('offline-codex.json', arr); return entry; }
+  async updateCodexEntry(id: string, entry: any) { const arr = await this.getCodexEntries(); const idx = arr.findIndex((c) => c.id === id); if (idx < 0) return undefined; arr[idx] = { ...arr[idx], ...entry }; await this.writeFile('offline-codex.json', arr); return arr[idx]; }
+  async deleteCodexEntry(id: string) { const arr = await this.getCodexEntries(); const idx = arr.findIndex((c) => c.id === id); if (idx < 0) return false; arr.splice(idx, 1); await this.writeFile('offline-codex.json', arr); return true; }
+
+  async getBlogPosts() { return this.readFile<any[]>('offline-blog.json', []); }
+  async getBlogPostBySlug(slug: string) { const arr = await this.getBlogPosts(); return arr.find((c) => c.slug === slug); }
+  async getBlogPostById(id: string) { const arr = await this.getBlogPosts(); return arr.find((c) => c.id === id); }
+  async createBlogPost(post: any) { post.id = post.id ?? randomUUID(); const arr = await this.getBlogPosts(); arr.push(post); await this.writeFile('offline-blog.json', arr); return post; }
+  async updateBlogPost(id: string, post: any) { const arr = await this.getBlogPosts(); const idx = arr.findIndex((c) => c.id === id); if (idx < 0) return undefined; arr[idx] = { ...arr[idx], ...post }; await this.writeFile('offline-blog.json', arr); return arr[idx]; }
+  async deleteBlogPost(id: string) { const arr = await this.getBlogPosts(); const idx = arr.findIndex((c) => c.id === id); if (idx < 0) return false; arr.splice(idx, 1); await this.writeFile('offline-blog.json', arr); return true; }
+
+  async getReadingProgress(sessionId: string, chapterId: string) { const arr = await this.readFile<any[]>('offline-progress.json', []); return arr.find((p) => p.sessionId === sessionId && p.chapterId === chapterId); }
+  async updateReadingProgress(sessionId: string, chapterId: string, progress: number) { const arr = await this.readFile<any[]>('offline-progress.json', []); let p = arr.find((x) => x.sessionId === sessionId && x.chapterId === chapterId); if (p) { p.progress = progress; p.lastReadAt = new Date().toISOString(); } else { p = { id: randomUUID(), sessionId, chapterId, progress, lastReadAt: new Date().toISOString() }; arr.push(p); } await this.writeFile('offline-progress.json', arr); return p; }
+
+  async getAudioTracks() { return this.readFile<any[]>('offline-audio-tracks.json', []); }
+  async getAudioTrack(id: string) { const arr = await this.getAudioTracks(); return arr.find(t => t.id === id); }
+  async createAudioTrack(track: any) { const arr = await this.getAudioTracks(); const payload = { ...track, id: track.id || randomUUID(), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }; arr.push(payload); await this.writeFile('offline-audio-tracks.json', arr); return payload; }
+  async updateAudioTrack(id: string, patch: any) { const arr = await this.getAudioTracks(); const idx = arr.findIndex(t => t.id === id); if (idx < 0) return undefined; arr[idx] = { ...arr[idx], ...patch, updatedAt: new Date().toISOString() }; await this.writeFile('offline-audio-tracks.json', arr); return arr[idx]; }
+  async deleteAudioTrack(id: string) { const arr = await this.getAudioTracks(); const idx = arr.findIndex(t => t.id === id); if (idx < 0) return false; arr.splice(idx,1); await this.writeFile('offline-audio-tracks.json', arr); return true; }
+
+  async getAudioAssignments() { return this.readFile<any[]>('offline-audio-assignments.json', []); }
+  async getAudioAssignment(id: string) { const arr = await this.getAudioAssignments(); return arr.find(a => a.id === id); }
+  async createAudioAssignment(assign: any) { const arr = await this.getAudioAssignments(); const payload = { ...assign, id: assign.id || randomUUID(), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }; arr.push(payload); await this.writeFile('offline-audio-assignments.json', arr); return payload; }
+  async updateAudioAssignment(id: string, patch: any) { const arr = await this.getAudioAssignments(); const idx = arr.findIndex(a => a.id === id); if (idx < 0) return undefined; arr[idx] = { ...arr[idx], ...patch, updatedAt: new Date().toISOString() }; await this.writeFile('offline-audio-assignments.json', arr); return arr[idx]; }
+  async deleteAudioAssignment(id: string) { const arr = await this.getAudioAssignments(); const idx = arr.findIndex(a => a.id === id); if (idx < 0) return false; arr.splice(idx,1); await this.writeFile('offline-audio-assignments.json', arr); return true; }
+  async resolveAudio(_params: any) { return undefined; }
+}
+
 let storageInstance: IStorage;
-try {
-  storageInstance = pool ? new DatabaseStorage() : new DuckDbStorage();
-} catch (err) {
-  console.warn('DatabaseStorage initialization failed, falling back to DuckDbStorage:', err);
-  storageInstance = new DuckDbStorage();
+if (pool) {
+  try {
+    storageInstance = new DatabaseStorage();
+  } catch (err) {
+    console.warn('DatabaseStorage initialization failed, falling back to JsonFileStorage:', err);
+    storageInstance = new JsonFileStorage();
+  }
+} else if (duckdbModule && !process.env.VERCEL && !process.env.AWS_LAMBDA_FUNCTION_NAME) {
+  try {
+    storageInstance = new DuckDbStorage();
+  } catch (err) {
+    console.warn('DuckDbStorage initialization failed, falling back to JsonFileStorage:', err);
+    storageInstance = new JsonFileStorage();
+  }
+} else {
+  storageInstance = new JsonFileStorage();
 }
 
 export const storage = storageInstance;
-
-
