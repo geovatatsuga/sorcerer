@@ -1,4 +1,4 @@
-﻿// MUST be first - force IPv4 DNS before any network modules load
+// MUST be first - force IPv4 DNS before any network modules load
 import './ipv4-first';
 // Load env from local or parent workspace before anything else
 import './env';
@@ -88,7 +88,7 @@ app.use((req, res, next) => {
       }
 
       if (logLine.length > 80) {
-        logLine = logLine.slice(0, 79) + "…";
+        logLine = logLine.slice(0, 79) + "�";
       }
 
       log(logLine);
@@ -106,6 +106,25 @@ app.use((req, res, next) => {
 
   const server = await registerRoutes(app);
 
+  const heroRotativasPath = path.resolve(process.cwd(), 'rotativas');
+  if (!fs.existsSync(heroRotativasPath)) {
+    fs.mkdirSync(heroRotativasPath, { recursive: true });
+  }
+  app.get('/api/hero-rotativas', async (_req, res) => {
+    try {
+      const supportedExtensions = new Set(['.jpg', '.jpeg', '.png', '.webp', '.gif', '.avif']);
+      const files = await fs.promises.readdir(heroRotativasPath, { withFileTypes: true });
+      const images = files
+        .filter((file) => file.isFile() && supportedExtensions.has(path.extname(file.name).toLowerCase()))
+        .map((file) => `/rotativas/${encodeURIComponent(file.name)}`);
+
+      res.setHeader('Cache-Control', 'no-store');
+      res.json({ images });
+    } catch (error) {
+      console.error('Failed to list hero rotating images:', error);
+      res.status(500).json({ images: [] });
+    }
+  });
   // Ensure unmatched /api paths return JSON 404 instead of SPA HTML
   app.use('/api', (req, res, next) => {
     if (!res.headersSent) {
@@ -148,8 +167,15 @@ app.use((req, res, next) => {
   if (!fs.existsSync(uploadsPath)) {
     fs.mkdirSync(uploadsPath, { recursive: true });
   }
-  // Set a sensible cache for uploads; filenames are UUID-based so safe to cache longer
-  app.use('/uploads', express.static(uploadsPath, { maxAge: '30d', immutable: true }));
+  // Cache uploads conservatively: many assets are UUID-based, but some (e.g. cover images)
+  // can be overwritten under the same filename; `immutable` would prevent clients from
+  // revalidating for the entire maxAge window.
+  const uploadsCacheMaxAge = process.env.UPLOADS_CACHE_MAX_AGE || '1h';
+  const uploadsCacheImmutable = process.env.UPLOADS_CACHE_IMMUTABLE === 'true';
+  app.use('/uploads', express.static(uploadsPath, { maxAge: uploadsCacheMaxAge, immutable: uploadsCacheImmutable }));
+
+  app.use('/rotativas', express.static(heroRotativasPath, { maxAge: '5m', immutable: false }));
+
 
   // importantly only setup Vite in development and after
   // setting up all the other routes so the catch-all route

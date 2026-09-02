@@ -18,6 +18,7 @@ import path from 'path';
 import { randomUUID } from "crypto";
 import { parseFullNovelMarkdown } from './importers/fullnovel';
 import bcrypt from 'bcryptjs';
+import duckdb from 'duckdb';
 
 // Interface for storage operations
 export interface IStorage {
@@ -1138,28 +1139,124 @@ Aslam carrega uma essência marcada pela compaixão e pela solidão de quem já 
   }
 }
 
-// Simple file-based storage fallback for local development when DB is unavailable.
-class FileStorage implements IStorage {
+// Local persistent storage for development/admin editing.
+// DuckDB stores text records and metadata; binary uploads stay in /uploads.
+class DuckDbStorage implements IStorage {
   private baseDir = path.resolve(process.cwd(), 'data');
+  private duckDbPath = path.join(this.baseDir, 'sorcerer.duckdb');
+  private localDb: duckdb.Database;
+  private ready: Promise<void>;
 
   constructor() {
     fs.mkdirSync(this.baseDir, { recursive: true });
+    this.localDb = new duckdb.Database(this.duckDbPath);
+    this.ready = this.initDuckDb().then(() => this.seedAdminFromEnv());
   }
 
-  // helper
-  private async readFile<T>(name: string, defaultValue: T): Promise<T> {
+  private sqlString(value: string) {
+    return `'${String(value).replace(/'/g, "''")}'`;
+  }
+
+  private runSql(sql: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this.localDb.run(sql, (err: Error | null) => err ? reject(err) : resolve());
+    });
+  }
+
+  private allSql<T = any>(sql: string): Promise<T[]> {
+    return new Promise((resolve, reject) => {
+      this.localDb.all(sql, (err: Error | null, rows: T[]) => err ? reject(err) : resolve(rows || []));
+    });
+  }
+
+  private async initDuckDb() {
+    await this.runSql(`
+      CREATE TABLE IF NOT EXISTS local_documents (
+        name VARCHAR PRIMARY KEY,
+        json_text VARCHAR NOT NULL,
+        updated_at VARCHAR NOT NULL
+      )
+    `);
+  }
+
+  private async seedAdminFromEnv() {
+    try {
+      const email = process.env.ADMIN_EMAIL;
+      const password = process.env.ADMIN_PASSWORD;
+      if (!email || !password) return;
+
+      const id = process.env.ADMIN_ID || 'admin-root';
+      const users = await this.readDocument<any[]>('offline-users.json', []);
+
+      const existingIndex = users.findIndex((u) => u.id === id || (u.email || '').toLowerCase() === email.toLowerCase());
+      const rounds = Number(process.env.ADMIN_BCRYPT_ROUNDS || process.env.BCRYPT_ROUNDS || 12);
+      const forcePassword = process.env.ADMIN_FORCE_UPDATE_PASSWORD === 'true';
+      const existing = existingIndex >= 0 ? users[existingIndex] : null;
+      const passwordHash = !existing || forcePassword || (!existing.passwordHash && !existing.password_hash)
+        ? bcrypt.hashSync(password, rounds)
+        : (existing.passwordHash || existing.password_hash);
+
+      const adminUser = {
+        ...(existing || {}),
+        id: existing?.id || id,
+        email,
+        passwordHash,
+        isAdmin: 1,
+        updatedAt: new Date().toISOString(),
+        createdAt: existing?.createdAt || existing?.created_at || new Date().toISOString(),
+      };
+
+      if (existingIndex >= 0) users[existingIndex] = adminUser;
+      else users.push(adminUser);
+      await this.writeDocument('offline-users.json', users);
+      console.log(`Local file storage admin ready: ${email}`);
+    } catch (e) {
+      console.warn('Local file storage admin seed failed:', e);
+    }
+  }
+
+  private async readDocument<T>(name: string, defaultValue: T): Promise<T> {
+    const rows = await this.allSql<{ json_text: string }>(
+      `SELECT json_text FROM local_documents WHERE name = ${this.sqlString(name)} LIMIT 1`
+    );
+    if (rows[0]?.json_text) {
+      try {
+        return JSON.parse(rows[0].json_text) as T;
+      } catch {
+        return defaultValue;
+      }
+    }
+
+    // One-time migration from the older JSON file layout.
     const fp = path.join(this.baseDir, name);
     try {
       const txt = await fs.promises.readFile(fp, 'utf-8');
-      return JSON.parse(txt || 'null') as T;
-    } catch (e) {
+      const parsed = JSON.parse(txt || 'null') as T;
+      await this.writeDocument(name, parsed);
+      return parsed;
+    } catch {
       return defaultValue;
     }
   }
 
+  private async writeDocument(name: string, data: any) {
+    const json = JSON.stringify(data ?? null);
+    const now = new Date().toISOString();
+    await this.runSql(`
+      INSERT OR REPLACE INTO local_documents (name, json_text, updated_at)
+      VALUES (${this.sqlString(name)}, ${this.sqlString(json)}, ${this.sqlString(now)})
+    `);
+  }
+
+  // helper
+  private async readFile<T>(name: string, defaultValue: T): Promise<T> {
+    await this.ready;
+    return this.readDocument(name, defaultValue);
+  }
+
   private async writeFile(name: string, data: any) {
-    const fp = path.join(this.baseDir, name);
-    await fs.promises.writeFile(fp, JSON.stringify(data, null, 2), 'utf-8');
+    await this.ready;
+    await this.writeDocument(name, data);
   }
 
   async getUser(id: string) {
@@ -1270,10 +1367,10 @@ class FileStorage implements IStorage {
 
 let storageInstance: IStorage;
 try {
-  storageInstance = new DatabaseStorage();
+  storageInstance = pool ? new DatabaseStorage() : new DuckDbStorage();
 } catch (err) {
-  console.warn('DatabaseStorage initialization failed, falling back to FileStorage:', err);
-  storageInstance = new FileStorage();
+  console.warn('DatabaseStorage initialization failed, falling back to DuckDbStorage:', err);
+  storageInstance = new DuckDbStorage();
 }
 
 export const storage = storageInstance;

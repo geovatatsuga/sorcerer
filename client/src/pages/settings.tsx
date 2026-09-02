@@ -82,6 +82,8 @@ export default function SettingsPage() {
     })();
   }, [isAuthenticated, setLocation]);
 
+  const [siteZoom, setSiteZoom] = useState<string>('80%');
+
   useEffect(() => {
     try {
       const stored = localStorage.getItem(READER_FONT_SIZE_KEY);
@@ -92,6 +94,12 @@ export default function SettingsPage() {
         document.documentElement.style.setProperty('--reader-font-size', readerFontSizes.medium);
       }
     } catch {}
+
+    try {
+      const storedZoom = localStorage.getItem('site.zoom') || '100%';
+      setSiteZoom(storedZoom);
+      document.documentElement.style.setProperty('--site-zoom', storedZoom);
+    } catch {}
   }, []);
 
   const applyReaderFontSize = (size: 'xsmall' | 'small' | 'medium' | 'large') => {
@@ -99,6 +107,14 @@ export default function SettingsPage() {
     try {
       localStorage.setItem(READER_FONT_SIZE_KEY, size);
       document.documentElement.style.setProperty('--reader-font-size', readerFontSizes[size]);
+    } catch {}
+  };
+
+  const applySiteZoom = (zoom: string) => {
+    setSiteZoom(zoom);
+    try {
+      localStorage.setItem('site.zoom', zoom);
+      document.documentElement.style.setProperty('--site-zoom', zoom);
     } catch {}
   };
 
@@ -286,6 +302,16 @@ export default function SettingsPage() {
                       <Button size="sm" variant={readerFontSize === 'medium' ? 'secondary' : 'outline'} onClick={() => applyReaderFontSize('medium')}>Média</Button>
                       <Button size="sm" variant={readerFontSize === 'large' ? 'secondary' : 'outline'} onClick={() => applyReaderFontSize('large')}>Grande</Button>
                     </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Zoom do Site (Ajuste global)</Label>
+                    <div className="flex gap-2">
+                      <Button size="sm" variant={siteZoom === '80%' ? 'secondary' : 'outline'} onClick={() => applySiteZoom('80%')}>80%</Button>
+                      <Button size="sm" variant={siteZoom === '90%' ? 'secondary' : 'outline'} onClick={() => applySiteZoom('90%')}>90%</Button>
+                      <Button size="sm" variant={siteZoom === '100%' ? 'secondary' : 'outline'} onClick={() => applySiteZoom('100%')}>100% (Padrão)</Button>
+                      <Button size="sm" variant={siteZoom === '110%' ? 'secondary' : 'outline'} onClick={() => applySiteZoom('110%')}>110%</Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground">Útil se os elementos estiverem muito grandes e exigirem muito scroll.</p>
                   </div>
                   <div className="space-y-2">
                     <Label>Largura do conteúdo</Label>

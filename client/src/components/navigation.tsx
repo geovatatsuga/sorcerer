@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
-import { Menu, X, Settings, LogOut, LogIn, User as UserIcon, ShieldCheck } from "lucide-react";
+import { Menu, X, Settings, LogOut, LogIn, User as UserIcon, ShieldCheck, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -16,8 +16,6 @@ export default function Navigation() {
   const { user, isAuthenticated, isAdmin, isLoading } = useAuth();
   const queryClient = useQueryClient();
 
-  // Dev mode UI removed – only the primary Entrar button remains.
-  
   const navigationItems = [
     { name: t.home, href: "/" },
     { name: t.chapters, href: "/chapters" },
@@ -45,57 +43,55 @@ export default function Navigation() {
   }, []);
 
   return (
-    <nav className="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-md border-b border-border">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-[#04080e]/72 backdrop-blur-[18px] border-b border-primary/12 h-[56px]">
+      <div className="w-full px-4 sm:px-6 lg:pl-24 lg:pr-8 h-full">
+        <div className="flex justify-between items-center h-full">
+          {/* Logo */}
           <div className="flex-shrink-0">
-            <Link href="/" data-testid="link-home">
-              <h1 className="font-display text-xl font-bold text-primary">
-                {t.heroTitle}
-              </h1>
+            <Link href="/" data-testid="link-home" className="flex flex-col select-none group">
+              <span className="text-[9px] tracking-[0.3em] font-sans font-semibold text-muted-foreground uppercase leading-none mb-1.5 group-hover:text-primary transition-colors">
+                O RETORNO DO
+              </span>
+              <span className="font-display text-[15px] sm:text-base font-bold text-primary uppercase tracking-wider leading-none group-hover:text-primary-light transition-colors">
+                PRIMEIRO FEITICEIRO
+              </span>
             </Link>
           </div>
           
+          {/* Central Menu */}
           <div className="hidden md:flex flex-1 justify-center">
-            <div className="flex items-baseline space-x-8">
+            <div className="flex items-center space-x-10">
               {navigationItems.map((item) => {
                 const displayName = item.name ?? "";
                 const safeId = displayName
                   ? `link-${displayName.toLowerCase().replace(/\s+/g, "-")}`
                   : `link-${item.href.replace(/\//g, "-")}`;
+                const isActive = location === item.href;
                 return (
                   <Link
                     key={item.href}
                     href={item.href}
                     data-testid={safeId}
-                    className={`nav-link font-medium transition-colors duration-200 ${
-                      location === item.href
-                        ? "text-primary"
-                        : "text-foreground hover:text-primary"
+                    className={`text-[11px] tracking-[0.22em] font-display uppercase font-semibold transition-all duration-300 relative py-2 ${
+                      isActive
+                        ? "text-primary after:absolute after:bottom-0 after:left-0 after:w-full after:h-[2px] after:bg-primary after:shadow-[0_0_8px_rgba(216,170,92,0.6)]"
+                        : "text-foreground/75 hover:text-primary"
                     }`}
-                    aria-current={location === item.href ? 'page' : undefined}
-                    data-active={location === item.href ? 'true' : 'false'}
+                    aria-current={isActive ? 'page' : undefined}
+                    data-active={isActive ? 'true' : 'false'}
                     onClick={async () => {
-                      // Debug log and SPA navigation; fallback to hard reload if it doesn't change the path
                       try {
-                        // eslint-disable-next-line no-console
                         console.debug('[nav] click', item.href, 'current', location);
                         try { await queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] }); } catch(e) {}
                         setLocation(item.href);
                         setTimeout(() => {
                           try {
                             if (window.location.pathname !== item.href) {
-                              // eslint-disable-next-line no-console
-                              console.debug('[nav] SPA navigation failed, falling back to full navigation', item.href);
                               window.location.href = item.href;
                             }
-                          } catch (err) {
-                            // ignore
-                          }
+                          } catch (err) {}
                         }, 100);
-                      } catch (err) {
-                        // nothing — allow default behavior
-                      }
+                      } catch (err) {}
                     }}
                   >
                     {item.name}
@@ -103,127 +99,124 @@ export default function Navigation() {
                 );
               })}
               
-              {/* Admin link for admins */}
+              {/* Admin Icon */}
               {isAdmin && (
-                  <Link
-                    href="/admin"
-                    data-testid="link-admin"
-                    aria-label="Admin"
-                    className={`nav-link font-medium transition-colors duration-200 ${
-                      location === "/admin"
-                        ? "text-primary"
-                        : "text-foreground hover:text-primary"
-                    }`}
-                    aria-current={location === '/admin' ? 'page' : undefined}
-                    data-active={location === '/admin' ? 'true' : 'false'}
-                  >
-                    <Settings className="h-4 w-4 inline" />
-                    <span className="sr-only">Admin</span>
-                  </Link>
-                )}
-              {/* Dev helper: quick login when running locally (uses /api/dev/login) */}
-              {import.meta.env.DEV && !isAdmin && (
-                <button
-                  onClick={async () => {
-                    try {
-                      await fetch('/api/dev/login', { method: 'GET', credentials: 'include' });
-                      // give cookie/tokens a moment
-                      setTimeout(() => { try { setLocation('/admin'); } catch {} }, 80);
-                    } catch (e) {
-                      try { window.location.href = '/admin'; } catch {}
-                    }
-                  }}
-                  className="nav-link font-medium text-foreground hover:text-primary ml-2"
-                  title="Dev: entrar como admin"
+                <Link
+                  href="/admin"
+                  data-testid="link-admin"
+                  aria-label="Admin"
+                  className={`text-[11px] tracking-[0.22em] font-display uppercase font-semibold transition-colors duration-200 ${
+                    location === "/admin" ? "text-primary" : "text-foreground/75 hover:text-primary"
+                  }`}
+                  aria-current={location === '/admin' ? 'page' : undefined}
+                  data-active={location === '/admin' ? 'true' : 'false'}
                 >
-                  <Settings className="h-4 w-4 inline" />
-                </button>
-              )}
-              
-              {/* Single-language app: Portuguese only. Language selector removed. */}
-
-              {/* Authentication */}
-              {isLoading ? (
-                <div className="h-8 w-24 animate-pulse rounded bg-muted" aria-hidden />
-              ) : isAuthenticated ? (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-foreground hover:text-primary transition-colors flex items-center gap-2"
-                      data-testid="button-user-menu"
-                    >
-                      <Avatar className="h-6 w-6">
-                        <AvatarImage src={(user as any)?.profileImageUrl || ''} alt={user?.firstName || user?.email || 'User'} />
-                        <AvatarFallback className="text-xs">
-                          {(user?.firstName || user?.email || 'U')?.slice(0,2).toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                      <span>{user?.firstName || user?.email || 'Usuário'}</span>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem asChild>
-                      <Link href="/settings" className="cursor-pointer w-full">
-                        <UserIcon className="h-4 w-4 mr-2" />
-                        Configurações
-                      </Link>
-                    </DropdownMenuItem>
-                    {isAdmin && (
-                      <>
-                        <DropdownMenuItem asChild>
-                          <Link href="/admin" className="cursor-pointer w-full">
-                            <Settings className="h-4 w-4 mr-2" />
-                            Admin Panel
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                      </>
-                    )}
-                    <DropdownMenuItem onSelect={async () => {
-                      try { await fetch('/api/logout', { method: 'POST', credentials: 'include', headers: authHeaders() }); } catch {}
-                      try { localStorage.removeItem('devToken'); } catch (e) {}
-                      try { await queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] }); } catch (e) {}
-                      window.location.reload();
-                    }}>
-                      <div className="cursor-pointer w-full">
-                        <LogOut className="h-4 w-4 mr-2" />
-                        Sair
-                      </div>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              ) : (
-                <Button asChild variant="default" size="sm">
-                  <a
-                    href="/login"
-                    data-testid="button-login"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      setLocation('/login');
-                    }}
-                    className="btn-gold btn-font px-3 py-1 rounded-md"
-                  >
-                    <LogIn className="h-4 w-4 mr-1" />
-                    Entrar
-                  </a>
-                </Button>
+                  <Settings className="h-4 w-4 inline mr-1" />
+                  Admin
+                </Link>
               )}
             </div>
           </div>
           
-          <div className="flex items-center space-x-2">
-            {/* Single-language app: show static Portuguese flag */}
-            <div className="hidden md:flex items-center" aria-hidden>
-              <span className="text-lg">🇧🇷</span>
-            </div>
+          {/* Actions Menu */}
+          <div className="hidden md:flex items-center space-x-5">
+            {/* Search Button */}
+            <button className="text-foreground/75 hover:text-primary p-2 transition-colors duration-200" aria-label="Pesquisar">
+              <Search className="h-[18px] w-[18px]" />
+            </button>
 
+            {/* Settings Button */}
+            <button 
+              onClick={() => setLocation('/settings')}
+              className="text-foreground/75 hover:text-primary p-2 transition-colors duration-200" 
+              aria-label="Configurações"
+            >
+              <Settings className="h-[18px] w-[18px]" />
+            </button>
+
+            {/* Language Selector BR */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="text-[11px] font-display font-semibold text-foreground/75 hover:text-primary flex items-center gap-1 transition-colors duration-200 px-2 py-1 uppercase tracking-wider">
+                  BR <span className="text-[9px] text-primary/70">▼</span>
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="bg-[#050a0f] border-primary/20">
+                <DropdownMenuItem className="text-[11px] font-display tracking-wider text-primary cursor-pointer hover:bg-primary/10">
+                  🇧🇷 PT-BR
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* Authentication / User Avatar */}
+            {isLoading ? (
+              <div className="h-9 w-24 animate-pulse rounded bg-muted" aria-hidden />
+            ) : isAuthenticated ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-foreground hover:text-primary transition-colors flex items-center gap-2"
+                    data-testid="button-user-menu"
+                  >
+                    <Avatar className="h-6 w-6 border border-primary/20">
+                      <AvatarImage src={(user as any)?.profileImageUrl || ''} alt={user?.firstName || user?.email || 'User'} />
+                      <AvatarFallback className="text-xs bg-primary/20 text-primary">
+                        {(user?.firstName || user?.email || 'U')?.slice(0,2).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="text-[11px] uppercase tracking-wider font-display font-semibold">{user?.firstName || user?.email || 'Usuário'}</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="bg-[#050a0f] border-primary/20">
+                  <DropdownMenuItem asChild>
+                    <Link href="/settings" className="cursor-pointer w-full text-xs font-display tracking-wider hover:bg-primary/10">
+                      <UserIcon className="h-4 w-4 mr-2 text-primary" />
+                      Configurações
+                    </Link>
+                  </DropdownMenuItem>
+                  {isAdmin && (
+                    <DropdownMenuItem asChild>
+                      <Link href="/admin" className="cursor-pointer w-full text-xs font-display tracking-wider hover:bg-primary/10">
+                        <Settings className="h-4 w-4 mr-2 text-primary" />
+                        Painel Admin
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuSeparator className="bg-primary/10" />
+                  <DropdownMenuItem onSelect={async () => {
+                    try { await fetch('/api/logout', { method: 'POST', credentials: 'include', headers: authHeaders() }); } catch {}
+                    try { localStorage.removeItem('devToken'); } catch (e) {}
+                    try { await queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] }); } catch (e) {}
+                    window.location.reload();
+                  }} className="text-destructive cursor-pointer text-xs font-display tracking-wider hover:bg-destructive/10">
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Sair
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Button 
+                asChild 
+                variant="outline" 
+                size="sm"
+                className="bg-[#04080e] border border-primary/45 hover:border-primary text-primary hover:text-[#04080e] hover:bg-primary transition-all duration-300 rounded px-4 py-2 font-display text-[11px] uppercase tracking-widest font-semibold flex items-center gap-2"
+              >
+                <Link href="/login" data-testid="button-login">
+                  Entrar <span className="text-[12px] font-bold">→</span>
+                </Link>
+              </Button>
+            )}
+          </div>
+
+          {/* Mobile responsive toggle */}
+          <div className="flex items-center md:hidden space-x-2">
             {isAdmin && (
               <Button
                 variant="ghost"
                 size="icon"
-                className="md:hidden text-foreground hover:text-primary"
+                className="text-foreground hover:text-primary"
                 aria-label="Admin"
                 onClick={() => setLocation('/admin')}
                 data-testid="button-mobile-admin"
@@ -235,7 +228,7 @@ export default function Navigation() {
             <Button
               variant="ghost"
               size="icon"
-              className="md:hidden text-foreground hover:text-primary"
+              className="text-foreground hover:text-primary"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               data-testid="button-mobile-menu"
             >

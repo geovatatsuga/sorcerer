@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { useQuery } from "@tanstack/react-query";
 import Navigation from "@/components/navigation";
 import Footer from "@/components/footer";
@@ -6,6 +6,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import type { Location } from "@shared/schema";
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useLocation } from 'wouter';
+import InteractiveWorldMap from "@/components/interactive-world-map/InteractiveWorldMap";
+import { Compass, Map, Sparkles, Search, Layers, Shield } from "lucide-react";
 
 export default function World() {
   const { data: locations = [], isLoading } = useQuery<Location[]>({
@@ -45,23 +47,6 @@ export default function World() {
     silvanum: { color: '#9be59a', gradient: 'linear-gradient(135deg,#cff7cf 0%,#60c65f 100%)' },
   };
 
-  // per-type color hints for buttons (used for active / hover accents)
-  const typeColors: Record<string, string> = {
-    ocean: '#5fb7ff',
-    ruins: '#8b2e2e',
-    forest: '#57b66a',
-    mountains: '#b08968',
-    desert: '#d3a24a',
-    city: '#9bb0ff',
-    capital: '#ffd86a',
-    kingdom: '#cfa87a',
-    plains: '#c9d9a5',
-    islands: '#7fd1c7',
-    other: '#9aa1a6',
-  };
-
-  // tags removed from header filter per UX: keep search and type filters only
-
   const [query, setQuery] = React.useState('');
   const [activeTypeFilter, setActiveTypeFilter] = React.useState<string | null>(null);
 
@@ -77,11 +62,9 @@ export default function World() {
     if (activeTypeFilter) {
       if ((l.type || 'other') !== activeTypeFilter) return false;
     }
-    // tag-based filtering removed; only query and type filters remain
     return true;
   };
 
-  // locations that should be shown in "Outros Locais" (exclude the six top continents)
   const filteredLocations = React.useMemo(() => {
     return (locations || [])
       .filter((l) => !['luminah','akeli','umbra','aquario','ferros','silvanum'].includes(((l.id || '') as string).toLowerCase()))
@@ -89,189 +72,177 @@ export default function World() {
   }, [locations, query, activeTypeFilter]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#081017] via-[#071726] to-[#071522] text-foreground" style={{ backgroundImage: 'radial-gradient(ellipse at 10% 10%, rgba(150,120,255,0.03) 0%, transparent 20%), radial-gradient(ellipse at 90% 90%, rgba(80,200,255,0.02) 0%, transparent 18%)' }}>
+    <div className="min-h-screen bg-[#02050a] text-[#e8e4d9] pl-0 xl:pl-[68px] overflow-x-hidden selection:bg-[#d8aa5c]/30 font-sans">
       <Navigation />
 
-      <main className="pt-16 pb-20 px-4 flex flex-col items-center">
-        <div className="w-full max-w-5xl mx-auto">
-          {isLoading ? (
-            <div className="bg-card border border-border rounded-xl h-24 animate-pulse mb-8" />
-          ) : null}
+      <main className="pt-[58px] pb-20 px-3 sm:px-5 lg:px-8 flex flex-col items-center gap-6">
+        
+        {/* ════════════════════════════════════════════════════════════════
+            1. HERO / CABEÇALHO DO MAPA MUNDI INTERATIVO
+        ════════════════════════════════════════════════════════════════ */}
+        <section className="w-full max-w-6xl mx-auto text-center mt-2 select-none">
+          <div className="flex items-center justify-center gap-2 mb-1.5">
+            <span className="h-[1px] w-8 bg-[#d8aa5c]" />
+            <span className="text-[11px] tracking-[0.35em] font-sans font-bold text-[#d8aa5c] uppercase">
+              Cartografia & Geografia
+            </span>
+            <span className="h-[1px] w-8 bg-[#d8aa5c]" />
+          </div>
 
+          <h1 
+            className="font-display text-4xl sm:text-5xl lg:text-6xl font-extrabold uppercase tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-[#fef5e0] via-[#dfb76c] to-[#9e7a36] leading-none mb-3 drop-shadow-[0_4px_24px_rgba(0,0,0,0.95)]"
+          >
+            Mapa do Mundo
+          </h1>
+
+          <p className="text-[#cfc9b8] text-xs sm:text-[14.5px] max-w-2xl mx-auto font-medium drop-shadow mb-4 leading-relaxed">
+            Navegue pelo mapa interativo de Calonia. Passe o mouse ou toque sobre as regiões, continentes e mares para revelar os territórios, rotas e segredos do mundo.
+          </p>
+        </section>
+
+        {/* ════════════════════════════════════════════════════════════════
+            2. O MAPA INTERATIVO REAL (COM HOVER, ZOOM E TOOLTIPS)
+        ════════════════════════════════════════════════════════════════ */}
+        <section className="w-full max-w-6xl mx-auto rounded-2xl border border-[#d8aa5c]/35 overflow-hidden bg-[#040810] shadow-[0_25px_60px_rgba(0,0,0,0.95)] relative">
+          <InteractiveWorldMap />
+        </section>
+
+        {/* ════════════════════════════════════════════════════════════════
+            3. OS ECOS DA PRIMEIRA GERAÇÃO (CONTINENTES PRINCIPAIS)
+        ════════════════════════════════════════════════════════════════ */}
+        <div className="w-full max-w-6xl mx-auto mt-6">
           <section className="mx-auto mb-12 flex flex-col items-center text-center">
-            <h2 className="font-display text-3xl md:text-4xl font-extrabold text-[color:#e6cfa3] mb-3" style={{ textShadow: '0 6px 30px rgba(0,0,0,0.7)' }}>Os Ecos da Primeira Geração</h2>
-            <p className="text-muted-foreground/80 max-w-3xl mx-auto mb-6">Ecos antigos das primeiras massas de terra — continentes que guardam a memória e as lendas da aurora do mundo. Explore as regiões primordiais abaixo.</p>
+            <div className="flex items-center justify-center gap-2 mb-1">
+              <Compass className="h-4 w-4 text-[#d8aa5c]" />
+              <h2 className="font-display text-2xl md:text-3xl font-extrabold text-[#fef5e0]" style={{ textShadow: '0 6px 30px rgba(0,0,0,0.7)' }}>
+                Os Ecos da Primeira Geração
+              </h2>
+            </div>
+            <p className="text-[#a39c8f] text-xs sm:text-sm max-w-2xl mx-auto mb-6">
+              As massas de terra primordiais — continentes que guardam a memória e as lendas da aurora do mundo.
+            </p>
 
-            <div className="w-full px-2 sm:px-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
               {['luminah','akeli','umbra','aquario','ferros','silvanum'].map((slug) => {
                 const loc = locations.find((l) => ((l.id || '') as string).toLowerCase() === slug || (((l as any).slug || '') as string).toLowerCase() === slug || (l.name || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') === slug);
                 const title = loc?.name ?? slug.charAt(0).toUpperCase() + slug.slice(1);
-                const desc = loc?.description ?? '';
-                const type = loc?.type ?? 'other';
+                const desc = loc?.description ?? 'Território ancestral marcado pela mana e pelos ecos da grande guerra cósmica.';
                 const href = `/mundo/${loc?.id ?? slug}`;
-
                 const theme = themes[slug] ?? { color: '#ffd28a', gradient: 'linear-gradient(135deg,#ffd28a 0%,#ffb36b 100%)' };
-
-                // ensure the top cards always render (they represent continents)
-                // for continent cards we only want the synthetic 'continente' tag —
-                // ignore any other tags they might have in the data
-                const ensureTags = (_rawTags?: string) => 'continente';
-                const locView = loc ? ({ ...loc, tags: ensureTags((loc as any).tags) }) : undefined;
 
                 return (
                   <Card
                     key={slug}
-                    onClick={(e) => {
+                    onClick={() => {
                       try { window.dispatchEvent(new CustomEvent('continent-click', { detail: { slug, name: title } })); } catch (err) {}
                       setLocation(href);
                     }}
                     role="button"
                     tabIndex={0}
-                    className="relative group cursor-pointer transform hover:scale-102 transition-transform duration-220 ease-out shadow-lg overflow-hidden border border-border/30 rounded-2xl bg-gradient-to-b from-card/60 to-card/40"
+                    className="relative group cursor-pointer transform hover:-translate-y-1.5 transition-all duration-300 ease-out shadow-[0_16px_40px_rgba(0,0,0,0.9)] overflow-hidden border border-white/10 hover:border-[#d8aa5c]/60 rounded-2xl bg-[#040810]"
                     style={{ ['--accent' as any]: theme.color }}
-                    onMouseEnter={(e) => {
-                      // dispatch a global event so the SVG map tooltip can also show
-                      try { window.dispatchEvent(new CustomEvent('continent-hover', { detail: { slug, name: title, x: (e as any).clientX + 12, y: (e as any).clientY + 12 } })); } catch (err) {}
-                    }}
-                    onMouseMove={(e) => { try { window.dispatchEvent(new CustomEvent('continent-move', { detail: { x: (e as any).clientX + 12, y: (e as any).clientY + 12 } })); } catch (err) {} }}
-                    onMouseLeave={() => { try { window.dispatchEvent(new CustomEvent('continent-leave')); } catch (err) {} }}
                   >
-                    {locView && locView.imageUrl ? (
-                          <div className="relative w-full h-48 overflow-hidden rounded-t-2xl">
-                            <img src={locView.imageUrl} alt={title} className="w-full h-full object-cover" />
-                        <div className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-20 transition-opacity duration-500" style={{ background: `${theme.gradient}` }} />
-                        <div className="absolute -top-10 -right-10 w-36 h-36 rounded-full opacity-0 group-hover:opacity-30 blur-2xl transform rotate-12 pointer-events-none transition-opacity duration-500" style={{ background: theme.color }} />
+                    {loc && loc.imageUrl ? (
+                      <div className="relative w-full h-44 overflow-hidden rounded-t-2xl bg-black/60">
+                        <img src={loc.imageUrl} alt={title} className="w-full h-full object-cover group-hover:scale-106 transition-transform duration-500" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-[#040810] via-transparent to-transparent" />
                       </div>
                     ) : (
-                      <div className="w-full h-48 bg-muted/30 rounded-t-2xl" aria-hidden="true" />
-                    )}
-                    <CardContent className="p-6">
-                      <div className="mb-2 flex items-center justify-end">
-                        <a href={href} onClick={(e) => { e.stopPropagation(); setLocation(href); }} className="text-[var(--accent)] underline group-hover:text-white">Ver</a>
+                      <div className="w-full h-44 bg-gradient-to-b from-white/5 to-[#040810] rounded-t-2xl flex items-center justify-center">
+                        <Compass className="h-10 w-10 text-white/20" />
                       </div>
-                      <h3 className="font-display text-xl md:text-2xl font-extrabold transition-all duration-200 ease-out text-[var(--accent)] tracking-wide">{title}</h3>
-                      <p className="mt-2 text-sm text-muted-foreground/80 leading-relaxed line-clamp-3">{desc}</p>
+                    )}
+                    <CardContent className="p-5 pt-3 select-none">
+                      <div className="flex items-center justify-between mb-1.5">
+                        <div className="flex items-center gap-1.5">
+                          <span className="w-2.5 h-2.5 rounded-full block" style={{ background: theme.color }} />
+                          <span className="text-[10.5px] uppercase tracking-wider font-mono text-[#d8aa5c] font-bold">{slug}</span>
+                        </div>
+                        <span className="text-[11px] text-[#d8aa5c] font-semibold group-hover:underline">Explorar →</span>
+                      </div>
+                      <h3 className="font-display text-xl font-bold transition-all text-[#fef5e0] group-hover:text-[#d8aa5c] text-left">
+                        {title}
+                      </h3>
+                      <p className="mt-1.5 text-xs text-[#a39c8f] leading-relaxed line-clamp-2 text-left font-serif">
+                        {desc}
+                      </p>
                     </CardContent>
-                    {/* small continent color dot + slug at bottom-left (restore previous behavior) */}
-                    <div className="absolute left-4 bottom-6 z-20 flex items-center gap-2">
-                      <span className="w-3 h-3 rounded-full block border border-white/8" style={{ background: theme.color }} />
-                      <span className="text-[color:var(--accent)]/80 lowercase text-xs">{slug}</span>
-                    </div>
-                    <div className="pointer-events-none absolute inset-0 overflow-hidden">
-                      <div className="absolute -left-40 top-0 w-48 h-full transform -skew-x-12 opacity-0 group-hover:opacity-90 group-hover:translate-x-[220%] transition-all duration-700 ease-in-out" style={{ background: `linear-gradient(90deg, transparent 0%, ${theme.color}22 45%, ${theme.color}55 55%, transparent 100%)` }} />
-                    </div>
-                    <div className="pointer-events-none absolute inset-0 rounded-lg ring-0 group-hover:ring-4 group-hover:ring-[color:var(--accent)] group-hover:opacity-90 transition-all duration-300" />
                   </Card>
                 );
               })}
             </div>
           </section>
 
-          <div className="w-full max-w-5xl mx-auto mt-8 mb-6">
-            <div className="w-full flex items-center justify-center my-8">
-              <div className="h-px bg-gradient-to-r from-transparent via-border/40 to-transparent w-1/4 md:w-1/3" />
-              <div className="mx-4 text-sm text-muted-foreground/80 uppercase tracking-widest">Outros Locais</div>
-              <div className="h-px bg-gradient-to-r from-transparent via-border/40 to-transparent w-1/4 md:w-1/3" />
-            </div>
+          {/* ════════════════════════════════════════════════════════════════
+              4. OUTROS LOCAIS & BUSCA DE REGIÕES
+          ════════════════════════════════════════════════════════════════ */}
+          <div className="w-full flex items-center justify-center my-8">
+            <div className="h-px bg-gradient-to-r from-transparent via-white/20 to-transparent w-1/4 md:w-1/3" />
+            <div className="mx-4 text-xs font-bold text-[#d8aa5c] uppercase tracking-widest">Outros Locais e Reinos</div>
+            <div className="h-px bg-gradient-to-r from-transparent via-white/20 to-transparent w-1/4 md:w-1/3" />
+          </div>
 
-            {/* Combined search + improved type filter placed under Outros Locais */}
-            <div className="w-full max-w-5xl mx-auto mb-6">
-              <div className="flex flex-col items-center gap-4 justify-center mb-4">
-                <div className="w-full md:w-2/3 flex items-center bg-[linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01))] border border-border/10 rounded-xl px-4 py-3 shadow-[0_8px_20px_rgba(2,6,23,0.6)] transition-shadow duration-200 hover:shadow-[0_12px_30px_rgba(2,6,23,0.7)]">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-3 opacity-70"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                  <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={'Buscar por slug, nome ou id...'} aria-label="Busca por slug, nome ou id" className="bg-transparent outline-none text-sm w-full placeholder:opacity-80" />
-                  <div className="flex items-center gap-2 ml-4">
-                    {query ? (
-                      <button onClick={() => { setQuery(''); }} className="px-3 py-1 rounded-md text-sm bg-transparent border border-border/10 hover:bg-muted/6">Limpar</button>
-                    ) : null}
-                  </div>
-                </div>
+          <div className="w-full mb-6">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mb-5">
+              <div className="relative w-full sm:w-80">
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#9e988a] pointer-events-none" />
+                <input
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Buscar por nome, região ou reino..."
+                  className="w-full pl-10 pr-3 py-2.5 rounded-xl bg-[#040810]/90 border border-white/10 text-xs text-white placeholder:text-[#6b665c] focus:outline-none focus:border-[#d8aa5c] focus:ring-1 focus:ring-[#d8aa5c]/40 transition-all"
+                />
+              </div>
 
-                <div className="w-full flex items-center justify-between px-2 md:px-0 gap-4">
-                  <div className="flex-shrink-0">
-                    <button onClick={() => { setQuery(''); setActiveTypeFilter(null); }} className="px-3 py-2 rounded-full text-sm font-semibold bg-transparent border border-border/10 hover:bg-muted/6 focus:outline-none focus:ring-2 focus:ring-[color:#ffd86a]">Todos</button>
-                  </div>
-                  <div className="flex-1 flex flex-wrap gap-3 justify-center">
-                  {React.useMemo(() => {
-                    // compute counts from search-only filtered set (do not apply activeTypeFilter)
-                    const set = new Map<string, number>();
-                    (locations || [])
-                      .filter((l) => !['luminah','akeli','umbra','aquario','ferros','silvanum'].includes(((l.id || '') as string).toLowerCase()))
-                      .filter((l) => {
-                        const q = query.trim().toLowerCase();
-                        if (!q) return true;
-                        const rawSlug = (((l as any).slug) ?? '') as string;
-                        const computedSlug = rawSlug.trim() || (l.name || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-                        const slugOrId = (computedSlug || (l.id || '') as string).toString().toLowerCase();
-                        const title = (l.name || '').toString().toLowerCase();
-                        return slugOrId.includes(q) || title.includes(q);
-                      })
-                      .forEach((l) => {
-                        const key = l.type || 'other';
-                        set.set(key, (set.get(key) || 0) + 1);
-                      });
-                    return Array.from(set.entries()).map(([k, count]) => ({ k, count }));
-                  }, [locations, query]).map(({ k: typeKey, count }) => {
-                    const active = activeTypeFilter === typeKey;
-                    const label = typePt(typeKey || 'other');
-                    // neutral look: no color by default; active filter highlights and dims others but keep all pills visible
-                    const dimmed = activeTypeFilter && !active;
-                    return (
-                      <button
-                        key={typeKey}
-                        onClick={() => setActiveTypeFilter(active ? null : typeKey)}
-                        className={`relative group flex items-center gap-3 px-3 py-2 rounded-full text-sm font-semibold tracking-wide transition-all duration-300 ease-out ${active ? 'text-black' : 'text-muted-foreground'} hover:text-[color:#e6cfa3] focus:outline-none focus:ring-2 focus:ring-[color:#e6cfa3]`}
-                        aria-pressed={active}
-                        style={active ? { background: 'rgba(230,205,150,0.95)', boxShadow: '0 8px 22px rgba(0,0,0,0.45)', border: '1px solid rgba(255,255,255,0.04)', color: '#071522', transform: 'scale(1.02)' } : { background: 'transparent', border: '1px solid rgba(255,255,255,0.02)', opacity: dimmed ? 0.35 : 0.95, transform: dimmed ? 'scale(0.985)' : 'scale(1)' }}
-                      >
-                        <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full bg-black/6 text-xs font-mono ${active ? '' : 'opacity-80'}`}>{count}</span>
-                        <span className={`uppercase transition-opacity duration-200 ${active ? 'opacity-100' : 'opacity-90'} group-hover:opacity-100`}>{label}</span>
-                      </button>
-                    );
-                  })}
-                  </div>
-                </div>
+              <div className="flex items-center gap-2 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0">
+                <button
+                  onClick={() => { setQuery(''); setActiveTypeFilter(null); }}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
+                    !activeTypeFilter ? 'bg-[#d8aa5c]/25 text-[#fef5e0] border-[#d8aa5c]' : 'bg-[#040810]/80 text-[#9e988a] border-white/10 hover:text-white'
+                  }`}
+                >
+                  Todos
+                </button>
+                {['kingdom', 'city', 'forest', 'ruins', 'mountains'].map((typeKey) => (
+                  <button
+                    key={typeKey}
+                    onClick={() => setActiveTypeFilter(activeTypeFilter === typeKey ? null : typeKey)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
+                      activeTypeFilter === typeKey ? 'bg-[#d8aa5c]/25 text-[#fef5e0] border-[#d8aa5c]' : 'bg-[#040810]/80 text-[#9e988a] border-white/10 hover:text-white'
+                    }`}
+                  >
+                    {typePt(typeKey)}
+                  </button>
+                ))}
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {locations
-                .filter((l) => !['luminah','akeli','umbra','aquario','ferros','silvanum'].includes(((l.id || '') as string).toLowerCase()))
-                .filter(matchesFilter)
-                .map((loc) => (
-                  <Card key={loc.id} onClick={() => setLocation(`/mundo/${loc.id}`)} role="button" tabIndex={0} className="relative group cursor-pointer transform hover:scale-102 transition-transform duration-150 ease-out shadow-md overflow-hidden">
-                    {loc.imageUrl ? (
-                      <img src={loc.imageUrl} alt={loc.name} className="w-full h-40 object-cover" />
-                    ) : (
-                      <div className="w-full h-40 bg-muted/30" />
-                    )}
-                    <CardContent className="p-4 pb-10">
-                      <h4 className="font-display text-lg font-semibold text-card-foreground">{loc.name}</h4>
-                      <p className="mt-1 text-sm text-muted-foreground/80 truncate">{loc.description}</p>
-                      <div className="mt-3 text-xs text-muted-foreground flex items-center justify-between">
-                        <span>{typePt(loc.type || 'other')}</span>
-                        <a href={`/mundo/${loc.id}`} onClick={(e) => { e.stopPropagation(); setLocation(`/mundo/${loc.id}`); }} className="text-primary underline">Ver</a>
-                      </div>
-                    </CardContent>
-                    {/* small continent color dot + slug at bottom-left for locations (restore previous behavior) */}
-                    {(() => {
-                      try {
-                        const tags = (loc as any).tags || '';
-                        const found = String(tags).split(',').map((s) => s.trim()).find((t) => Object.keys(themes).includes(t));
-                        if (found) {
-                          const color = themes[found].color || '#ffd28a';
-                          return (
-                            <div className="absolute left-4 bottom-6 z-20 flex items-center gap-2">
-                              <span className="w-3 h-3 rounded-full block border border-white/8" style={{ background: color }} />
-                              <span className="text-[color:var(--accent)]/80 lowercase text-xs">{found}</span>
-                            </div>
-                          );
-                        }
-                      } catch (e) { /* noop */ }
-                      return null;
-                    })()}
-                  </Card>
-                ))}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              {filteredLocations.map((loc) => (
+                <Card
+                  key={loc.id}
+                  onClick={() => setLocation(`/mundo/${loc.id}`)}
+                  role="button"
+                  tabIndex={0}
+                  className="relative group cursor-pointer transform hover:-translate-y-1 transition-all duration-200 shadow-md overflow-hidden border border-white/10 hover:border-[#d8aa5c]/50 rounded-2xl bg-[#040810]"
+                >
+                  {loc.imageUrl ? (
+                    <img src={loc.imageUrl} alt={loc.name} className="w-full h-36 object-cover" />
+                  ) : (
+                    <div className="w-full h-36 bg-white/5 flex items-center justify-center">
+                      <Map className="h-8 w-8 text-white/20" />
+                    </div>
+                  )}
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between text-[10.5px] text-[#d8aa5c] font-semibold uppercase mb-1">
+                      <span>{typePt(loc.type || 'other')}</span>
+                      <span className="group-hover:underline">Ver perfil →</span>
+                    </div>
+                    <h4 className="font-display text-base font-bold text-white group-hover:text-[#d8aa5c] transition-colors">{loc.name}</h4>
+                    <p className="mt-1 text-xs text-[#9e988a] truncate font-serif">{loc.description}</p>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
           </div>
         </div>
@@ -281,5 +252,3 @@ export default function World() {
     </div>
   );
 }
-
-

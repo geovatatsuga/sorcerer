@@ -1,4 +1,4 @@
-﻿import { Switch, Route } from "wouter";
+import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -29,6 +29,7 @@ import Register from "@/pages/register";
 import SettingsPage from "@/pages/settings";
 import AudioControls from '@/components/AudioControls';
 import SoftErrorBoundary from '@/components/SoftErrorBoundary';
+import Sidebar from '@/components/sidebar';
 
 const READER_FONT_SIZE_KEY = 'reader.fontSize';
 const READER_FONT_SIZES: Record<string, string> = {
@@ -65,9 +66,13 @@ function Router() {
   <Route path="/characters/:slug" component={CharacterProfile} />
       <Route path="/world" component={World} />
       <Route path="/world/:id" component={LocationProfile} />
-  {/* Portuguese slug aliases */}
-  <Route path="/mundo" component={World} />
-  <Route path="/mundo/:id" component={LocationProfile} />
+      {/* Portuguese and Map route aliases */}
+      <Route path="/mundo" component={World} />
+      <Route path="/mundo/:id" component={LocationProfile} />
+      <Route path="/mapa" component={World} />
+      <Route path="/mapa/:id" component={LocationProfile} />
+      <Route path="/map" component={World} />
+      <Route path="/map/:id" component={LocationProfile} />
       <Route path="/codex" component={Codex} />
   <Route path="/codex-uploads" component={CodexUploads} />
       <Route path="/codex/:id" component={CodexEntryProfile} />
@@ -90,6 +95,11 @@ function App() {
       const size = READER_FONT_SIZES[stored] || READER_FONT_SIZES.medium;
       document.documentElement.style.setProperty('--reader-font-size', size);
     } catch {}
+
+    try {
+      const storedZoom = localStorage.getItem('site.zoom') || '100%';
+      document.documentElement.style.setProperty('--site-zoom', storedZoom);
+    } catch {}
   }, []);
 
   return (
@@ -101,6 +111,7 @@ function App() {
               <AudioProvider>
                 <ScrollIndicator />
                 <Toaster />
+                <Sidebar />
                 <Router />
                 <AudioControls />
               </AudioProvider>

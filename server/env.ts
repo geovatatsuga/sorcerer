@@ -52,6 +52,16 @@ try {
     } catch {
       // ignore
     }
+
+    if ((process.env.LOCAL_FILE_STORAGE || '').toLowerCase() === 'true') {
+      delete process.env.DATABASE_URL;
+      delete process.env.DATABASE_URL_WRITE;
+      delete process.env.DATABASE_URL_READ;
+      delete process.env.SUPABASE_URL;
+      delete process.env.SUPABASE_SERVICE_ROLE_KEY;
+      delete process.env.NEXT_PUBLIC_SUPABASE_URL;
+      delete process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    }
   }
 } catch (e) {
   // Best effort; keep server running with process.env

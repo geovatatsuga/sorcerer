@@ -1,16 +1,15 @@
-﻿import { useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import Navigation from "@/components/navigation";
-import ChapterCard from "@/components/chapter-card";
+import Sidebar from "@/components/sidebar";
 import Footer from "@/components/footer";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Chapter } from "@shared/schema";
 // translations removed — single-language
 import { useLanguage } from '@/contexts/LanguageContext';
-import { Search, X, Layers, RefreshCw, LayoutGrid, List, ArrowDownNarrowWide, ArrowUpNarrowWide } from "lucide-react";
+import { Search, X, RefreshCw, ArrowDownNarrowWide, ArrowUpNarrowWide, BookOpen, Star, ChevronDown, Grid3X3, Menu, CheckCircle2 } from "lucide-react";
+import { Link } from "wouter";
 
 export default function Chapters() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -119,247 +118,217 @@ export default function Chapters() {
     return arr;
   }, [filteredChapters, sortMode]);
 
-  // Manage expanded arcs (accordion "multiple")
-  const [expandedArcs, setExpandedArcs] = useState<string[]>([]);
-  const arcRefs = useRef<Record<string, HTMLDivElement | null>>({});
-  useEffect(() => {
-    // If filters change and expanded is empty, expand all groups that match (small UX sugar)
-    if (expandedArcs.length === 0 && arcGroups.length > 0) {
-      setExpandedArcs(arcGroups.map(g => g.key));
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [arcGroups.length, searchQuery, chapterNumber, arcFilter]);
+  const arcRefs = useRef<Record<string, HTMLElement | null>>({});
+
+  const scrollToArc = (key: string) => {
+    arcRefs.current[key]?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  const chapterImage = (chapter: Chapter) => chapter.imageUrl || "/uploads/hero-arcane-eclipse.png";
+  const arcImage = (group: ArcGroup) => chapterImage(group.chapters[0] || ({} as Chapter));
+
+  const timeAgo = (date: Date | string) => {
+    const now = new Date();
+    const publishedDate = new Date(date);
+    const diffTime = Math.abs(now.getTime() - publishedDate.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    if (diffDays === 1) return t.oneDayAgo;
+    if (diffDays < 7) return `${diffDays} ${t.daysAgo}`;
+    if (diffDays < 14) return t.oneWeekAgo;
+    if (diffDays < 21) return t.twoWeeksAgo;
+    return t.threeWeeksAgo;
+  };
+
+  const activeArc = arcGroups[0];
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-[#02070d] text-foreground relative pl-0 xl:pl-[68px] overflow-x-hidden">
       <Navigation />
-      
-      <main className="pt-24 pb-20 px-4">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h1 className="font-display text-4xl md:text-5xl font-bold text-primary mb-4" data-testid="text-chapters-title">
-              {t.allChapters}
-            </h1>
-            <p className="text-muted-foreground text-lg max-w-2xl mx-auto mb-8">
-              {t.allChaptersDesc}
-            </p>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 max-w-4xl mx-auto">
+
+      <main className="relative min-h-[calc(100vh-56px)] px-4 pb-16 pt-[72px] lg:min-h-[980px] lg:px-8 xl:px-10">
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-[360px] bg-[radial-gradient(circle_at_70%_0%,rgba(216,170,92,0.12),transparent_34%),linear-gradient(to_bottom,rgba(2,7,13,0.1),rgba(2,7,13,1))]" />
+        <div className="relative mx-auto grid max-w-[1560px] gap-7 lg:grid-cols-[250px_minmax(0,1fr)]">
+          <aside className="hidden lg:block">
+            <div className="sticky top-[82px] rounded border border-primary/15 bg-[#050a0f]/78 p-5 shadow-[0_18px_60px_rgba(0,0,0,0.35)]">
+              <div className="mb-5 flex items-center justify-center gap-3 text-primary">
+                <span className="h-px w-10 bg-primary/35" />
+                <span className="font-display text-[12px] uppercase tracking-[0.28em]">Arcos</span>
+                <span className="h-px w-10 bg-primary/35" />
+              </div>
+              <div className="space-y-2">
+                {arcGroups.map((group, index) => {
+                  const label = `Arco ${group.arcNumber ?? index + 1}`;
+                  const title = group.arcTitle || (index === 0 ? 'O Eco do Retorno' : 'Sem titulo');
+                  const active = activeArc?.key === group.key || arcFilter.includes(String(group.arcNumber ?? ''));
+                  return (
+                    <button
+                      key={group.key}
+                      type="button"
+                      onClick={() => scrollToArc(group.key)}
+                      className={`group relative w-full rounded border px-4 py-3 text-left transition-all ${active ? 'border-primary/35 bg-primary/8 shadow-[inset_2px_0_0_rgba(216,170,92,0.85)]' : 'border-primary/8 bg-[#071018]/60 hover:border-primary/25'}`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="font-display text-[13px] text-foreground/85">{label}. {title}</div>
+                        <ChevronDown className="h-3.5 w-3.5 text-primary/70" />
+                      </div>
+                      {active && (
+                        <>
+                          <p className="mt-2 line-clamp-2 text-[10px] leading-relaxed text-muted-foreground">
+                            {group.chapters[0]?.excerpt?.replace(/<[^>]*>/g, '') || 'A jornada se abre em ecos de magia antiga.'}
+                          </p>
+                          <div className="mt-3 text-[10px] text-muted-foreground">{group.chapters.length} / {Math.max(group.chapters.length, 12)} capitulos</div>
+                          <div className="mt-2 h-[2px] overflow-hidden rounded-full bg-primary/10">
+                            <div className="h-full w-2/3 bg-primary" />
+                          </div>
+                        </>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+              <blockquote className="mt-7 border border-primary/15 bg-[#02070d]/70 px-4 py-5 text-center text-[11px] italic leading-relaxed text-muted-foreground">
+                "O conhecimento e uma lamina.<br />E toda lamina carrega um preco."
+              </blockquote>
+            </div>
+          </aside>
+
+          <section>
+            <header className="mb-5">
+              <h1 className="font-display text-[34px] leading-none text-foreground md:text-[44px]" data-testid="text-chapters-title">
+                Todos os Capitulos
+              </h1>
+              <div className="mt-3 h-px w-full max-w-[520px] bg-gradient-to-r from-primary/60 via-primary/25 to-transparent" />
+            </header>
+
+            <div className="mb-4 grid grid-cols-1 gap-3 lg:grid-cols-[minmax(260px,1fr)_auto_auto]">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" aria-hidden="true" />
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
                 <Input
                   type="text"
-                  placeholder={t.searchChapters || "Buscar capítulos por título, número, trecho ou arco"}
-                  aria-label="Buscar capítulos"
+                  placeholder={t.searchChapters || "Buscar capitulos..."}
+                  aria-label="Buscar capitulos"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9 pr-8 bg-input border-border text-foreground placeholder:text-muted-foreground"
+                  className="h-10 rounded border-primary/15 bg-[#050a0f]/78 pl-9 pr-8 text-[12px] text-foreground placeholder:text-muted-foreground"
+                  style={{ backgroundColor: 'rgba(5, 10, 15, 0.82)', color: 'var(--foreground)' }}
                   data-testid="input-search-chapters"
                 />
                 {searchQuery && (
-                  <button
-                    type="button"
-                    onClick={() => setSearchQuery("")}
-                    aria-label="Limpar busca"
-                    className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                    data-testid="btn-clear-search"
-                  >
+                  <button type="button" onClick={() => setSearchQuery("")} aria-label="Limpar busca" className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground" data-testid="btn-clear-search">
                     <X className="h-4 w-4" />
                   </button>
                 )}
               </div>
-              <Input
-                type="number"
-                placeholder="Filtrar por nº do capítulo"
-                aria-label="Filtrar por número do capítulo"
-                value={chapterNumber}
-                onChange={(e) => setChapterNumber(e.target.value)}
-                onWheel={(e) => { (e.target as HTMLInputElement).blur(); }}
-                onKeyDown={(e) => { if (["e","E","+","-","."].includes(e.key)) e.preventDefault(); }}
-                className="bg-input border-border text-foreground placeholder:text-muted-foreground"
-                data-testid="input-filter-chapter-number"
-              />
-              <>
-                <Input
-                  type="text"
-                  list="arc-options"
-                  placeholder="Filtrar por arco (número ou nome)"
-                  aria-label="Filtrar por arco"
-                  value={arcFilter}
-                  onChange={(e) => setArcFilter(e.target.value)}
-                  className="bg-input border-border text-foreground placeholder:text-muted-foreground"
-                  data-testid="input-filter-arc"
-                />
-                {/* Sugestões de arcos */}
-                <datalist id="arc-options">
-                  {Array.from(
-                    new Set(
-                      chapters
-                        .map((ch: any) => `${ch.arcNumber ?? ''} ${ch.arcTitle ?? ''}`.trim())
-                        .filter(Boolean)
-                    )
-                  ).sort((a, b) => a.localeCompare(b, 'pt-BR', { numeric: true, sensitivity: 'base' })).map((v) => (
-                    <option key={v} value={v} />
-                  ))}
-                </datalist>
-              </>
-            </div>
-
-            {/* Quick arc picker chips */}
-            {arcGroups.length > 0 && (
-              <div className="mt-6 -mx-4 px-4" aria-label="Seleção rápida de arcos">
-                <div className="overflow-x-auto pb-1">
-                  <div className="flex items-center justify-center gap-2 w-max mx-auto">
-                    <Badge
-                      className={`cursor-pointer ${arcFilter.trim() === '' ? '' : 'opacity-70 hover:opacity-100'} bg-accent/30 text-accent-foreground border-border flex-shrink-0`}
-                      onClick={() => setArcFilter('')}
-                      title="Mostrar todos os arcos"
-                    >
-                      Todos
-                    </Badge>
-                    {arcGroups.map(g => (
-                      <Badge
-                        key={g.key}
-                        className="cursor-pointer hover:shadow-sm bg-card border-border text-foreground flex-shrink-0"
-                        onClick={() => setArcFilter(((g.arcNumber ?? '') + ' ' + (g.arcTitle ?? '')).trim())}
-                        title={`Filtrar por Arco ${g.arcNumber ?? ''}${g.arcTitle ? `: ${g.arcTitle}` : ''}`}
-                      >
-                        <Layers className="h-3.5 w-3.5 mr-1" />
-                        Arco {g.arcNumber ?? '–'}{g.arcTitle ? `: ${g.arcTitle}` : ''}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-            
-            {/* Resumo filtros ativos */}
-            {(searchQuery || chapterNumber || arcFilter) && (
-              <div className="mt-4 flex items-center justify-center gap-2 flex-wrap text-xs">
-                {searchQuery && (
-                  <Badge className="bg-primary/20 text-primary-foreground/90 border-border cursor-pointer" onClick={() => setSearchQuery("")}>Buscar: "{searchQuery}" ✕</Badge>
-                )}
-                {chapterNumber && (
-                  <Badge className="bg-secondary/20 text-secondary-foreground/90 border-border cursor-pointer" onClick={() => setChapterNumber("")}>Capítulo: {chapterNumber} ✕</Badge>
-                )}
-                {arcFilter && (
-                  <Badge className="bg-accent/30 text-accent-foreground border-border cursor-pointer" onClick={() => setArcFilter("")}>Arco: {arcFilter} ✕</Badge>
-                )}
-              </div>
-            )}
-
-            {/* Controls */}
-            <div className="mt-4 flex items-center justify-center gap-3 flex-wrap">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setExpandedArcs(arcGroups.map(g => g.key))}
-              >
-                Expandir todos
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setExpandedArcs([])}
-              >
-                Recolher todos
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => { setSearchQuery(''); setChapterNumber(''); setArcFilter(''); }}
-                title="Limpar filtros"
-              >
-                <RefreshCw className="h-4 w-4 mr-2" /> Limpar filtros
-              </Button>
-              {/* Ordenação */}
-              <div className="flex items-center gap-1 text-sm">
-                <span className="text-muted-foreground mr-1">Ordenar:</span>
-                <Button variant={sortMode==='number-asc'? 'default':'outline'} size="sm" onClick={() => setSortMode('number-asc')}>
-                  <ArrowUpNarrowWide className="h-4 w-4 mr-1"/> Nº</Button>
-                <Button variant={sortMode==='date-desc'? 'default':'outline'} size="sm" onClick={() => setSortMode('date-desc')}>
-                  <ArrowDownNarrowWide className="h-4 w-4 mr-1"/> Data</Button>
-                <Button variant={sortMode==='date-asc'? 'default':'outline'} size="sm" onClick={() => setSortMode('date-asc')}>
-                  <ArrowUpNarrowWide className="h-4 w-4 mr-1"/> Data</Button>
-              </div>
-              {/* Modo de visualização */}
-              <div className="flex items-center gap-1 text-sm">
-                <span className="text-muted-foreground mr-1">Visualização:</span>
-                <Button variant={viewMode==='cards'? 'default':'outline'} size="sm" onClick={() => setViewMode('cards')} title="Cards">
-                  <LayoutGrid className="h-4 w-4"/>
+              <div className="flex items-center gap-2">
+                <Button variant={sortMode === 'date-desc' ? 'default' : 'outline'} size="sm" onClick={() => setSortMode('date-desc')} className="h-10 rounded border-primary/15 bg-[#050a0f]/78 text-[11px]">
+                  <ArrowDownNarrowWide className="mr-1 h-3.5 w-3.5" /> Mais recentes
                 </Button>
-                <Button variant={viewMode==='list'? 'default':'outline'} size="sm" onClick={() => setViewMode('list')} title="Lista">
-                  <List className="h-4 w-4"/>
+                <Button variant={sortMode === 'number-asc' ? 'default' : 'outline'} size="sm" onClick={() => setSortMode('number-asc')} className="h-10 rounded border-primary/15 bg-[#050a0f]/78 text-[11px]">
+                  <ArrowUpNarrowWide className="mr-1 h-3.5 w-3.5" /> Ordem
+                </Button>
+                <Button variant="ghost" size="sm" onClick={() => { setSearchQuery(''); setChapterNumber(''); setArcFilter(''); }} className="h-10 rounded text-[11px]">
+                  <RefreshCw className="mr-1 h-3.5 w-3.5" /> Limpar
                 </Button>
               </div>
-            </div>
-          </div>
-          
-          {isLoading ? (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {[1, 2, 3, 4, 5, 6].map((i) => (
-                <div key={i} className="bg-card border border-border rounded-lg h-96 animate-pulse" />
-              ))}
-            </div>
-          ) : filteredChapters.length === 0 ? (
-            <div className="text-center py-20">
-              <h3 className="font-display text-2xl font-semibold text-muted-foreground mb-4" data-testid="text-no-chapters">
-                {searchQuery ? t.noChaptersFound : t.noChapters}
-              </h3>
-              <p className="text-muted-foreground">
-                {searchQuery ? t.adjustSearchTerms : t.chaptersWillAppear}
-              </p>
-            </div>
-          ) : (
-            <div>
-              <Accordion type="multiple" value={expandedArcs} onValueChange={(v) => setExpandedArcs(v as string[])}>
-                {arcGroups.map(group => (
-                  <AccordionItem
-                    key={group.key}
-                    value={group.key}
-                    className="my-3 rounded-lg border border-border bg-card/40 px-2"
+              <div className="flex items-center gap-2 lg:col-span-2">
+                {['Todos', 'Lidos', 'Nao lidos', 'Favoritos'].map((label) => (
+                  <button
+                    key={label}
+                    type="button"
+                    className="h-8 rounded border border-primary/15 bg-[#050a0f]/70 px-3 font-display text-[10px] uppercase tracking-wider text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary"
                   >
-                    <AccordionTrigger className="px-2">
-                      <div className="w-full flex items-center justify-between select-none" ref={(el) => { arcRefs.current[group.key] = el; }}>
-                        <div className="text-left">
-                          <div className="font-display text-xl md:text-2xl text-primary">
-                            Arco {group.arcNumber ?? '–'}{group.arcTitle ? `: ${group.arcTitle}` : ''}
-                          </div>
-                          <div className="text-xs text-muted-foreground">{group.chapters.length} capítulo(s)</div>
-                        </div>
-                        {/* subtle accent bar */}
-                        <div className="hidden md:block h-8 w-1 rounded-full bg-gradient-to-b from-primary/60 to-accent/60" />
-                      </div>
-                    </AccordionTrigger>
-                    <AccordionContent>
-                      {viewMode === 'cards' ? (
-                        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                          {group.chapters.map(ch => (
-                            <ChapterCard key={ch.id} chapter={ch} />
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="space-y-2">
-                          {group.chapters.map(ch => (
-                            <a key={ch.id} href={`/chapters/${ch.slug}`} className="flex items-center justify-between rounded-md border border-border bg-card/60 px-3 py-2 hover:bg-card">
-                              <div>
-                                <div className="font-medium text-foreground">Capítulo {ch.chapterNumber}: {localizedFields(ch, 'title')}</div>
-                                <div className="text-xs text-muted-foreground">{new Date(ch.publishedAt).toLocaleDateString()}</div>
-                              </div>
-                              <div className="text-xs text-accent">{ch.readingTime} {t.minRead}</div>
-                            </a>
-                          ))}
-                        </div>
-                      )}
-                    </AccordionContent>
-                  </AccordionItem>
+                    {label}
+                  </button>
                 ))}
-              </Accordion>
+              </div>
+              <div className="flex items-center justify-end gap-1">
+                <Button variant={viewMode === 'cards' ? 'default' : 'outline'} size="icon" onClick={() => setViewMode('cards')} className="h-10 w-10 rounded border-primary/20" title="Cards">
+                  <Grid3X3 className="h-4 w-4" />
+                </Button>
+                <Button variant={viewMode === 'list' ? 'default' : 'outline'} size="icon" onClick={() => setViewMode('list')} className="h-10 w-10 rounded border-primary/20" title="Lista">
+                  <Menu className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
-          )}
+
+            {isLoading ? (
+              <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+                {[1, 2, 3, 4].map((i) => <div key={i} className="h-[210px] animate-pulse rounded border border-primary/10 bg-card/40" />)}
+              </div>
+            ) : filteredChapters.length === 0 ? (
+              <div className="rounded border border-primary/15 bg-[#050a0f]/75 py-20 text-center">
+                <h3 className="font-display text-2xl text-muted-foreground" data-testid="text-no-chapters">{searchQuery ? t.noChaptersFound : t.noChapters}</h3>
+                <p className="mt-2 text-muted-foreground">{searchQuery ? t.adjustSearchTerms : t.chaptersWillAppear}</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {arcGroups.map((group, groupIndex) => (
+                  <section key={group.key} ref={(el) => { arcRefs.current[group.key] = el; }} className="scroll-mt-24 rounded border border-primary/15 bg-[#050a0f]/70 p-4 shadow-[0_18px_70px_rgba(0,0,0,0.32)]">
+                    <div className="relative mb-4 min-h-[150px] overflow-hidden rounded border border-primary/15 p-6">
+                      <div className="absolute inset-0 bg-cover bg-center opacity-70" style={{ backgroundImage: `url('${arcImage(group)}')` }} />
+                      <div className="absolute inset-0 bg-gradient-to-r from-[#02070d]/95 via-[#02070d]/65 to-[#02070d]/20" />
+                      <img src="/front-ed-assets/icone_runa_compasso.png" alt="" aria-hidden className="absolute left-5 top-1/2 h-24 w-24 -translate-y-1/2 object-contain opacity-20" />
+                      <div className="relative z-10 ml-0 md:ml-24">
+                        <div className="font-display text-[11px] uppercase tracking-[0.24em] text-primary">Arco {group.arcNumber ?? groupIndex + 1}</div>
+                        <h2 className="mt-1 font-display text-2xl text-foreground md:text-3xl">{group.arcTitle || 'O Eco do Retorno'}</h2>
+                        <p className="mt-2 max-w-xl text-[13px] leading-relaxed text-muted-foreground">
+                          {group.chapters[0]?.excerpt?.replace(/<[^>]*>/g, '') || 'Uma colecao de capitulos marcada por magia antiga, escolhas dificeis e ecos de poder.'}
+                        </p>
+                        <Button variant="outline" size="sm" className="mt-3 h-8 rounded border-primary/25 bg-black/20 text-[10px]" onClick={() => setArcFilter(((group.arcNumber ?? '') + ' ' + (group.arcTitle ?? '')).trim())}>
+                          Recolher arco <ChevronDown className="ml-2 h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
+
+                    {viewMode === 'cards' ? (
+                      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                        {group.chapters.map((chapter) => (
+                          <Link key={chapter.id} href={`/chapters/${chapter.slug}`} className="group relative overflow-hidden rounded border border-primary/15 bg-[#04080e] transition-all hover:border-primary/45 hover:shadow-[0_0_24px_rgba(216,170,92,0.20)]">
+                            <div className="relative h-[150px] overflow-hidden">
+                              <img src={chapterImage(chapter)} alt="" aria-hidden className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                              <div className="absolute inset-0 bg-gradient-to-t from-[#02070d] via-[#02070d]/45 to-transparent" />
+                              <div className="absolute right-3 top-3 flex h-8 w-6 items-center justify-center border border-primary/35 bg-[#02070d]/80 text-primary">
+                                <Star className="h-3.5 w-3.5" />
+                              </div>
+                            </div>
+                            <div className="p-4">
+                              <div className="mb-1 font-display text-[10px] uppercase tracking-[0.22em] text-primary">Capitulo {chapter.chapterNumber}</div>
+                              <h3 className="min-h-[42px] font-display text-[17px] leading-tight text-foreground group-hover:text-primary">{localizedFields(chapter, 'title')}</h3>
+                              <div className="mt-3 flex items-center justify-between text-muted-foreground">
+                                <BookOpen className="h-4 w-4" />
+                                <span className="text-[11px]">{timeAgo(chapter.publishedAt)}</span>
+                                <CheckCircle2 className="h-4 w-4 text-primary/75" />
+                              </div>
+                            </div>
+                          </Link>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        {group.chapters.map((chapter) => (
+                          <Link key={chapter.id} href={`/chapters/${chapter.slug}`} className="flex items-center justify-between rounded border border-primary/12 bg-[#04080e]/80 px-4 py-3 hover:border-primary/35">
+                            <div>
+                              <div className="font-display text-base text-foreground">Capitulo {chapter.chapterNumber}: {localizedFields(chapter, 'title')}</div>
+                              <div className="text-xs text-muted-foreground">{timeAgo(chapter.publishedAt)}</div>
+                            </div>
+                            <div className="text-xs text-primary">{chapter.readingTime} {t.minRead}</div>
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                    <div className="mt-4 flex items-center justify-center gap-4 text-[11px] uppercase tracking-[0.22em] text-primary/80">
+                      <span className="h-px w-24 bg-primary/25" />
+                      {group.chapters.length} capitulos
+                      <span className="h-px w-24 bg-primary/25" />
+                    </div>
+                  </section>
+                ))}
+              </div>
+            )}
+          </section>
         </div>
       </main>
-      
+
       <Footer />
     </div>
   );

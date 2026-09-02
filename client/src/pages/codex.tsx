@@ -1,231 +1,162 @@
-﻿import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import Navigation from '@/components/navigation';
 import Footer from '@/components/footer';
 import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Wand2, Crown } from "lucide-react";
+import { Link } from "wouter";
+import { Wand2, Crown, Sparkles, BookOpen, Layers } from "lucide-react";
 import type { CodexEntry } from "@shared/schema";
 import { useLanguage } from '@/contexts/LanguageContext';
 
-// Background video with performance optimizations:
-// - lazy play (IntersectionObserver) so it pauses when off-screen
-// - preload="none" to avoid decoding before needed
-// - poster fallback for fast first paint
-// - multiple sources (VP9 + H.264). Consider adding AV1 when browser support suits the audience.
-// - will attempt re-play silently if autoplay is initially blocked
-// - keeps component memoized so re-renders from tab switching don't re-init the video
-const VideoBackground = React.memo(function VideoBackground() {
-  const videoRef = React.useRef<HTMLVideoElement | null>(null);
-
-  React.useEffect(() => {
-    const v = videoRef.current;
-    if (!v) return;
-
-    // Try to play as soon as it's ready; if blocked (e.g. browser policy) we ignore.
-    const attemptPlay = () => {
-      if (!v) return;
-      if (v.paused) {
-        v.play().catch(() => { /* silent */ });
-      }
-    };
-    if (v.readyState >= 2) attemptPlay();
-    else v.addEventListener('loadeddata', attemptPlay, { once: true });
-
-    // Pause when not visible to reduce CPU/GPU usage (especially on low-end devices).
-    const obs = new IntersectionObserver((entries) => {
-      entries.forEach(e => {
-        if (!v) return;
-        if (e.isIntersecting) {
-          attemptPlay();
-        } else if (!v.paused) {
-          v.pause();
-        }
-      });
-    }, { threshold: 0.15 });
-    obs.observe(v);
-
-    return () => { obs.disconnect(); };
-  }, []);
-
-  return (
-    <div className="codex-bg" aria-hidden data-perf="codex-bg-wrapper">
-      <video
-        ref={videoRef}
-        // autoplay is still desired; IntersectionObserver pauses if off-screen
-        autoPlay
-        muted
-        loop
-        playsInline
-        preload="none"
-        poster="/uploads/nOVOCOVER-poster.jpg"
-        // prevent PiP UI & remote playback dialogs where supported
-        disablePictureInPicture
-        className="hero-like-video"
-        aria-label="Plano de fundo animado do Codex"
-        // containment hints; avoids expensive style/layout invalidations
-        style={{ contain: 'layout paint size' }}
-      >
-        {/* Smaller / optimized 720p60 VP9 first for quality:bitrate efficiency */}
-        <source src="/uploads/nOVOCOVER_720p60.webm" type="video/webm" />
-        {/* Fallback H.264 (widest compatibility). Could be 30fps if 60fps heavy */}
-        <source src="/uploads/nOVOCOVER_720p60.mp4" type="video/mp4" />
-        {/* Legacy original as final fallback */}
-        <source src="/uploads/nOVOCOVER.webm" type="video/webm" />
-        <source src="/uploads/nOVOCOVER.mp4" type="video/mp4" />
-        Seu navegador não suporta vídeo HTML5.
-      </video>
-      <div className="codex-bg-overlay" aria-hidden />
-    </div>
-  );
-});
-
-// Single consolidated Codex page (replaces duplicated exports)
 export default function Codex() {
-  const [selectedCategory, setSelectedCategory] = useState("magic");
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
   
   const { data: codexEntries = [], isLoading } = useQuery<CodexEntry[]>({
     queryKey: ['/api/codex'],
   });
 
-  const categorizedEntries = useMemo(() => {
-    const acc: Record<'magic' | 'creatures' | 'items' | 'other', CodexEntry[]> = {
-      magic: [],
-      creatures: [],
-      items: [],
-      other: [],
-    };
-    for (const e of codexEntries) {
-      const cat = (e.category as any) as 'magic' | 'creatures' | 'items' | 'other';
-      if (acc[cat]) acc[cat].push(e);
-      else acc.other.push(e);
-    }
-    return acc;
-  }, [codexEntries]);
-
-  // Pick a default tab that actually has entries
-  useEffect(() => {
-    if (!isLoading && codexEntries.length > 0) {
-      const order: Array<keyof typeof categorizedEntries> = ['magic', 'creatures', 'items', 'other'];
-      const firstWithEntries = order.find(k => categorizedEntries[k].length > 0);
-      if (firstWithEntries) setSelectedCategory(firstWithEntries);
-    }
-  }, [isLoading, codexEntries.length]);
-
   const { t } = useLanguage();
 
+  const categories = [
+    { key: "all", label: "Todas", icon: Layers },
+    { key: "magic", label: t.magic || "Magia", icon: Wand2 },
+    { key: "creatures", label: t.creatures || "Criaturas", icon: Crown },
+    { key: "items", label: "Itens & Relíquias", icon: Sparkles },
+    { key: "other", label: "Mundo & Outros", icon: BookOpen },
+  ];
+
+  const filteredEntries = useMemo(() => {
+    if (selectedCategory === "all") return codexEntries;
+    return codexEntries.filter(e => {
+      const cat = (e.category || '').toLowerCase();
+      if (selectedCategory === "other") {
+        return cat === "other" || (!["magic", "creatures", "items"].includes(cat));
+      }
+      return cat === selectedCategory;
+    });
+  }, [codexEntries, selectedCategory]);
+
   const getCategoryIcon = (category: string) => {
-    switch (category) {
+    switch (category?.toLowerCase()) {
       case "magic":
-        return <Wand2 className="h-5 w-5" />;
+        return <Wand2 className="h-4 w-4 text-primary" />;
       case "creatures":
-        return <Crown className="h-5 w-5" />;
-      // locations moved to World page
+        return <Crown className="h-4 w-4 text-amber-400" />;
       case "items":
-        return <Wand2 className="h-5 w-5" />;
-      case "other":
-        return <Wand2 className="h-5 w-5" />;
+        return <Sparkles className="h-4 w-4 text-primary" />;
       default:
-        return <Wand2 className="h-5 w-5" />;
+        return <BookOpen className="h-4 w-4 text-primary" />;
     }
   };
 
-  // No placeholder content — the Códex ficará vazio até ser preenchido no Admin
-
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-[#02070d] text-foreground pl-0 xl:pl-[68px] overflow-x-hidden">
       <Navigation />
       
-      <main className="pt-24 pb-20 px-4">
-          <div className="max-w-7xl mx-auto codex-wrapper">
-          
-          <div className="codex-content relative z-10">
-            <div className="text-center mb-16">
-              <h1 className="font-display text-4xl md:text-5xl font-bold text-primary mb-4" data-testid="text-codex-title">
-                {t.codexPageTitle || 'O Códex'}
-              </h1>
-              <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-                {t.codexPageDesc || 'Navegue por entradas do lore sobre magia, criaturas e itens.'}
-              </p>
-            </div>
-
-            <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="w-full">
-            <TabsList className="grid w-full max-w-md mx-auto grid-cols-4 mb-12">
-                {['magic','creatures','items','other'].map((cat) => {
-                  const active = selectedCategory === cat;
-                  const dimmed = selectedCategory && selectedCategory !== cat;
-                  const label = cat === 'magic' ? (t.magic || 'Magia') : cat === 'creatures' ? (t.creatures || 'Criaturas') : cat === 'items' ? 'Itens' : 'Outros';
-                  const Icon = cat === 'creatures' ? Crown : Wand2;
-                  const hoverClass = active ? '' : 'group-hover:text-[color:#e6cfa3] hover:bg-[rgba(230,205,150,0.06)]';
-                  return (
-                    <TabsTrigger
-                      key={cat}
-                      value={cat}
-                      className={`group justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all duration-300 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:#e6cfa3] focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 flex items-center gap-2 ${active ? 'text-[color:#071522]' : 'text-muted-foreground'} ${hoverClass}`}
-                      style={active ? { background: 'rgba(230,205,150,0.95)', boxShadow: '0 8px 22px rgba(0,0,0,0.45)', border: '1px solid rgba(255,255,255,0.04)', color: '#071522', transform: 'scale(1.02)' } : { background: 'transparent', border: '1px solid rgba(255,255,255,0.02)', opacity: dimmed ? 0.35 : 0.95, transform: dimmed ? 'scale(0.985)' : 'scale(1)' }}
-                      data-testid={`tab-${cat}`}
-                    >
-                      <Icon className="h-4 w-4 transition-colors duration-300" />
-                      <span className="ml-1 transition-colors duration-300">{label}</span>
-                    </TabsTrigger>
-                  );
-                })}
-              </TabsList>
-
-              {["magic", "creatures", "items", "other"].map((category) => (
-                <TabsContent key={category} value={category} forceMount>
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                  {isLoading ? (
-                    [1, 2, 3, 4, 5, 6].map((i) => (
-                      <div key={i} className="bg-card border border-border rounded-lg h-64 animate-pulse" />
-                    ))
-                  ) : categorizedEntries[category as keyof typeof categorizedEntries].length === 0 ? (
-                    <div className="col-span-full text-center text-muted-foreground py-10">
-                      {t.noCodexEntries || 'Sem entradas ainda para esta categoria.'}
-                    </div>
-                  ) : (
-                    categorizedEntries[category as keyof typeof categorizedEntries].map((entry) => (
-                      <Card key={entry.id} className="group bg-card border border-border rounded-lg cursor-pointer shadow-md overflow-hidden transition-all duration-300 ease-out transform hover:scale-102 hover:shadow-lg active:scale-99 hover:-translate-y-0.5" onClick={() => (window.location.href = `/codex/${entry.id}`)}>
-                          {entry.imageUrl && (
-                            <div className="relative w-full h-32 overflow-hidden rounded-t-lg">
-                              <img 
-                                src={entry.imageUrl} 
-                                alt={entry.title}
-                                className="w-full h-full object-cover transition-transform duration-300 ease-out group-hover:scale-105 group-hover:brightness-110"
-                              />
-                              <div className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-30 transition-opacity duration-300" style={{ background: 'linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.12))' }} />
-                            </div>
-                          )}
-                          <CardContent className="p-6">
-                            <div className="cursor-pointer">
-                            <div className="flex items-center gap-3 mb-4">
-                              <div className="w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center transition-all duration-300 group-hover:bg-[rgba(230,205,150,0.08)]">
-                                {getCategoryIcon(category)}
-                              </div>
-                              <h3 className="font-display text-lg font-semibold text-card-foreground transition-colors duration-300 group-hover:text-[color:#e6cfa3]" data-testid={`text-entry-title-${entry.id}`}>
-                                {entry.title}
-                              </h3>
-                            </div>
-                            <p className="text-muted-foreground text-sm transition-colors duration-300 group-hover:text-muted-foreground/90 whitespace-normal break-all" data-testid={`text-entry-description-${entry.id}`}>
-                              {entry.description}
-                            </p>
-                            </div>
-                          </CardContent>
-                        </Card>
-                    ))
-                  )}
-                </div>
-              </TabsContent>
-            ))}
-          </Tabs>
-          </div>
+      <main className="pt-24 pb-20 px-4 md:px-8 max-w-7xl mx-auto min-h-[calc(100vh-56px)]">
+        {/* Header Hero Banner */}
+        <div className="text-center max-w-3xl mx-auto mb-12">
+          <span className="text-[11px] tracking-[0.28em] font-sans font-bold text-primary uppercase block mb-2">
+            Arquivo Arcano
+          </span>
+          <h1 className="font-display text-4xl md:text-5xl font-bold uppercase tracking-wider text-foreground mb-3 drop-shadow-[0_4px_16px_rgba(0,0,0,0.9)]" data-testid="text-codex-title">
+            {t.codexPageTitle || 'O Códex'}
+          </h1>
+          <p className="text-muted-foreground text-sm md:text-base leading-relaxed">
+            {t.codexPageDesc || 'Navegue pelas entradas do lore oficial sobre magia antiga, bestiário de criaturas, itens lendários e registros do reino.'}
+          </p>
         </div>
+
+        {/* Category Filter Tabs */}
+        <div className="flex flex-wrap items-center justify-center gap-2 mb-10">
+          {categories.map((cat) => {
+            const active = selectedCategory === cat.key;
+            const Icon = cat.icon;
+            return (
+              <button
+                key={cat.key}
+                onClick={() => setSelectedCategory(cat.key)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-full text-[13px] font-semibold tracking-wide transition-all duration-300 ${
+                  active
+                    ? "bg-primary text-black shadow-[0_0_20px_rgba(216,170,92,0.5)] scale-105"
+                    : "bg-[#060c16]/80 text-muted-foreground border border-primary/25 hover:border-primary hover:text-foreground hover:bg-primary/10 backdrop-blur-md"
+                }`}
+              >
+                <Icon className={`h-3.5 w-3.5 ${active ? "text-black" : "text-primary/70"}`} />
+                <span>{cat.label}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Entries Grid */}
+        {isLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <div key={i} className="bg-[#060c16]/80 border border-primary/20 rounded-lg h-64 animate-pulse shadow-lg" />
+            ))}
+          </div>
+        ) : filteredEntries.length === 0 ? (
+          <div className="text-center py-16 px-4 bg-[#060c16]/60 border border-primary/20 rounded-xl backdrop-blur-md max-w-lg mx-auto shadow-2xl">
+            <BookOpen className="h-10 w-10 text-primary/50 mx-auto mb-3" />
+            <h3 className="font-display text-lg font-bold text-foreground mb-1">Nenhuma entrada encontrada</h3>
+            <p className="text-muted-foreground text-sm">
+              {selectedCategory === "all" ? "O Códex ainda não possui registros cadastrados." : "Sem registros disponíveis para esta categoria no momento."}
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredEntries.map((entry) => (
+              <Link
+                key={entry.id}
+                href={`/codex/${entry.id}`}
+                className="group relative flex flex-col justify-between bg-[#060c16]/80 border border-primary/35 rounded-xl overflow-hidden backdrop-blur-xl shadow-[0_12px_32px_rgba(0,0,0,0.8),inset_0_1px_0_rgba(255,255,255,0.08)] hover:border-primary hover:shadow-[0_0_24px_rgba(216,170,92,0.35),inset_0_1px_0_rgba(255,255,255,0.15)] transition-all duration-300 hover:-translate-y-1 cursor-pointer"
+              >
+                {/* Optional Cover Image */}
+                {entry.imageUrl ? (
+                  <div className="relative w-full h-44 overflow-hidden bg-black/50 border-b border-primary/20">
+                    <img
+                      src={entry.imageUrl}
+                      alt={entry.title}
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#060c16] via-transparent to-transparent opacity-90" />
+                  </div>
+                ) : (
+                  <div className="h-3 bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
+                )}
+
+                {/* Content body */}
+                <div className="p-5 flex flex-col flex-1 justify-between">
+                  <div>
+                    <div className="flex items-center gap-2 mb-2.5">
+                      <div className="w-6 h-6 rounded-full border border-primary/40 bg-primary/15 flex items-center justify-center">
+                        {getCategoryIcon(entry.category || 'other')}
+                      </div>
+                      <span className="text-[11px] uppercase tracking-wider font-semibold text-primary/80">
+                        {entry.category === 'magic' ? 'Magia' : entry.category === 'creatures' ? 'Criatura' : entry.category === 'items' ? 'Item' : 'Registro'}
+                      </span>
+                    </div>
+
+                    <h2 className="font-display text-xl font-bold text-foreground group-hover:text-primary transition-colors line-clamp-1 mb-2">
+                      {entry.title}
+                    </h2>
+                    <p className="text-muted-foreground text-sm line-clamp-3 leading-relaxed">
+                      {entry.description || "Nenhuma descrição detalhada disponível."}
+                    </p>
+                  </div>
+
+                  <div className="mt-4 pt-3 border-t border-primary/15 flex items-center justify-between text-[12px] text-primary/80 font-semibold tracking-wider uppercase group-hover:text-primary transition-colors">
+                    <span>Ler registro</span>
+                    <span className="group-hover:translate-x-1 transition-transform">→</span>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
       </main>
       
       <Footer />
     </div>
   );
 }
-
-

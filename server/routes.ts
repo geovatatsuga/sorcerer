@@ -1256,6 +1256,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       if (!data) return res.status(400).json({ message: 'Request body must include blog post fields (wrap in { data } or send raw keys)' });
 
+      const slugify = (input?: string) => {
+        const s = (input || '').toString().trim().toLowerCase();
+        const normalized = s.normalize ? s.normalize('NFD').replace(/[\u0300-\u036f]/g, '') : s;
+        return normalized.replace(/[^a-z0-9]+/g, '-').replace(/^[\-]+|[\-]+$/g, '');
+      };
+      const ensureUniqueBlogSlug = async (desired: string) => {
+        let base = slugify(desired) || 'post';
+        let attempt = base;
+        let i = 1;
+        while (true) {
+          const exists = await storage.getBlogPostBySlug(attempt);
+          if (!exists) return attempt;
+          i += 1;
+          attempt = `${base}-${i}`;
+          if (i > 50) return `${base}-${Date.now()}`;
+        }
+      };
+
+      if (!data.title) data.title = data.slug || 'Untitled Post';
+      const html = String(data.content || '');
+      const plain = html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+      if (!data.content) data.content = '';
+      if (!data.excerpt) data.excerpt = plain.slice(0, 300) || data.title;
+      if (!data.category) data.category = 'update';
+      if (!data.publishedAt) data.publishedAt = new Date().toISOString();
+      if (!data.slug || String(data.slug).trim() === '') {
+        data.slug = await ensureUniqueBlogSlug(data.title);
+      }
+
       const validatedData = insertBlogPostSchema.parse(data);
       if (validatedData?.publishedAt) {
         validatedData.publishedAt = new Date(String(validatedData.publishedAt)).toISOString();

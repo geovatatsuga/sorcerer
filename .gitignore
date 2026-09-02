@@ -1,4 +1,4 @@
-﻿node_modules/
+node_modules/
 
 # env (never commit secrets)
 .env
@@ -12,6 +12,8 @@ dist/
 # local sqlite/db artifacts (no longer used, keep ignored)
 dev.sqlite
 *.sqlite
+*.duckdb
+*.duckdb.wal
 
 # local/session artifacts
 cookies.session

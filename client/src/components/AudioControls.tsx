@@ -1,16 +1,20 @@
 import React, { useState } from 'react';
 import { useAudio } from '@/contexts/AudioProvider';
 import { Volume2, VolumeX, Music2, X } from 'lucide-react';
+import { useLocation } from 'wouter';
 
 // Further minimized: subtle button, no tooltip, reduced gold usage, smaller panel.
 export default function AudioControls() {
   const { currentTrack, muted, toggleMute, volume, volumeUserMax, setVolume, autoplayBlocked, play } = useAudio();
+  const [location] = useLocation();
   const [open, setOpen] = useState(false);
 
   const accent = '#c8a64a';
   const [sliderActive, setSliderActive] = useState(false);
 
   const maxPct = typeof volumeUserMax === 'number' ? Math.round(volumeUserMax * 100) : 100;
+
+  if (location === '/') return null;
 
   return (
     <div style={{ position: 'fixed', right: 12, bottom: 12, zIndex: 50 }} className="select-none">

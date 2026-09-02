@@ -33,13 +33,12 @@ const maskDbUrl = (url: string) => {
   }
 };
 
-// Require Postgres in all environments except local dev if explicitly desired.
-// This repo is now Postgres-only by request.
 const effectiveWriteUrl = explicitWriteUrl || databaseUrl;
-if (!effectiveWriteUrl || !looksLikePostgres(effectiveWriteUrl)) {
-  console.error('Fatal: DATABASE_URL (or DATABASE_URL_WRITE) must be set to a Postgres connection string.');
-  console.error(`Current DATABASE_URL: ${databaseUrl ? maskDbUrl(databaseUrl) : '<empty>'}`);
-  process.exit(1);
+const hasPostgresUrl = !!effectiveWriteUrl && looksLikePostgres(effectiveWriteUrl);
+
+if (!hasPostgresUrl) {
+  console.warn('DATABASE_URL is not a Postgres connection string; using local DuckDB storage.');
+  console.warn(`Current DATABASE_URL: ${databaseUrl ? maskDbUrl(databaseUrl) : '<empty>'}`);
 }
 
 const baseWriteUrl = effectiveWriteUrl;
@@ -83,7 +82,7 @@ async function withRetry<T>(fn: () => Promise<T>, tries = 2, baseDelayMs = 120):
   throw lastErr;
 }
 
-{
+if (hasPostgresUrl) {
   // Postgres (Supabase) connection via postgres-js
   // Normalize URLs with pgBouncer and TLS parameters
   // Use pooler by host:port only (e.g., 6543 on Supabase). Do not add unknown params like 'pgbouncer'.
@@ -329,7 +328,7 @@ END $$;`);
     /* eslint-disable no-console */
     console.log(`Using database (write): ${maskDbUrl(writeUrl)}`);
     if (readUrl !== writeUrl) console.log(`Using database (read) : ${maskDbUrl(readUrl)}`);
-    console.log('Connected to Postgres (Supabase)');
+    console.log('Connected to Postgres');
     /* eslint-enable no-console */
   }
 
