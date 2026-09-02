@@ -1,0 +1,27 @@
+{
+  "version": 2,
+  "buildCommand": "vite build",
+  "outputDirectory": "dist/public",
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api"
+    },
+    {
+      "source": "/rotativas/(.*)",
+      "destination": "/rotativas/$1"
+    },
+    {
+      "source": "/front-ed-assets/(.*)",
+      "destination": "/front-ed-assets/$1"
+    },
+    {
+      "source": "/uploads/(.*)",
+      "destination": "/uploads/$1"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
