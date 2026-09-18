@@ -1277,12 +1277,18 @@ footer a:hover { text-decoration: underline; text-underline-offset: 4px; }
 
 .reader-theme-parchment .reader-body {
   color: #241c12 !important;
-  font-family: 'Cinzel', 'Merriweather', 'Georgia', serif !important;
+  font-family: 'Crimson Text', 'Merriweather', 'Georgia', serif, system-ui, -apple-system, sans-serif !important;
+  font-variant: normal !important;
+  text-transform: none !important;
+  letter-spacing: normal !important;
   line-height: 1.95 !important;
 }
 
 .reader-theme-parchment .reader-body p {
   color: #241c12 !important;
+  font-variant: normal !important;
+  text-transform: none !important;
+  letter-spacing: normal !important;
   margin-bottom: 1.5em !important;
 }
 
@@ -1290,17 +1296,23 @@ footer a:hover { text-decoration: underline; text-underline-offset: 4px; }
 .reader-theme-parchment .reader-body b {
   color: #8c2b0c !important;
   font-weight: 700 !important;
+  font-variant: normal !important;
+  text-transform: none !important;
 }
 
 .reader-theme-parchment .reader-body em,
 .reader-theme-parchment .reader-body i {
   color: #573f27 !important;
+  font-variant: normal !important;
+  text-transform: none !important;
 }
 
 .reader-theme-parchment .reader-body h1,
 .reader-theme-parchment .reader-body h2,
 .reader-theme-parchment .reader-body h3 {
   color: #1e150b !important;
+  font-variant: normal !important;
+  text-transform: none !important;
 }
 
 .reader-theme-parchment .reader-body blockquote {
@@ -1328,12 +1340,18 @@ footer a:hover { text-decoration: underline; text-underline-offset: 4px; }
 
 .reader-theme-sepia .reader-body {
   color: #d8c7a6 !important;
-  font-family: 'Cinzel', 'Merriweather', 'Georgia', serif !important;
+  font-family: 'Crimson Text', 'Merriweather', 'Georgia', serif, system-ui, -apple-system, sans-serif !important;
+  font-variant: normal !important;
+  text-transform: none !important;
+  letter-spacing: normal !important;
   line-height: 1.9 !important;
 }
 
 .reader-theme-sepia .reader-body p {
   color: #d8c7a6 !important;
+  font-variant: normal !important;
+  text-transform: none !important;
+  letter-spacing: normal !important;
   margin-bottom: 1.5em !important;
 }
 
@@ -1341,4 +1359,6 @@ footer a:hover { text-decoration: underline; text-underline-offset: 4px; }
 .reader-theme-sepia .reader-body b {
   color: #f59e0b !important;
   font-weight: 700 !important;
+  font-variant: normal !important;
+  text-transform: none !important;
 }

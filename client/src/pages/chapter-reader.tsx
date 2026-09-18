@@ -311,8 +311,8 @@ export default function ChapterReader() {
                 <div>
                   <h1 className={cn(
                     "font-display text-2xl font-semibold",
-                    readerTheme === 'parchment' ? "text-[#22170b] font-serif font-bold" :
-                    readerTheme === 'sepia' ? "text-[#faeedd] font-serif" :
+                    readerTheme === 'parchment' ? "text-[#22170b]" :
+                    readerTheme === 'sepia' ? "text-[#faeedd]" :
                     "text-card-foreground"
                   )} data-testid="text-chapter-title">
                     {localized(chapter, 'title')}
