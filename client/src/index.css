@@ -1253,5 +1253,92 @@ footer a:hover { text-decoration: underline; text-underline-offset: 4px; }
     animation: none;
     opacity: 1;
   }
+}
 
+/* ==========================================================================
+   Chapter Reader Themes (Dark Fantasy / Pergaminho Papel Antigo / Sépia)
+   ========================================================================== */
+.reader-theme-parchment {
+  background-color: #f4ebd0 !important;
+  color: #2b2111 !important;
+  border-color: #d4c39c !important;
+}
+
+.reader-theme-parchment .reader-header {
+  background-color: #ede2c2 !important;
+  border-color: #d9c89f !important;
+}
+
+.reader-theme-parchment .reader-text-container {
+  background-color: #fcf8ee !important;
+  border-color: #e0d2b4 !important;
+  box-shadow: inset 0 2px 8px rgba(90, 68, 35, 0.04) !important;
+}
+
+.reader-theme-parchment .reader-body {
+  color: #241c12 !important;
+  font-family: 'Cinzel', 'Merriweather', 'Georgia', serif !important;
+  line-height: 1.95 !important;
+}
+
+.reader-theme-parchment .reader-body p {
+  color: #241c12 !important;
+  margin-bottom: 1.5em !important;
+}
+
+.reader-theme-parchment .reader-body strong,
+.reader-theme-parchment .reader-body b {
+  color: #8c2b0c !important;
+  font-weight: 700 !important;
+}
+
+.reader-theme-parchment .reader-body em,
+.reader-theme-parchment .reader-body i {
+  color: #573f27 !important;
+}
+
+.reader-theme-parchment .reader-body h1,
+.reader-theme-parchment .reader-body h2,
+.reader-theme-parchment .reader-body h3 {
+  color: #1e150b !important;
+}
+
+.reader-theme-parchment .reader-body blockquote {
+  border-left-color: #c9b589 !important;
+  background-color: #efe5ca !important;
+  color: #523f28 !important;
+}
+
+/* Sépia Theme */
+.reader-theme-sepia {
+  background-color: #221a14 !important;
+  color: #edd9bf !important;
+  border-color: #3d2f24 !important;
+}
+
+.reader-theme-sepia .reader-header {
+  background-color: #1b140f !important;
+  border-color: #382b20 !important;
+}
+
+.reader-theme-sepia .reader-text-container {
+  background-color: #18120d !important;
+  border-color: #33261c !important;
+}
+
+.reader-theme-sepia .reader-body {
+  color: #d8c7a6 !important;
+  font-family: 'Cinzel', 'Merriweather', 'Georgia', serif !important;
+  line-height: 1.9 !important;
+}
+
+.reader-theme-sepia .reader-body p {
+  color: #d8c7a6 !important;
+  margin-bottom: 1.5em !important;
+}
+
+.reader-theme-sepia .reader-body strong,
+.reader-theme-sepia .reader-body b {
+  color: #f59e0b !important;
+  font-weight: 700 !important;
 }
