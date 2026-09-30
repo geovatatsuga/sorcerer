@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import * as THREE from 'three';
 import { useLocation } from 'wouter';
 import { 
@@ -10,15 +10,12 @@ import {
   VolumeX, 
   Maximize2, 
   Minimize2, 
-  Info, 
   X, 
   ArrowRight, 
-  Sparkles, 
-  Shield, 
   BookOpen, 
-  Crosshair,
-  Layers,
-  ChevronRight
+  ChevronRight,
+  Radio,
+  Sparkles
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -174,11 +171,20 @@ export const CONTINENTS_LORE: ContinentLore[] = [
   }
 ];
 
+// Arcane Ley Line Connections (Magic Routes)
+const LEY_LINE_ROUTES: [string, string][] = [
+  ['luminah', 'akeli'],
+  ['luminah', 'silvanum'],
+  ['silvanum', 'umbra'],
+  ['ferros', 'aquarius'],
+  ['luminah', 'aquarius'],
+  ['silvanum', 'ferros'],
+  ['umbra', 'ferros'],
+  ['akeli', 'aquarius'],
+];
+
 // Helper: map percentage (x, y) to spherical 3D coordinates (R = radius)
-function latLongToVector3(mapX: number, mapY: number, radius: number): THREE.Vector3 {
-  // Map equirectangular projection:
-  // mapX: 0 to 100 -> Longitude: -180 to +180 deg
-  // mapY: 0 to 100 -> Latitude: +90 to -90 deg
+export function latLongToVector3(mapX: number, mapY: number, radius: number): THREE.Vector3 {
   const lon = (mapX / 100) * 360 - 180;
   const lat = 90 - (mapY / 100) * 180;
 
@@ -192,6 +198,192 @@ function latLongToVector3(mapX: number, mapY: number, radius: number): THREE.Vec
   return new THREE.Vector3(x, y, z);
 }
 
+// Synthesized Web Audio Engine for Arcane Globe
+class ArcaneAudioEngine {
+  private ctx: AudioContext | null = null;
+  private ambientGain: GainNode | null = null;
+  private ambientOsc1: OscillatorNode | null = null;
+  private ambientOsc2: OscillatorNode | null = null;
+  private ambientFilter: BiquadFilterNode | null = null;
+
+  ensureContext(): AudioContext | null {
+    if (!this.ctx && typeof window !== 'undefined') {
+      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+      if (AudioCtx) {
+        this.ctx = new AudioCtx();
+      }
+    }
+    if (this.ctx && this.ctx.state === 'suspended') {
+      this.ctx.resume().catch(() => {});
+    }
+    return this.ctx;
+  }
+
+  // Soft crystalline chime on pin hover or interaction
+  playPinChime(frequency: number = 880, pitchMultiplier: number = 1.0) {
+    const ctx = this.ensureContext();
+    if (!ctx) return;
+    try {
+      const now = ctx.currentTime;
+      const baseFreq = frequency * pitchMultiplier;
+
+      const osc1 = ctx.createOscillator();
+      const osc2 = ctx.createOscillator();
+      const gain1 = ctx.createGain();
+      const gain2 = ctx.createGain();
+      const masterGain = ctx.createGain();
+
+      osc1.type = 'sine';
+      osc1.frequency.setValueAtTime(baseFreq, now);
+
+      osc2.type = 'sine';
+      osc2.frequency.setValueAtTime(baseFreq * 1.5, now); // Fifth harmonic chime
+
+      masterGain.gain.setValueAtTime(0.045, now);
+      masterGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.45);
+
+      gain1.gain.setValueAtTime(0.7, now);
+      gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.38);
+
+      gain2.gain.setValueAtTime(0.3, now);
+      gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+
+      osc1.connect(gain1);
+      osc2.connect(gain2);
+      gain1.connect(masterGain);
+      gain2.connect(masterGain);
+      masterGain.connect(ctx.destination);
+
+      osc1.start(now);
+      osc2.start(now);
+      osc1.stop(now + 0.46);
+      osc2.stop(now + 0.46);
+    } catch {
+      // Audio autoplay policy handled safely
+    }
+  }
+
+  // Ethereal celestial whoosh when flying camera to a continent
+  playWhoosh() {
+    const ctx = this.ensureContext();
+    if (!ctx) return;
+    try {
+      const now = ctx.currentTime;
+      const duration = 0.85;
+
+      const bufferSize = Math.floor(ctx.sampleRate * duration);
+      const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.42));
+      }
+      const noise = ctx.createBufferSource();
+      noise.buffer = buffer;
+
+      const filter = ctx.createBiquadFilter();
+      filter.type = 'bandpass';
+      filter.Q.setValueAtTime(2.2, now);
+      filter.frequency.setValueAtTime(200, now);
+      filter.frequency.exponentialRampToValueAtTime(860, now + duration * 0.4);
+      filter.frequency.exponentialRampToValueAtTime(160, now + duration);
+
+      const subOsc = ctx.createOscillator();
+      subOsc.type = 'sine';
+      subOsc.frequency.setValueAtTime(80, now);
+      subOsc.frequency.exponentialRampToValueAtTime(140, now + duration * 0.35);
+      subOsc.frequency.exponentialRampToValueAtTime(65, now + duration);
+
+      const subGain = ctx.createGain();
+      subGain.gain.setValueAtTime(0.001, now);
+      subGain.gain.linearRampToValueAtTime(0.04, now + duration * 0.3);
+      subGain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+      const noiseGain = ctx.createGain();
+      noiseGain.gain.setValueAtTime(0.001, now);
+      noiseGain.gain.linearRampToValueAtTime(0.045, now + duration * 0.35);
+      noiseGain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+      noise.connect(filter);
+      filter.connect(noiseGain);
+      noiseGain.connect(ctx.destination);
+
+      subOsc.connect(subGain);
+      subGain.connect(ctx.destination);
+
+      noise.start(now);
+      subOsc.start(now);
+      noise.stop(now + duration);
+      subOsc.stop(now + duration);
+    } catch {
+      // Ignored
+    }
+  }
+
+  // Ambient cosmic drone toggle with soft transitions
+  toggleAmbient(active: boolean): boolean {
+    const ctx = this.ensureContext();
+    if (!ctx) return false;
+
+    if (active) {
+      try {
+        if (!this.ambientGain) {
+          const osc1 = ctx.createOscillator();
+          const osc2 = ctx.createOscillator();
+          const filter = ctx.createBiquadFilter();
+          const gain = ctx.createGain();
+
+          osc1.type = 'sine';
+          osc1.frequency.setValueAtTime(55, ctx.currentTime); // A1 note
+          osc2.type = 'triangle';
+          osc2.frequency.setValueAtTime(110, ctx.currentTime); // A2 harmonic
+
+          filter.type = 'lowpass';
+          filter.frequency.setValueAtTime(320, ctx.currentTime);
+
+          gain.gain.setValueAtTime(0.001, ctx.currentTime);
+          gain.gain.setTargetAtTime(0.065, ctx.currentTime, 0.8);
+
+          osc1.connect(filter);
+          osc2.connect(filter);
+          filter.connect(gain);
+          gain.connect(ctx.destination);
+
+          osc1.start();
+          osc2.start();
+
+          this.ambientGain = gain;
+          this.ambientOsc1 = osc1;
+          this.ambientOsc2 = osc2;
+          this.ambientFilter = filter;
+        } else {
+          this.ambientGain.gain.setTargetAtTime(0.065, ctx.currentTime, 0.8);
+        }
+        return true;
+      } catch {
+        return false;
+      }
+    } else {
+      if (this.ambientGain) {
+        this.ambientGain.gain.setTargetAtTime(0, ctx.currentTime, 0.5);
+      }
+      return false;
+    }
+  }
+
+  dispose() {
+    try {
+      if (this.ambientOsc1) { this.ambientOsc1.stop(); this.ambientOsc1.disconnect(); }
+      if (this.ambientOsc2) { this.ambientOsc2.stop(); this.ambientOsc2.disconnect(); }
+      if (this.ambientGain) { this.ambientGain.disconnect(); }
+      if (this.ctx && this.ctx.state !== 'closed') {
+        this.ctx.close().catch(() => {});
+      }
+    } catch {
+      // Clean disposal
+    }
+  }
+}
+
 export default function ArcaneGlobe() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [, setLocation] = useLocation();
@@ -203,60 +395,13 @@ export default function ArcaneGlobe() {
   const [audioActive, setAudioActive] = useState<boolean>(false);
   const [screenPins, setScreenPins] = useState<{ id: string; name: string; x: number; y: number; visible: boolean; color: string }[]>([]);
 
-  // Sound generator (synthesized cosmic wind / mana hum)
-  const audioCtxRef = useRef<AudioContext | null>(null);
-  const gainNodeRef = useRef<GainNode | null>(null);
+  // Realtime HUD readout element refs for zero-overhead updates
+  const declinationRef = useRef<HTMLSpanElement>(null);
+  const ascensionRef = useRef<HTMLSpanElement>(null);
+  const astrolabeRef = useRef<HTMLSpanElement>(null);
 
-  const toggleAudio = () => {
-    if (!audioActive) {
-      try {
-        const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
-        if (!audioCtxRef.current) {
-          const ctx = new AudioCtx();
-          audioCtxRef.current = ctx;
-          
-          // Ethereal low-frequency ambient drone
-          const osc1 = ctx.createOscillator();
-          const osc2 = ctx.createOscillator();
-          const filter = ctx.createBiquadFilter();
-          const gain = ctx.createGain();
-
-          osc1.type = 'sine';
-          osc1.frequency.setValueAtTime(55, ctx.currentTime); // A1 note (mystical drone)
-
-          osc2.type = 'triangle';
-          osc2.frequency.setValueAtTime(110, ctx.currentTime); // A2 harmonic
-
-          filter.type = 'lowpass';
-          filter.frequency.setValueAtTime(320, ctx.currentTime);
-
-          gain.gain.setValueAtTime(0.08, ctx.currentTime);
-
-          osc1.connect(filter);
-          osc2.connect(filter);
-          filter.connect(gain);
-          gain.connect(ctx.destination);
-
-          osc1.start();
-          osc2.start();
-          gainNodeRef.current = gain;
-        } else if (audioCtxRef.current.state === 'suspended') {
-          audioCtxRef.current.resume();
-        }
-        if (gainNodeRef.current) {
-          gainNodeRef.current.gain.setTargetAtTime(0.08, audioCtxRef.current.currentTime, 0.5);
-        }
-        setAudioActive(true);
-      } catch (err) {
-        console.warn('Web Audio not allowed', err);
-      }
-    } else {
-      if (gainNodeRef.current && audioCtxRef.current) {
-        gainNodeRef.current.gain.setTargetAtTime(0, audioCtxRef.current.currentTime, 0.4);
-      }
-      setAudioActive(false);
-    }
-  };
+  // Audio Engine Ref
+  const audioEngineRef = useRef<ArcaneAudioEngine>(new ArcaneAudioEngine());
 
   // Three.js State Refs
   const sceneRef = useRef<THREE.Scene | null>(null);
@@ -264,18 +409,104 @@ export default function ArcaneGlobe() {
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const globeGroupRef = useRef<THREE.Group | null>(null);
   const astrolabeGroupRef = useRef<THREE.Group | null>(null);
+  const cloudMeshRef = useRef<THREE.Mesh | null>(null);
+  const leyLinesMaterialsRef = useRef<THREE.ShaderMaterial[]>([]);
   const targetCameraPos = useRef<THREE.Vector3 | null>(null);
   const pinMeshesRef = useRef<{ id: string; mesh: THREE.Object3D; pos: THREE.Vector3 }[]>([]);
 
-  // Drag interaction variables
+  // Drag interaction variables with celestial inertia
   const isDragging = useRef(false);
   const previousMousePosition = useRef({ x: 0, y: 0 });
+  const dragVelocity = useRef({ x: 0, y: 0 });
   const targetRotation = useRef({ x: 0.1, y: 0 });
   const currentRotation = useRef({ x: 0.1, y: 0 });
   const zoomLevel = useRef(4.8);
   const targetZoom = useRef(4.8);
 
   const GLOBE_RADIUS = 2.0;
+
+  // Sound toggle handler
+  const toggleAudio = () => {
+    const nextState = !audioActive;
+    const success = audioEngineRef.current.toggleAmbient(nextState);
+    if (success || !nextState) {
+      setAudioActive(nextState);
+    }
+  };
+
+  // Fly-To Continent Action
+  const focusContinent = useCallback((cont: ContinentLore) => {
+    setSelectedContinent(cont);
+    setAutoRotate(false);
+    dragVelocity.current = { x: 0, y: 0 };
+
+    audioEngineRef.current.playWhoosh();
+
+    // Calculate spherical angles for this continent
+    const lon = (cont.mapX / 100) * 360 - 180;
+    const lat = 90 - (cont.mapY / 100) * 180;
+
+    const phi = (lat * Math.PI) / 180;
+    const theta = (lon * Math.PI) / 180;
+
+    // Smoothly rotate globe so continent faces camera (Z-axis)
+    targetRotation.current.x = phi;
+    targetRotation.current.y = -theta - Math.PI / 2;
+    targetZoom.current = 3.6; // Dramatic close-up zoom
+  }, []);
+
+  const resetView = () => {
+    setSelectedContinent(null);
+    targetRotation.current.x = 0.1;
+    targetRotation.current.y = 0;
+    dragVelocity.current = { x: 0, y: 0 };
+    targetZoom.current = 4.8;
+    setAutoRotate(true);
+    audioEngineRef.current.playPinChime(660);
+  };
+
+  // External Control Integration: Listen for custom events or window callbacks
+  useEffect(() => {
+    const handleFocusEvent = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      const targetId = detail?.continentId || detail?.slug || detail?.id;
+      if (!targetId || typeof targetId !== 'string') return;
+
+      let normalized = targetId.toLowerCase().trim();
+      if (normalized === 'aquario') normalized = 'aquarius';
+
+      const cont = CONTINENTS_LORE.find(
+        (c) => c.id.toLowerCase() === normalized || c.name.toLowerCase() === normalized
+      );
+
+      if (cont) {
+        focusContinent(cont);
+        containerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    };
+
+    window.addEventListener('focus-globe-continent', handleFocusEvent);
+    window.addEventListener('continent-click', handleFocusEvent);
+
+    // Expose global window method
+    (window as any).focusArcaneContinent = (continentId: string) => {
+      let normalized = (continentId || '').toLowerCase().trim();
+      if (normalized === 'aquario') normalized = 'aquarius';
+      const cont = CONTINENTS_LORE.find(
+        (c) => c.id.toLowerCase() === normalized || c.name.toLowerCase() === normalized
+      );
+      if (cont) {
+        focusContinent(cont);
+        containerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    };
+
+    return () => {
+      window.removeEventListener('focus-globe-continent', handleFocusEvent);
+      window.removeEventListener('continent-click', handleFocusEvent);
+      delete (window as any).focusArcaneContinent;
+    };
+  }, [focusContinent]);
 
   // Initialize Three.js Scene
   useEffect(() => {
@@ -304,14 +535,14 @@ export default function ArcaneGlobe() {
     rendererRef.current = renderer;
 
     // 3. Lighting
-    const ambientLight = new THREE.AmbientLight(0xffeedd, 0.9);
+    const ambientLight = new THREE.AmbientLight(0xffeedd, 0.95);
     scene.add(ambientLight);
 
-    const sunLight = new THREE.DirectionalLight(0xfff6e0, 2.4);
+    const sunLight = new THREE.DirectionalLight(0xfff6e0, 2.5);
     sunLight.position.set(6, 4, 7);
     scene.add(sunLight);
 
-    const blueBackLight = new THREE.DirectionalLight(0x4a77ff, 1.2);
+    const blueBackLight = new THREE.DirectionalLight(0x4a77ff, 1.3);
     blueBackLight.position.set(-6, -3, -5);
     scene.add(blueBackLight);
 
@@ -358,7 +589,8 @@ export default function ArcaneGlobe() {
 
     // Texture Loader
     const textureLoader = new THREE.TextureLoader();
-    const mapTexture = textureLoader.load(
+    let mapTexture: THREE.Texture | null = null;
+    mapTexture = textureLoader.load(
       '/FinalMap.png',
       () => renderer.render(scene, camera),
       undefined,
@@ -381,7 +613,7 @@ export default function ArcaneGlobe() {
     mapTexture.wrapS = THREE.RepeatWrapping;
     mapTexture.wrapT = THREE.ClampToEdgeWrapping;
 
-    // Sphere Geometry
+    // Sphere Geometry (Terrain)
     const sphereGeometry = new THREE.SphereGeometry(GLOBE_RADIUS, 64, 64);
     const sphereMaterial = new THREE.MeshStandardMaterial({
       map: mapTexture,
@@ -391,6 +623,115 @@ export default function ArcaneGlobe() {
     });
     const globeMesh = new THREE.Mesh(sphereGeometry, sphereMaterial);
     globeGroup.add(globeMesh);
+
+    // ═════════════════════════════════════════════════════════════════════════
+    // 3. PROCEDURAL CLOUD LAYER (Atmospheric Depth & Drift)
+    // ═════════════════════════════════════════════════════════════════════════
+    const cloudGeometry = new THREE.SphereGeometry(GLOBE_RADIUS * 1.012, 64, 64);
+    const cloudMaterial = new THREE.ShaderMaterial({
+      vertexShader: `
+        varying vec3 vNormal;
+        varying vec3 vPosition;
+        void main() {
+          vNormal = normalize(normalMatrix * normal);
+          vPosition = position;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+      `,
+      fragmentShader: `
+        uniform float uTime;
+        varying vec3 vNormal;
+        varying vec3 vPosition;
+
+        vec4 permute(vec4 x) { return mod(((x*34.0)+1.0)*x, 289.0); }
+        vec4 taylorInvSqrt(vec4 r) { return 1.79284291400159 - 0.85373472095314 * r; }
+
+        float snoise(vec3 v) {
+          const vec2 C = vec2(1.0/6.0, 1.0/3.0);
+          const vec4 D = vec4(0.0, 0.5, 1.0, 2.0);
+
+          vec3 i  = floor(v + dot(v, C.yyy));
+          vec3 x0 = v - i + dot(i, C.xxx);
+
+          vec3 g = step(x0.yzx, x0.xyz);
+          vec3 l = 1.0 - g;
+          vec3 i1 = min(g.xyz, l.zxy);
+          vec3 i2 = max(g.xyz, l.zxy);
+
+          vec3 x1 = x0 - i1 + 1.0 * C.xxx;
+          vec3 x2 = x0 - i2 + 2.0 * C.xxx;
+          vec3 x3 = x0 - 1.0 + 3.0 * C.xxx;
+
+          i = mod(i, 289.0);
+          vec4 p = permute(permute(permute(
+                     i.z + vec4(0.0, i1.z, i2.z, 1.0))
+                   + i.y + vec4(0.0, i1.y, i2.y, 1.0))
+                   + i.x + vec4(0.0, i1.x, i2.x, 1.0));
+
+          float n_ = 0.142857142857;
+          vec3  ns = n_ * D.wyz - D.xzx;
+
+          vec4 j = p - 49.0 * floor(p * ns.z * ns.z);
+
+          vec4 x_ = floor(j * ns.z);
+          vec4 y_ = floor(j - 7.0 * x_);
+
+          vec4 x = x_ * ns.x + ns.yyyy;
+          vec4 y = y_ * ns.x + ns.yyyy;
+          vec4 h = 1.0 - abs(x) - abs(y);
+
+          vec4 b0 = vec4(x.xy, y.xy);
+          vec4 b1 = vec4(x.zw, y.zw);
+
+          vec4 s0 = floor(b0)*2.0 + 1.0;
+          vec4 s1 = floor(b1)*2.0 + 1.0;
+          vec4 sh = -step(h, vec4(0.0));
+
+          vec4 a0 = b0.xzyw + s0.xzyw*sh.xxyy;
+          vec4 a1 = b1.xzyw + s1.xzyw*sh.zzww;
+
+          vec3 p0 = vec3(a0.xy, h.x);
+          vec3 p1 = vec3(a0.zw, h.y);
+          vec3 p2 = vec3(a1.xy, h.z);
+          vec3 p3 = vec3(a1.zw, h.w);
+
+          vec4 norm = taylorInvSqrt(vec4(dot(p0,p0), dot(p1,p1), dot(p2, p2), dot(p3,p3)));
+          p0 *= norm.x; p1 *= norm.y; p2 *= norm.z; p3 *= norm.w;
+
+          vec4 m = max(0.6 - vec4(dot(x0,x0), dot(x1,x1), dot(x2,x2), dot(x3,x3)), 0.0);
+          m = m * m;
+          return 42.0 * dot(m*m, vec4(dot(p0,x0), dot(p1,x1), dot(p2,x2), dot(p3,x3)));
+        }
+
+        void main() {
+          vec3 p = vPosition * 1.5;
+          vec3 samplePos = p + vec3(uTime * 0.015, sin(uTime * 0.009) * 0.08, uTime * 0.01);
+
+          float n = 0.55 * snoise(samplePos);
+          n += 0.28 * snoise(samplePos * 2.2 + vec3(2.3, 1.4, 4.2));
+          n += 0.12 * snoise(samplePos * 4.4);
+
+          float cloud = smoothstep(0.14, 0.58, n);
+
+          float fresnel = clamp(dot(normalize(vNormal), vec3(0.0, 0.0, 1.0)), 0.0, 1.0);
+          float edgeFade = smoothstep(0.04, 0.40, fresnel);
+
+          vec3 cloudColor = mix(vec3(0.88, 0.94, 1.0), vec3(1.0, 0.97, 0.88), cloud);
+          float alpha = cloud * 0.32 * edgeFade;
+
+          gl_FragColor = vec4(cloudColor, alpha);
+        }
+      `,
+      uniforms: {
+        uTime: { value: 0 }
+      },
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.NormalBlending
+    });
+    const cloudMesh = new THREE.Mesh(cloudGeometry, cloudMaterial);
+    globeGroup.add(cloudMesh);
+    cloudMeshRef.current = cloudMesh;
 
     // Atmospheric Glow Sphere (Fresnel Effect via BackSide Mesh)
     const atmosphereGeometry = new THREE.SphereGeometry(GLOBE_RADIUS * 1.025, 48, 48);
@@ -416,6 +757,92 @@ export default function ArcaneGlobe() {
     });
     const atmosphereMesh = new THREE.Mesh(atmosphereGeometry, atmosphereMaterial);
     globeGroup.add(atmosphereMesh);
+
+    // ═════════════════════════════════════════════════════════════════════════
+    // 2. ARCANE LEY LINES (ROTAS MÁGICAS ENTRE CONTINENTES)
+    // ═════════════════════════════════════════════════════════════════════════
+    const leyMeshes: THREE.Mesh[] = [];
+    const leyMaterials: THREE.ShaderMaterial[] = [];
+
+    LEY_LINE_ROUTES.forEach(([idA, idB], index) => {
+      const contA = CONTINENTS_LORE.find((c) => c.id === idA);
+      const contB = CONTINENTS_LORE.find((c) => c.id === idB);
+      if (!contA || !contB) return;
+
+      const pA = latLongToVector3(contA.mapX, contA.mapY, GLOBE_RADIUS * 1.018);
+      const pB = latLongToVector3(contB.mapX, contB.mapY, GLOBE_RADIUS * 1.018);
+      const dist = pA.distanceTo(pB);
+
+      // Parabolic arc points
+      const points: THREE.Vector3[] = [];
+      const segments = 28;
+      const maxAltitude = GLOBE_RADIUS * (1.05 + Math.min(0.22, dist * 0.085));
+
+      for (let i = 0; i <= segments; i++) {
+        const t = i / segments;
+        const p = new THREE.Vector3().lerpVectors(pA, pB, t);
+        const arcElevation = Math.sin(t * Math.PI) * (maxAltitude - GLOBE_RADIUS * 1.018);
+        p.normalize().multiplyScalar(GLOBE_RADIUS * 1.018 + arcElevation);
+        points.push(p);
+      }
+
+      const curve = new THREE.CatmullRomCurve3(points);
+      const tubeGeo = new THREE.TubeGeometry(curve, 36, 0.010, 8, false);
+
+      const leyMat = new THREE.ShaderMaterial({
+        vertexShader: `
+          varying vec2 vUv;
+          void main() {
+            vUv = uv;
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+          }
+        `,
+        fragmentShader: `
+          uniform float uTime;
+          uniform vec3 uColorA;
+          uniform vec3 uColorB;
+          uniform float uSpeed;
+          varying vec2 vUv;
+
+          void main() {
+            float t = vUv.x;
+            vec3 baseColor = mix(uColorA, uColorB, t);
+
+            // Forward traveling mana energy pulse
+            float pulse1 = sin((t * 4.0 - uTime * uSpeed) * 6.2831853);
+            pulse1 = pow(clamp(pulse1, 0.0, 1.0), 8.0);
+
+            // Harmonic return pulse
+            float pulse2 = sin((t * 3.0 + uTime * (uSpeed * 0.7) + 1.4) * 6.2831853);
+            pulse2 = pow(clamp(pulse2, 0.0, 1.0), 10.0);
+
+            // High frequency arcane shimmer
+            float shimmer = sin(t * 32.0 + uTime * 3.0) * 0.12;
+
+            float energy = 0.40 + pulse1 * 3.2 + pulse2 * 2.2 + shimmer;
+            float edgeFade = smoothstep(0.0, 0.06, t) * smoothstep(1.0, 0.94, t);
+
+            gl_FragColor = vec4(baseColor * energy, (0.35 + pulse1 * 0.65 + pulse2 * 0.45) * edgeFade);
+          }
+        `,
+        uniforms: {
+          uTime: { value: 0 },
+          uColorA: { value: new THREE.Color(contA.color) },
+          uColorB: { value: new THREE.Color(contB.color) },
+          uSpeed: { value: 0.75 + (index % 3) * 0.25 },
+        },
+        transparent: true,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+      });
+
+      const tubeMesh = new THREE.Mesh(tubeGeo, leyMat);
+      globeGroup.add(tubeMesh);
+      leyMeshes.push(tubeMesh);
+      leyMaterials.push(leyMat);
+    });
+
+    leyLinesMaterialsRef.current = leyMaterials;
 
     // 6. Astrolabe Rings Group
     const astrolabeGroup = new THREE.Group();
@@ -451,6 +878,8 @@ export default function ArcaneGlobe() {
 
     // 7. 3D Continent Pins & Beacons
     const pins: { id: string; mesh: THREE.Object3D; pos: THREE.Vector3 }[] = [];
+    const pinGeosToDispose: THREE.BufferGeometry[] = [];
+    const pinMatsToDispose: THREE.Material[] = [];
 
     CONTINENTS_LORE.forEach((cont) => {
       const pinPos = latLongToVector3(cont.mapX, cont.mapY, GLOBE_RADIUS * 1.018);
@@ -472,6 +901,8 @@ export default function ArcaneGlobe() {
       const orbMesh = new THREE.Mesh(orbGeo, orbMat);
       orbMesh.position.y = 0.08;
       pinContainer.add(orbMesh);
+      pinGeosToDispose.push(orbGeo);
+      pinMatsToDispose.push(orbMat);
 
       // Light beam pin
       const stemGeo = new THREE.CylinderGeometry(0.009, 0.009, 0.14, 8);
@@ -479,6 +910,8 @@ export default function ArcaneGlobe() {
       const stemMesh = new THREE.Mesh(stemGeo, stemMat);
       stemMesh.position.y = 0.07;
       pinContainer.add(stemMesh);
+      pinGeosToDispose.push(stemGeo);
+      pinMatsToDispose.push(stemMat);
 
       // Pulsing wave ring at base
       const ringGeo = new THREE.RingGeometry(0.04, 0.08, 32);
@@ -491,6 +924,8 @@ export default function ArcaneGlobe() {
       const ringMesh = new THREE.Mesh(ringGeo, ringMat);
       ringMesh.rotation.x = Math.PI / 2;
       pinContainer.add(ringMesh);
+      pinGeosToDispose.push(ringGeo);
+      pinMatsToDispose.push(ringMat);
 
       globeGroup.add(pinContainer);
       pins.push({ id: cont.id, mesh: pinContainer, pos: pinPos });
@@ -501,11 +936,13 @@ export default function ArcaneGlobe() {
     // 8. Animation & Render Loop
     let animationFrameId: number;
     let clock = new THREE.Clock();
+    let frameCounter = 0;
 
     const animate = () => {
       animationFrameId = requestAnimationFrame(animate);
       const delta = clock.getDelta();
       const elapsedTime = clock.getElapsedTime();
+      frameCounter++;
 
       // Slow astrolabe celestial rotation
       if (astrolabeGroupRef.current) {
@@ -513,21 +950,64 @@ export default function ArcaneGlobe() {
         astrolabeGroupRef.current.rotation.x = Math.sin(elapsedTime * 0.02) * 0.08;
       }
 
-      // Smooth Rotation Damping
-      if (autoRotate && !isDragging.current && !targetCameraPos.current) {
-        targetRotation.current.y += 0.0035;
+      // Animate Cloud layer: dynamic drift slightly faster than terrain
+      if (cloudMeshRef.current) {
+        (cloudMeshRef.current.material as THREE.ShaderMaterial).uniforms.uTime.value = elapsedTime;
+        cloudMeshRef.current.rotation.y += delta * 0.015;
       }
 
-      currentRotation.current.x += (targetRotation.current.x - currentRotation.current.x) * 0.08;
-      currentRotation.current.y += (targetRotation.current.y - currentRotation.current.y) * 0.08;
+      // Animate Arcane Ley Lines pulses
+      if (leyLinesMaterialsRef.current.length > 0) {
+        for (let i = 0; i < leyLinesMaterialsRef.current.length; i++) {
+          leyLinesMaterialsRef.current[i].uniforms.uTime.value = elapsedTime;
+        }
+      }
+
+      // Smooth Rotation Damping & Majestic Celestial Auto-Spin (0.0009)
+      if (isDragging.current) {
+        // Dragging in progress
+      } else if (Math.abs(dragVelocity.current.x) > 0.00005 || Math.abs(dragVelocity.current.y) > 0.00005) {
+        // Coasting with smooth inertia
+        targetRotation.current.y += dragVelocity.current.x;
+        targetRotation.current.x = Math.max(-Math.PI / 2.3, Math.min(Math.PI / 2.3, targetRotation.current.x + dragVelocity.current.y));
+        dragVelocity.current.x *= 0.92;
+        dragVelocity.current.y *= 0.92;
+      } else if (autoRotate && !targetCameraPos.current) {
+        // Slow, majestic planetary spin (0.0009 per frame)
+        targetRotation.current.y += 0.0009;
+      }
+
+      currentRotation.current.x += (targetRotation.current.x - currentRotation.current.x) * 0.06;
+      currentRotation.current.y += (targetRotation.current.y - currentRotation.current.y) * 0.06;
 
       if (globeGroupRef.current) {
         globeGroupRef.current.rotation.x = currentRotation.current.x;
         globeGroupRef.current.rotation.y = currentRotation.current.y;
       }
 
+      // Live Celestial Coordinates HUD (Every 3 frames for zero React overhead)
+      if (frameCounter % 3 === 0) {
+        if (declinationRef.current && ascensionRef.current && astrolabeRef.current) {
+          const latDeg = (currentRotation.current.x * (180 / Math.PI));
+          const declSign = latDeg >= 0 ? '+' : '-';
+          const declAbs = Math.abs(latDeg);
+          const declD = Math.floor(declAbs);
+          const declM = Math.floor((declAbs - declD) * 60);
+
+          const lonDeg = (((-currentRotation.current.y * (180 / Math.PI)) % 360) + 360) % 360;
+          const raH = Math.floor((lonDeg / 360) * 24);
+          const raM = Math.floor(((lonDeg / 360) * 24 - raH) * 60);
+
+          const astroDeg = Math.floor(((elapsedTime * 0.03 * (180 / Math.PI)) % 360 + 360) % 360);
+
+          declinationRef.current.textContent = `${declSign}${String(declD).padStart(2, '0')}° ${String(declM).padStart(2, '0')}'`;
+          ascensionRef.current.textContent = `${String(raH).padStart(2, '0')}h ${String(raM).padStart(2, '0')}m`;
+          astrolabeRef.current.textContent = `${String(astroDeg).padStart(3, '0')}°`;
+        }
+      }
+
       // Smooth Zoom Damping
-      zoomLevel.current += (targetZoom.current - zoomLevel.current) * 0.1;
+      zoomLevel.current += (targetZoom.current - zoomLevel.current) * 0.09;
       if (cameraRef.current && !targetCameraPos.current) {
         cameraRef.current.position.z = zoomLevel.current;
       }
@@ -591,24 +1071,56 @@ export default function ArcaneGlobe() {
 
     window.addEventListener('resize', handleResize);
 
+    // 10. Complete Memory & Resource Cleanup
     return () => {
       window.removeEventListener('resize', handleResize);
       cancelAnimationFrame(animationFrameId);
+
       if (renderer.domElement && container.contains(renderer.domElement)) {
         container.removeChild(renderer.domElement);
       }
       renderer.dispose();
+
       sphereGeometry.dispose();
       sphereMaterial.dispose();
+      cloudGeometry.dispose();
+      cloudMaterial.dispose();
+      atmosphereGeometry.dispose();
+      atmosphereMaterial.dispose();
       starGeometry.dispose();
       starMaterial.dispose();
+
+      ring1Geo.dispose();
+      ring2Geo.dispose();
+      ring3Geo.dispose();
+      brassMaterial.dispose();
+
+      leyMeshes.forEach((mesh) => {
+        mesh.geometry.dispose();
+        (mesh.material as THREE.Material).dispose();
+      });
+
+      pinGeosToDispose.forEach((g) => g.dispose());
+      pinMatsToDispose.forEach((m) => m.dispose());
+
+      if (mapTexture) mapTexture.dispose();
     };
   }, [autoRotate]);
 
-  // Pointer / Drag Controls for Smooth Globe Rotation
+  // Clean up audio engine on unmount
+  useEffect(() => {
+    const audio = audioEngineRef.current;
+    return () => {
+      audio.dispose();
+    };
+  }, []);
+
+  // Pointer / Drag Controls for Smooth Globe Rotation with Momentum
   const handlePointerDown = (e: React.PointerEvent) => {
     isDragging.current = true;
+    dragVelocity.current = { x: 0, y: 0 };
     previousMousePosition.current = { x: e.clientX, y: e.clientY };
+    audioEngineRef.current.ensureContext();
   };
 
   const handlePointerMove = (e: React.PointerEvent) => {
@@ -617,8 +1129,12 @@ export default function ArcaneGlobe() {
     const deltaX = e.clientX - previousMousePosition.current.x;
     const deltaY = e.clientY - previousMousePosition.current.y;
 
-    targetRotation.current.y += deltaX * 0.006;
-    targetRotation.current.x = Math.max(-Math.PI / 2.3, Math.min(Math.PI / 2.3, targetRotation.current.x + deltaY * 0.006));
+    const vx = deltaX * 0.005;
+    const vy = deltaY * 0.005;
+
+    dragVelocity.current = { x: vx, y: vy };
+    targetRotation.current.y += vx;
+    targetRotation.current.x = Math.max(-Math.PI / 2.3, Math.min(Math.PI / 2.3, targetRotation.current.x + vy));
 
     previousMousePosition.current = { x: e.clientX, y: e.clientY };
   };
@@ -632,31 +1148,8 @@ export default function ArcaneGlobe() {
     targetZoom.current = Math.max(3.2, Math.min(8.0, targetZoom.current + e.deltaY * 0.0035));
   };
 
-  // Fly-To Continent Action
-  const focusContinent = useCallback((cont: ContinentLore) => {
-    setSelectedContinent(cont);
-    setAutoRotate(false);
-
-    // Calculate spherical angles for this continent
-    const lon = (cont.mapX / 100) * 360 - 180;
-    const lat = 90 - (cont.mapY / 100) * 180;
-
-    const phi = (lat * Math.PI) / 180;
-    const theta = (lon * Math.PI) / 180;
-
-    // Smoothly rotate globe so continent faces camera (Z-axis)
-    targetRotation.current.x = phi;
-    targetRotation.current.y = -theta - Math.PI / 2;
-    targetZoom.current = 3.6; // Dramatic close-up zoom
-  }, []);
-
-  const resetView = () => {
-    setSelectedContinent(null);
-    targetRotation.current.x = 0.1;
-    targetRotation.current.y = 0;
-    targetZoom.current = 4.8;
-    setAutoRotate(true);
-  };
+  // Find hovered pin position for tooltip
+  const hoveredPin = hoveredContinent ? screenPins.find(p => p.id === hoveredContinent.id && p.visible) : null;
 
   return (
     <div className={cn(
@@ -694,9 +1187,13 @@ export default function ArcaneGlobe() {
             className="group cursor-pointer transition-all duration-200 z-20"
             onClick={(e) => {
               e.stopPropagation();
+              audioEngineRef.current.playPinChime(1174, 1.25);
               if (cont) focusContinent(cont);
             }}
-            onMouseEnter={() => setHoveredContinent(cont || null)}
+            onMouseEnter={() => {
+              setHoveredContinent(cont || null);
+              audioEngineRef.current.playPinChime(880, 1.0);
+            }}
             onMouseLeave={() => setHoveredContinent(null)}
           >
             {/* Pulsing Aura Badge */}
@@ -705,7 +1202,7 @@ export default function ArcaneGlobe() {
               isSelected 
                 ? "bg-[#d8aa5c] text-black border-white shadow-[0_0_25px_rgba(216,170,92,0.9)] scale-110" 
                 : isHovered
-                ? "bg-black/85 text-[#fef5e0] border-[#d8aa5c] scale-105"
+                ? "bg-black/90 text-[#fef5e0] border-[#d8aa5c] scale-105 shadow-[0_0_16px_rgba(216,170,92,0.7)]"
                 : "bg-black/60 text-[#dfb872] border-[#d8aa5c]/40 hover:border-[#d8aa5c]"
             )}>
               <span 
@@ -720,8 +1217,52 @@ export default function ArcaneGlobe() {
         );
       })}
 
+      {/* 2.1 MINI HOVER TOOLTIP ON PIN */}
+      {hoveredContinent && hoveredPin && !selectedContinent && (
+        <div
+          style={{
+            position: 'absolute',
+            left: `${hoveredPin.x}px`,
+            top: `${hoveredPin.y - 32}px`,
+            transform: 'translate(-50%, -100%)',
+          }}
+          className="pointer-events-none z-30 animate-in fade-in zoom-in-95 duration-150"
+        >
+          <div className="bg-[#03060df2] backdrop-blur-xl border border-[#d8aa5c]/60 rounded-2xl p-3.5 shadow-[0_12px_36px_rgba(0,0,0,0.95)] w-[240px] text-left">
+            <div className="flex items-center justify-between gap-1 mb-1">
+              <div className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: hoveredContinent.color }} />
+                <span className="text-xs font-bold text-[#fef5e0] font-display uppercase tracking-wider">
+                  {hoveredContinent.name}
+                </span>
+              </div>
+              <Sparkles className="h-3 w-3 text-[#d8aa5c]" />
+            </div>
+
+            <div className="text-[10.5px] font-semibold text-[#d8aa5c] leading-tight mb-2">
+              "{hoveredContinent.title}"
+            </div>
+
+            <div className="space-y-1 text-[10px] border-t border-white/10 pt-1.5 text-[#cfc8b8]">
+              <div className="flex items-center justify-between">
+                <span className="text-[#8c8577]">Afinidade:</span>
+                <span className="font-semibold text-[#fef5e0]">{hoveredContinent.element}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-[#8c8577]">Capital:</span>
+                <span className="font-semibold text-[#fef5e0]">{hoveredContinent.capital}</span>
+              </div>
+            </div>
+
+            <div className="mt-2 text-[9px] text-[#d8aa5c]/80 text-center font-mono tracking-wider border-t border-white/5 pt-1">
+              Clique para alinhar o astrolábio
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* 3. TOP TACTICAL HUD BAR */}
-      <div className="absolute top-4 left-4 right-4 flex items-center justify-between pointer-events-none z-30">
+      <div className="absolute top-4 left-4 right-4 flex items-center justify-between pointer-events-none z-30 gap-2">
         {/* Left: World Astrolabe Badge */}
         <div className="pointer-events-auto flex items-center gap-3 bg-black/60 backdrop-blur-md border border-[#d8aa5c]/35 px-4 py-2 rounded-2xl shadow-xl">
           <Compass className="h-5 w-5 text-[#d8aa5c] animate-spin-slow" />
@@ -735,13 +1276,36 @@ export default function ArcaneGlobe() {
           </div>
         </div>
 
+        {/* Center: Realtime Celestial Coordinates HUD */}
+        <div className="hidden md:flex pointer-events-auto items-center gap-3 bg-black/65 backdrop-blur-md border border-[#d8aa5c]/30 px-3.5 py-1.5 rounded-2xl shadow-xl text-[10px] font-mono">
+          <div className="flex items-center gap-1.5">
+            <Radio className="h-3 w-3 text-[#d8aa5c] animate-pulse" />
+            <span className="text-[#8c8577] uppercase">Dec:</span>
+            <span ref={declinationRef} className="text-[#fef5e0] font-bold">+00° 00'</span>
+          </div>
+          <span className="text-white/20">|</span>
+          <div className="flex items-center gap-1.5">
+            <span className="text-[#8c8577] uppercase">RA:</span>
+            <span ref={ascensionRef} className="text-[#fef5e0] font-bold">00h 00m</span>
+          </div>
+          <span className="text-white/20">|</span>
+          <div className="flex items-center gap-1.5">
+            <span className="text-[#8c8577] uppercase">Anel:</span>
+            <span ref={astrolabeRef} className="text-[#d8aa5c] font-bold">000°</span>
+          </div>
+          <span className="text-white/20">|</span>
+          <div className="text-[#10b981] font-semibold text-[9.5px]">
+            8 Rotas Ativas
+          </div>
+        </div>
+
         {/* Right: Interaction Tools */}
         <div className="pointer-events-auto flex items-center gap-2 bg-black/60 backdrop-blur-md border border-[#d8aa5c]/35 p-1.5 rounded-2xl shadow-xl">
           <Button
             variant="ghost"
             size="icon"
             className="h-8 w-8 text-[#d8aa5c] hover:bg-white/10"
-            title={autoRotate ? "Pausar Rotação" : "Girar Automaticamente"}
+            title={autoRotate ? "Pausar Rotação Celestial" : "Iniciar Rotação Celestial"}
             onClick={() => setAutoRotate(!autoRotate)}
           >
             {autoRotate ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
@@ -790,7 +1354,10 @@ export default function ArcaneGlobe() {
             return (
               <button
                 key={c.id}
-                onClick={() => focusContinent(c)}
+                onClick={() => {
+                  audioEngineRef.current.playPinChime(1046, 1.1);
+                  focusContinent(c);
+                }}
                 className={cn(
                   "flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold font-display uppercase tracking-wider transition-all whitespace-nowrap",
                   isSelected
