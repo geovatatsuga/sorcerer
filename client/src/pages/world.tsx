@@ -32,7 +32,13 @@ import {
   BookOpen,
   Filter,
   Eye,
-  Info
+  Info,
+  Plane,
+  Route,
+  Clock,
+  ArrowRight,
+  Radio,
+  Navigation as NavIcon
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -470,6 +476,182 @@ const CURATED_TERRITORIES: CuratedTerritory[] = [
   }
 ];
 
+interface StoryJourneyStop {
+  chapterNum: string;
+  chapterTitle: string;
+  locationName: string;
+  continentId: string;
+  continentName: string;
+  coords: { x: number; y: number };
+  slug: string;
+  synopsis: string;
+  element: string;
+  color: string;
+  badge: string;
+}
+
+const STORY_JOURNEY: StoryJourneyStop[] = [
+  {
+    chapterNum: "Capítulo 1",
+    chapterTitle: "O Despertar da Centelha",
+    locationName: "Academia Arcana de Veyra",
+    continentId: "luminah",
+    continentName: "Luminah",
+    coords: { x: 38, y: 35 },
+    slug: "arco-1-o-limiar-capitulo-1-prologo",
+    synopsis: "O ponto de partida do protagonista. Onde a centelha proibida de mana ressoa entre as torres douradas da capital.",
+    element: "Luz Solar",
+    color: "#f59e0b",
+    badge: "Início da Jornada"
+  },
+  {
+    chapterNum: "Capítulos 2 & 3",
+    chapterTitle: "Sob as Cinzas do Passado",
+    locationName: "Necrópole de Kael-Mor",
+    continentId: "umbra",
+    continentName: "Umbra",
+    coords: { x: 68, y: 32 },
+    slug: "arco-1-o-limiar-capitulo-2-cinzas-do-passado",
+    synopsis: "Incursão ao domínio perpétuo da penumbra. Antigos rituais de éter sombrio e a busca por respostas seladas em obsidiana.",
+    element: "Penumbra Eterna",
+    color: "#a855f7",
+    badge: "Fronteira Oculta"
+  },
+  {
+    chapterNum: "Capítulo 4",
+    chapterTitle: "Ecos do Passado & Bosques Vivos",
+    locationName: "Coração de Yggdras",
+    continentId: "silvanum",
+    continentName: "Silvanum",
+    coords: { x: 26, y: 56 },
+    slug: "arco-1-o-limiar-capitulo-4-ecos-do-passado",
+    synopsis: "O refúgio na floresta titânica. Pactos com as Cortes Feéricas e o despertar das raízes dracônicas adormecidas.",
+    element: "Mana Vegetal",
+    color: "#10b981",
+    badge: "Domínio Selvagem"
+  },
+  {
+    chapterNum: "Capítulo 5",
+    chapterTitle: "Tirath — A Marcha dos Ventos",
+    locationName: "Fortaleza de Tirath",
+    continentId: "akeli",
+    continentName: "Akeli",
+    coords: { x: 80, y: 62 },
+    slug: "arco-1-o-limiar-capitulo-5-tirath",
+    synopsis: "As estepes infinitas sob o fogo da artilharia rúnica e os cavaleiros que domam as correntes dos céus abertos.",
+    element: "Vento & Eletricidade",
+    color: "#3b82f6",
+    badge: "Clímax do Arco 1"
+  },
+  {
+    chapterNum: "Próximos Arcos",
+    chapterTitle: "A Grande Forja & O Mar Cósmico",
+    locationName: "Kar-Drakor & Aquarius",
+    continentId: "ferros",
+    continentName: "Ferros & Aquarius",
+    coords: { x: 48, y: 78 },
+    slug: "mundo",
+    synopsis: "Os mistérios que aguardam os feiticeiros nas profundezas vulcânicas de Kar-Drakor e no arquipélago das marés celestes.",
+    element: "Fogo & Marés",
+    color: "#ef4444",
+    badge: "Expansão Futura"
+  }
+];
+
+interface LeyConduit {
+  id: string;
+  name: string;
+  source: string;
+  destination: string;
+  sourceId: string;
+  destinationId: string;
+  sourceCoords: { x: number; y: number };
+  destCoords: { x: number; y: number };
+  flowType: string;
+  stability: number;
+  travelTime: string;
+  hazards: string;
+  color: string;
+}
+
+const LEY_CONDUITS: LeyConduit[] = [
+  {
+    id: "ley-1",
+    name: "Canal Celeste Veyra ⇄ Tirath",
+    source: "Luminah (Veyra)",
+    destination: "Akeli (Tirath)",
+    sourceId: "luminah",
+    destinationId: "akeli",
+    sourceCoords: { x: 38, y: 35 },
+    destCoords: { x: 80, y: 62 },
+    flowType: "Corrente Eólica & Mana Solar",
+    stability: 98,
+    travelTime: "Instantâneo (Distorção Aérea)",
+    hazards: "Flutuação barométrica e ventos cortantes",
+    color: "#f59e0b"
+  },
+  {
+    id: "ley-2",
+    name: "Caminho Esmeralda Luminah ⇄ Yggdras",
+    source: "Luminah (Bastiões)",
+    destination: "Silvanum (Coração de Yggdras)",
+    sourceId: "luminah",
+    destinationId: "silvanum",
+    sourceCoords: { x: 38, y: 35 },
+    destCoords: { x: 26, y: 56 },
+    flowType: "Simbiose Bio-Arcana de Raízes",
+    stability: 94,
+    travelTime: "Instantâneo (Túnel Arbóreo)",
+    hazards: "Esporos mágicos de transe e desorientação",
+    color: "#10b981"
+  },
+  {
+    id: "ley-3",
+    name: "Fenda Crepuscular Silvanum ⇄ Kael-Mor",
+    source: "Silvanum (Orla)",
+    destination: "Umbra (Necrópole)",
+    sourceId: "silvanum",
+    destinationId: "umbra",
+    sourceCoords: { x: 26, y: 56 },
+    destCoords: { x: 68, y: 32 },
+    flowType: "Fissura de Gravidade & Éter Noturno",
+    stability: 79,
+    travelTime: "Transição Sombria (Fase de Penumbra)",
+    hazards: "Distorção temporal e eco de memórias antigas",
+    color: "#a855f7"
+  },
+  {
+    id: "ley-4",
+    name: "Conduto Vulcânico Kar-Drakor ⇄ Aquarius",
+    source: "Ferros (Kar-Drakor)",
+    destination: "Aquarius (Abismo Austral)",
+    sourceId: "ferros",
+    destinationId: "aquarius",
+    sourceCoords: { x: 48, y: 78 },
+    destCoords: { x: 62, y: 66 },
+    flowType: "Tubo Termo-Cinético Submarino",
+    stability: 87,
+    travelTime: "Propulsão Hidro-Ígnea",
+    hazards: "Vapor superaquecido e pressão abissal",
+    color: "#ef4444"
+  },
+  {
+    id: "ley-5",
+    name: "Corrente dos Almirantes Luminah ⇄ Porto das Pérolas",
+    source: "Luminah (Litoral)",
+    destination: "Aquarius (Porto das Pérolas)",
+    sourceId: "luminah",
+    destinationId: "aquarius",
+    sourceCoords: { x: 38, y: 35 },
+    destCoords: { x: 62, y: 66 },
+    flowType: "Rota Marítima de Marés Astrais",
+    stability: 99,
+    travelTime: "Navegação Acelerada por Éter Líquido",
+    hazards: "Nenhum — Rota civil mais segura do globo",
+    color: "#06b6d4"
+  }
+];
+
 export default function World() {
   const { data: dbLocations = [], isLoading } = useQuery<Location[]>({
     queryKey: ['/api/locations'],
@@ -478,6 +660,7 @@ export default function World() {
   const { t } = useLanguage();
 
   const [mapMode, setMapMode] = useState<'3d' | '2d'>('3d');
+  const [activeTravelTab, setActiveTravelTab] = useState<'destinos' | 'novel' | 'ley'>('destinos');
   const [selectedContinentFilter, setSelectedContinentFilter] = useState<string>('todos');
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>('todos');
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -750,446 +933,483 @@ export default function World() {
         </section>
 
         {/* ════════════════════════════════════════════════════════════════════════
-            3. OS ECOS DA PRIMEIRA GERAÇÃO (CONTINENTES PRINCIPAIS)
+            3. CONSOLE DE EXPEDIÇÃO & VIAGEM DE CALONIA (INTERACTIVE TRAVEL HUB)
         ════════════════════════════════════════════════════════════════════════ */}
-        <section className="w-full mt-4 flex flex-col items-center">
-          
-          <div className="flex items-center justify-center gap-2.5 mb-2">
-            <Compass className="h-5 w-5 text-[#d8aa5c]" />
-            <h2 className="font-display text-2xl sm:text-3xl font-extrabold text-[#fef5e0] uppercase tracking-wide">
-              Os Ecos da Primeira Geração
-            </h2>
-          </div>
-          
-          <p className="text-[#a8a294] text-xs sm:text-sm max-w-2xl text-center mb-8">
-            As seis massas primordiais que sustentam a trama da criação. Cada continente possui afinidade elemental pura, liderança consagrada e lendas que remontam à Aurora do Mundo.
-          </p>
-
-          <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {CONTINENTS_DATA.map((cont) => {
-              return (
-                <div
-                  key={cont.id}
-                  className="group relative rounded-3xl overflow-hidden bg-gradient-to-b from-[#091122]/90 to-[#02050e]/95 border border-white/10 hover:border-[#d8aa5c]/70 transition-all duration-300 shadow-[0_16px_40px_rgba(0,0,0,0.9)] flex flex-col justify-between"
-                  style={{
-                    boxShadow: `0 16px 40px rgba(0,0,0,0.9)`
-                  }}
-                >
-                  {/* Top Image Banner */}
-                  <div className="relative w-full h-48 overflow-hidden bg-black">
-                    <img
-                      src={cont.imageUrl}
-                      alt={cont.name}
-                      className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-700 opacity-85 group-hover:opacity-100"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#091122] via-[#091122]/30 to-transparent" />
-                    
-                    {/* Element Pill Badge */}
-                    <div className="absolute top-3 left-3 flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/75 border backdrop-blur-md"
-                      style={{ borderColor: cont.color }}
-                    >
-                      <span className="w-2 h-2 rounded-full" style={{ backgroundColor: cont.color, boxShadow: `0 0 8px ${cont.color}` }} />
-                      <span className="text-[10px] font-bold font-mono tracking-wider text-white uppercase">
-                        {cont.element}
-                      </span>
-                    </div>
-
-                    {/* Capital Tag */}
-                    <div className="absolute bottom-2.5 right-3 text-[10.5px] font-mono text-[#d8aa5c] bg-black/60 px-2.5 py-0.5 rounded-md border border-[#d8aa5c]/25 backdrop-blur-sm">
-                      🏛️ {cont.capital.split('/')[0]}
-                    </div>
-                  </div>
-
-                  {/* Body Content */}
-                  <div className="p-5 flex-1 flex flex-col justify-between">
-                    <div>
-                      <div className="text-[11px] font-mono font-bold tracking-widest uppercase mb-1" style={{ color: cont.color }}>
-                        {cont.subtitle}
-                      </div>
-
-                      <h3 className="font-display text-2xl font-bold text-[#fef5e0] group-hover:text-[#ffd28a] transition-colors mb-2">
-                        {cont.name}
-                      </h3>
-
-                      <p className="text-xs text-[#a8a294] leading-relaxed line-clamp-3 font-serif mb-4">
-                        {cont.desc}
-                      </p>
-
-                      {/* Mini Metadata Grid */}
-                      <div className="grid grid-cols-1 gap-1 text-[11px] text-[#c2bcae] border-t border-white/5 pt-3 mb-4 font-sans">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[#888173]">👑 Soberania:</span>
-                          <span className="font-medium text-right text-white truncate max-w-[190px]">{cont.ruler}</span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-[#888173]">⛅ Bioma / Clima:</span>
-                          <span className="font-medium text-right text-white truncate max-w-[190px]">{cont.climate}</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Actions: Focus on Globe + Chronicle Page */}
-                    <div className="flex items-center gap-2 pt-2 border-t border-white/5">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleFocusOnGlobe(cont.id, cont.name)}
-                        className="flex-1 bg-black/60 border-[#d8aa5c]/40 text-[#f7e0aa] hover:bg-[#d8aa5c] hover:text-black font-display text-[11px] font-bold uppercase tracking-wider transition-all"
-                      >
-                        <Crosshair className="h-3.5 w-3.5 mr-1 text-[#ffd28a] group-hover:text-black" />
-                        Focar no Globo
-                      </Button>
-
-                      <Button
-                        size="sm"
-                        onClick={() => setLocation(`/mundo/${cont.id}`)}
-                        className="flex-1 bg-[#d8aa5c]/20 hover:bg-[#d8aa5c] text-[#ffd28a] hover:text-black border border-[#d8aa5c]/40 font-display text-[11px] font-bold uppercase tracking-wider transition-all"
-                      >
-                        <span>Explorar</span>
-                        <ChevronRight className="h-3.5 w-3.5 ml-1" />
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </section>
-
-        {/* ════════════════════════════════════════════════════════════════════════
-            4. COMPÊNDIO DE TERRITÓRIOS & FEUDOS (LUXURY DARK GLASS CATALOG)
-        ════════════════════════════════════════════════════════════════════════ */}
-        <section className="w-full mt-10 rounded-3xl bg-gradient-to-b from-[#060c18]/95 to-[#020409]/98 border border-[#d8aa5c]/35 p-6 sm:p-8 lg:p-10 shadow-[0_30px_90px_rgba(0,0,0,0.98)] backdrop-blur-2xl relative">
+        <section className="w-full mt-2 rounded-3xl bg-gradient-to-b from-[#060c18]/95 via-[#03060f]/98 to-[#010308]/99 border border-[#d8aa5c]/35 p-5 sm:p-7 lg:p-9 shadow-[0_30px_90px_rgba(0,0,0,0.98)] backdrop-blur-2xl relative">
           
           {/* Ornate Corner Accents */}
-          <div className="absolute top-3 left-3 text-[#d8aa5c]/40 font-mono text-[10px]">❖ FEUDA-ARCHIVUM</div>
-          <div className="absolute top-3 right-3 text-[#d8aa5c]/40 font-mono text-[10px]">LIBER SECUNDUS ❖</div>
+          <div className="absolute top-3.5 left-4 text-[#d8aa5c]/40 font-mono text-[10.5px] flex items-center gap-1.5">
+            <Radio className="h-3 w-3 animate-pulse text-[#d8aa5c]" />
+            <span>TERMINAL DE VIAGEM & CARTOGRAFIA</span>
+          </div>
+          <div className="absolute top-3.5 right-4 text-[#d8aa5c]/40 font-mono text-[10.5px] hidden sm:block">
+            SISTEMA ARC-ATLAS v2.5 ❖
+          </div>
 
           {/* Section Header */}
-          <div className="text-center max-w-3xl mx-auto mb-8">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#d8aa5c]/10 border border-[#d8aa5c]/30 text-[#d8aa5c] text-[11px] font-bold font-mono uppercase mb-2">
-              <Shield className="h-3.5 w-3.5" />
-              <span>Registro Nobiliárquico & Territorial</span>
+          <div className="text-center max-w-3xl mx-auto mt-3 mb-7">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#d8aa5c]/10 border border-[#d8aa5c]/30 text-[#d8aa5c] text-[11px] font-bold font-mono uppercase mb-2">
+              <Compass className="h-3.5 w-3.5 text-[#ffd28a] animate-spin-slow" />
+              <span>Navegação & Expedição Interativa</span>
             </div>
             
-            <h2 className="font-display text-3xl sm:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#ffffff] via-[#f7e0aa] to-[#c99539] uppercase tracking-tight">
-              Compêndio de Territórios & Feudos
+            <h2 className="font-display text-2xl sm:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#ffffff] via-[#f7e0aa] to-[#c99539] uppercase tracking-tight">
+              Console de Viagem pelo Mundo
             </h2>
 
-            <p className="text-xs sm:text-sm text-[#b0a99a] mt-2">
-              Catálogo exaustivo de cidades-fortaleza, academias arcanas, ruínas pré-colapso e territórios soberanos. Filtre por continente primordial ou categoria nobiliárquica.
+            <p className="text-xs sm:text-sm text-[#b0a99a] mt-2 leading-relaxed">
+              Viaje diretamente até qualquer quadrante do globo arcano. Acompanhe a rota dos capítulos da novel no mapa ou examine o fluxo de mana das Linhas Ley.
             </p>
           </div>
 
-          {/* CONTROLS: CONTINENT TABS, CATEGORY FILTER & LIVE SEARCH */}
-          <div className="flex flex-col gap-5 mb-8">
-            
-            {/* 1. Quick Continent Filter Pills with Elemental Color Swatches */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-4">
-              <div className="text-xs font-mono font-bold uppercase tracking-wider text-[#d8aa5c] flex items-center gap-1.5">
+          {/* MAIN TRAVEL TABS CONTROLLER */}
+          <div className="flex items-center justify-center mb-8">
+            <div className="inline-flex flex-wrap items-center justify-center gap-1.5 p-1.5 rounded-2xl bg-black/70 border border-[#d8aa5c]/30 backdrop-blur-xl shadow-[0_8px_24px_rgba(0,0,0,0.9)]">
+              
+              {/* Tab 1: Destinos Primordiais */}
+              <button
+                onClick={() => setActiveTravelTab('destinos')}
+                className={cn(
+                  "flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold font-display uppercase tracking-wider transition-all duration-200",
+                  activeTravelTab === 'destinos'
+                    ? "bg-[#d8aa5c] text-black shadow-[0_0_18px_rgba(216,170,92,0.6)] font-extrabold"
+                    : "text-[#a8a294] hover:text-white hover:bg-white/5"
+                )}
+              >
                 <Globe className="h-3.5 w-3.5" />
-                <span>Continente Primordial:</span>
+                <span>Destinos Primordiais</span>
+                <span className={cn(
+                  "text-[9px] px-1.5 py-0.2 rounded font-mono",
+                  activeTravelTab === 'destinos' ? "bg-black/20 text-black font-bold" : "bg-white/10 text-[#d8aa5c]"
+                )}>6</span>
+              </button>
+
+              {/* Tab 2: Trilha da Novel */}
+              <button
+                onClick={() => setActiveTravelTab('novel')}
+                className={cn(
+                  "flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold font-display uppercase tracking-wider transition-all duration-200",
+                  activeTravelTab === 'novel'
+                    ? "bg-[#d8aa5c] text-black shadow-[0_0_18px_rgba(216,170,92,0.6)] font-extrabold"
+                    : "text-[#a8a294] hover:text-white hover:bg-white/5"
+                )}
+              >
+                <Route className="h-3.5 w-3.5" />
+                <span>Trilha da Novel</span>
+                <span className={cn(
+                  "text-[9px] px-1.5 py-0.2 rounded font-mono",
+                  activeTravelTab === 'novel' ? "bg-black/20 text-black font-bold" : "bg-white/10 text-[#d8aa5c]"
+                )}>Cap. 1–5</span>
+              </button>
+
+              {/* Tab 3: Linhas Ley & Rotas */}
+              <button
+                onClick={() => setActiveTravelTab('ley')}
+                className={cn(
+                  "flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold font-display uppercase tracking-wider transition-all duration-200",
+                  activeTravelTab === 'ley'
+                    ? "bg-[#d8aa5c] text-black shadow-[0_0_18px_rgba(216,170,92,0.6)] font-extrabold"
+                    : "text-[#a8a294] hover:text-white hover:bg-white/5"
+                )}
+              >
+                <Zap className="h-3.5 w-3.5" />
+                <span>Linhas Ley de Mana</span>
+                <span className={cn(
+                  "text-[9px] px-1.5 py-0.2 rounded font-mono",
+                  activeTravelTab === 'ley' ? "bg-black/20 text-black font-bold" : "bg-white/10 text-[#d8aa5c]"
+                )}>5 Rotas</span>
+              </button>
+
+              {/* Tab 4: Feudos & Santuários */}
+              <button
+                onClick={() => setActiveTravelTab('feudos' as any)}
+                className={cn(
+                  "flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold font-display uppercase tracking-wider transition-all duration-200",
+                  (activeTravelTab as string) === 'feudos'
+                    ? "bg-[#d8aa5c] text-black shadow-[0_0_18px_rgba(216,170,92,0.6)] font-extrabold"
+                    : "text-[#a8a294] hover:text-white hover:bg-white/5"
+                )}
+              >
+                <Castle className="h-3.5 w-3.5" />
+                <span>Feudos & Capitais</span>
+              </button>
+
+            </div>
+          </div>
+
+          {/* ════════════════════════════════════════════════════════════════════════
+              TAB PANEL 1: DESTINOS PRIMORDIAIS (VIAJAR PELO GLOBO)
+          ════════════════════════════════════════════════════════════════════════ */}
+          {activeTravelTab === 'destinos' && (
+            <div className="w-full">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                {CONTINENTS_DATA.map((cont) => {
+                  return (
+                    <div
+                      key={cont.id}
+                      className="group relative rounded-2xl overflow-hidden bg-gradient-to-b from-[#091122]/90 to-[#02050f]/95 border border-white/10 hover:border-[#d8aa5c]/70 transition-all duration-300 shadow-[0_12px_32px_rgba(0,0,0,0.85)] hover:shadow-[0_0_24px_rgba(216,170,92,0.25)] flex flex-col justify-between"
+                    >
+                      {/* Top Thumbnail Image */}
+                      <div className="relative w-full h-44 overflow-hidden bg-black">
+                        <img
+                          src={cont.imageUrl}
+                          alt={cont.name}
+                          className="w-full h-full object-cover group-hover:scale-106 transition-transform duration-700 opacity-85 group-hover:opacity-100"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-[#091122] via-[#091122]/30 to-transparent" />
+                        
+                        {/* Element Badge */}
+                        <div
+                          className="absolute top-2.5 left-2.5 flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-black/80 border backdrop-blur-md"
+                          style={{ borderColor: cont.color }}
+                        >
+                          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: cont.color, boxShadow: `0 0 8px ${cont.color}` }} />
+                          <span className="text-[9.5px] font-bold font-mono tracking-wider text-white uppercase">
+                            {cont.element}
+                          </span>
+                        </div>
+
+                        {/* Capital Pill */}
+                        <div className="absolute bottom-2 right-2 text-[10px] font-mono text-[#d8aa5c] bg-black/75 px-2 py-0.5 rounded border border-[#d8aa5c]/25 backdrop-blur-sm">
+                          🏛️ {cont.capital.split('/')[0]}
+                        </div>
+                      </div>
+
+                      {/* Content Body */}
+                      <div className="p-4 flex-1 flex flex-col justify-between">
+                        <div>
+                          <div className="text-[10px] font-mono font-bold tracking-widest uppercase mb-0.5" style={{ color: cont.color }}>
+                            {cont.subtitle}
+                          </div>
+
+                          <h3 className="font-display text-xl font-bold text-[#fef5e0] group-hover:text-[#ffd28a] transition-colors mb-1.5">
+                            {cont.name}
+                          </h3>
+
+                          <p className="text-[11.5px] text-[#a8a294] font-serif leading-relaxed line-clamp-2 mb-3">
+                            {cont.desc}
+                          </p>
+                        </div>
+
+                        {/* Travel Action Controls */}
+                        <div className="flex items-center gap-2 pt-2.5 border-t border-white/5">
+                          <Button
+                            size="sm"
+                            onClick={() => handleFocusOnGlobe(cont.id, cont.name)}
+                            className="flex-1 bg-gradient-to-r from-[#ffe4a0] via-[#dfb76c] to-[#a87d2f] text-black font-display text-[11px] font-black uppercase tracking-wider hover:opacity-90 shadow-[0_0_16px_rgba(216,170,92,0.4)] transition-all"
+                          >
+                            <Plane className="h-3.5 w-3.5 mr-1 text-black" />
+                            <span>Viajar até Aqui</span>
+                          </Button>
+
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setLocation(`/mundo/${cont.id}`)}
+                            className="bg-black/60 border-white/15 text-[#ffd28a] hover:bg-white/10 font-display text-[11px] font-bold uppercase tracking-wider"
+                          >
+                            <span>Crônica</span>
+                            <ChevronRight className="h-3.5 w-3.5 ml-0.5" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* ════════════════════════════════════════════════════════════════════════
+              TAB PANEL 2: TRILHA DA NOVEL (A ROTA DOS CAPÍTULOS NO GLOBO)
+          ════════════════════════════════════════════════════════════════════════ */}
+          {activeTravelTab === 'novel' && (
+            <div className="w-full flex flex-col gap-4">
+              <div className="p-4 rounded-2xl bg-black/40 border border-[#d8aa5c]/25 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                <div className="flex items-center gap-2 text-[#d8aa5c]">
+                  <BookOpen className="h-4 w-4" />
+                  <span className="font-display font-bold uppercase tracking-wider">Trilha Canônica da História</span>
+                </div>
+                <span className="text-[#a8a294] text-[11px]">
+                  Clique em <strong className="text-[#ffd28a]">"Sobrevoar Cena"</strong> para girar o globo 3D automaticamente até as coordenadas exatas da trama!
+                </span>
               </div>
 
-              <div className="flex items-center gap-2 overflow-x-auto pb-1.5 sm:pb-0 scrollbar-none">
-                <button
-                  onClick={() => setSelectedContinentFilter('todos')}
-                  className={cn(
-                    "px-3.5 py-1.5 rounded-xl text-xs font-bold font-display uppercase tracking-wider transition-all whitespace-nowrap",
-                    selectedContinentFilter === 'todos'
-                      ? "bg-[#d8aa5c] text-black shadow-[0_0_18px_rgba(216,170,92,0.6)]"
-                      : "bg-[#091122]/80 text-[#9e988a] border border-white/10 hover:text-white hover:border-white/20"
-                  )}
-                >
-                  Todos
-                </button>
-
-                {CONTINENTS_DATA.map((c) => {
-                  const isActive = selectedContinentFilter === c.id;
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {STORY_JOURNEY.map((stop, idx) => {
                   return (
+                    <div
+                      key={stop.chapterNum}
+                      className="group relative rounded-2xl p-5 bg-gradient-to-b from-[#091122]/90 to-[#02050f]/95 border border-white/10 hover:border-[#d8aa5c]/60 shadow-[0_12px_30px_rgba(0,0,0,0.85)] transition-all flex flex-col justify-between"
+                      style={{
+                        borderLeftColor: stop.color,
+                        borderLeftWidth: '4px'
+                      }}
+                    >
+                      <div>
+                        {/* Step Header */}
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded bg-black/70 border border-white/10 text-white">
+                            {stop.chapterNum}
+                          </span>
+                          <span
+                            className="text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded-full border"
+                            style={{
+                              color: stop.color,
+                              borderColor: `${stop.color}50`,
+                              backgroundColor: `${stop.color}15`
+                            }}
+                          >
+                            {stop.badge}
+                          </span>
+                        </div>
+
+                        {/* Chapter Title & Location */}
+                        <h4 className="font-display text-lg font-bold text-white group-hover:text-[#ffd28a] transition-colors mb-0.5">
+                          {stop.chapterTitle}
+                        </h4>
+                        <div className="text-[11px] font-mono text-[#d8aa5c] mb-2 flex items-center gap-1.5">
+                          <span>📍 {stop.locationName}</span>
+                          <span className="text-white/30">•</span>
+                          <span className="text-[#888173]">{stop.continentName}</span>
+                        </div>
+
+                        {/* Narrative Hook */}
+                        <p className="text-xs text-[#a8a294] font-serif leading-relaxed mb-4">
+                          {stop.synopsis}
+                        </p>
+                      </div>
+
+                      {/* Action Buttons: Fly to scene & Read chapter */}
+                      <div className="flex items-center gap-2 pt-3 border-t border-white/5">
+                        <Button
+                          size="sm"
+                          onClick={() => handleFocusOnGlobe(stop.continentId, stop.locationName, stop.coords)}
+                          className="flex-1 bg-[#d8aa5c]/20 hover:bg-[#d8aa5c] text-[#ffd28a] hover:text-black border border-[#d8aa5c]/40 font-display text-[11px] font-bold uppercase tracking-wider transition-all"
+                        >
+                          <Plane className="h-3.5 w-3.5 mr-1" />
+                          <span>Sobrevoar Cena</span>
+                        </Button>
+
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            if (stop.slug.startsWith('mundo')) {
+                              setLocation(`/${stop.slug}`);
+                            } else {
+                              setLocation(`/ler/${stop.slug}`);
+                            }
+                          }}
+                          className="bg-black/60 border-white/15 text-white hover:text-[#ffd28a] hover:border-[#d8aa5c]/40 font-display text-[11px] font-bold uppercase tracking-wider"
+                        >
+                          <BookOpen className="h-3.5 w-3.5 mr-1 text-[#d8aa5c]" />
+                          <span>Ler Cena</span>
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* ════════════════════════════════════════════════════════════════════════
+              TAB PANEL 3: LINHAS LEY & CONDUTOS DE MANA
+          ════════════════════════════════════════════════════════════════════════ */}
+          {activeTravelTab === 'ley' && (
+            <div className="w-full flex flex-col gap-4">
+              <div className="p-4 rounded-2xl bg-black/40 border border-[#d8aa5c]/25 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                <div className="flex items-center gap-2 text-[#d8aa5c]">
+                  <Zap className="h-4 w-4" />
+                  <span className="font-display font-bold uppercase tracking-wider">Canais Tubulares de Éter</span>
+                </div>
+                <span className="text-[#a8a294] text-[11px]">
+                  As 5 rotas de mana que cruzam a atmosfera do globo 3D. Selecione um canal para traçar o teletransporte planetário.
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {LEY_CONDUITS.map((conduit) => {
+                  return (
+                    <div
+                      key={conduit.id}
+                      className="group rounded-2xl p-5 bg-gradient-to-b from-[#091122]/90 to-[#02050f]/95 border border-white/10 hover:border-[#d8aa5c]/60 shadow-[0_12px_30px_rgba(0,0,0,0.85)] transition-all flex flex-col justify-between"
+                      style={{
+                        borderTopColor: conduit.color,
+                        borderTopWidth: '3px'
+                      }}
+                    >
+                      <div>
+                        {/* Route Name & Stability Indicator */}
+                        <div className="flex items-center justify-between mb-2">
+                          <h4 className="font-display text-base font-bold text-white group-hover:text-[#ffd28a] transition-colors">
+                            {conduit.name}
+                          </h4>
+                          <span
+                            className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border"
+                            style={{
+                              color: conduit.stability >= 90 ? '#10b981' : '#f59e0b',
+                              borderColor: conduit.stability >= 90 ? '#10b98150' : '#f59e0b50',
+                              backgroundColor: conduit.stability >= 90 ? 'rgba(16,185,129,0.1)' : 'rgba(245,158,11,0.1)'
+                            }}
+                          >
+                            Estabilidade: {conduit.stability}%
+                          </span>
+                        </div>
+
+                        {/* Conduit Coordinates Route */}
+                        <div className="flex items-center gap-2 text-xs font-mono text-[#d8aa5c] bg-black/50 p-2.5 rounded-xl border border-white/5 mb-3">
+                          <span className="truncate">{conduit.source}</span>
+                          <ArrowRight className="h-3.5 w-3.5 text-white/50 shrink-0" />
+                          <span className="truncate">{conduit.destination}</span>
+                        </div>
+
+                        {/* Route Spec Sheet */}
+                        <div className="space-y-1 text-[11px] text-[#a8a294] font-sans mb-4">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[#888173]">⚡ Propulsão:</span>
+                            <span className="text-white font-medium">{conduit.flowType}</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-[#888173]">⏱️ Duração:</span>
+                            <span className="text-[#ffd28a] font-medium">{conduit.travelTime}</span>
+                          </div>
+                          <div className="flex items-start justify-between gap-2 border-t border-white/5 pt-1 mt-1">
+                            <span className="text-[#888173] shrink-0">⚠️ Perigos:</span>
+                            <span className="text-right text-[#b0a99a] truncate max-w-[200px]">{conduit.hazards}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Travel Button */}
+                      <Button
+                        size="sm"
+                        onClick={() => handleFocusOnGlobe(conduit.sourceId, conduit.name, conduit.sourceCoords)}
+                        className="w-full bg-[#d8aa5c]/20 hover:bg-[#d8aa5c] text-[#ffd28a] hover:text-black border border-[#d8aa5c]/40 font-display text-[11px] font-bold uppercase tracking-wider transition-all"
+                      >
+                        <Zap className="h-3.5 w-3.5 mr-1" />
+                        <span>Navegar Conduíte no Globo</span>
+                      </Button>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* ════════════════════════════════════════════════════════════════════════
+              TAB PANEL 4: FEUDOS & CAPITAIS (STREAMLINED FAST FINDER)
+          ════════════════════════════════════════════════════════════════════════ */}
+          {(activeTravelTab as string) === 'feudos' && (
+            <div className="w-full flex flex-col gap-5">
+              
+              {/* Filter Pills & Search */}
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 border-b border-white/10 pb-4">
+                
+                {/* Continent Pills */}
+                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
+                  <button
+                    onClick={() => setSelectedContinentFilter('todos')}
+                    className={cn(
+                      "px-3 py-1 rounded-lg text-xs font-bold font-display uppercase tracking-wider transition-all",
+                      selectedContinentFilter === 'todos'
+                        ? "bg-[#d8aa5c] text-black"
+                        : "bg-black/40 text-[#a8a294] border border-white/10 hover:text-white"
+                    )}
+                  >
+                    Todos
+                  </button>
+                  {CONTINENTS_DATA.map((c) => (
                     <button
                       key={c.id}
                       onClick={() => setSelectedContinentFilter(c.id)}
                       className={cn(
-                        "flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold font-display uppercase tracking-wider transition-all whitespace-nowrap border",
-                        isActive
-                          ? "bg-black/90 text-white shadow-[0_0_16px_rgba(255,255,255,0.2)]"
-                          : "bg-[#091122]/60 text-[#a8a294] border-white/10 hover:text-white hover:border-white/20"
+                        "flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold font-display uppercase tracking-wider transition-all whitespace-nowrap border",
+                        selectedContinentFilter === c.id
+                          ? "bg-black/90 text-white border-white/40"
+                          : "bg-black/40 text-[#a8a294] border-white/10 hover:text-white"
                       )}
-                      style={{
-                        borderColor: isActive ? c.color : undefined,
-                        boxShadow: isActive ? `0 0 16px ${c.color}40` : undefined
-                      }}
                     >
-                      <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: c.color }} />
+                      <span className="w-2 h-2 rounded-full" style={{ backgroundColor: c.color }} />
                       <span>{c.name}</span>
                     </button>
-                  );
-                })}
-              </div>
-            </div>
+                  ))}
+                </div>
 
-            {/* 2. Category Filter Pills & Live Search Input */}
-            <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
-              
-              {/* Category Pills */}
-              <div className="flex items-center gap-2 overflow-x-auto pb-1 lg:pb-0 scrollbar-none">
-                {['todos', 'Reinos', 'Cidades', 'Fortalezas', 'Florestas', 'Arenas', 'Arquipélagos'].map((cat) => {
-                  const isActive = selectedCategoryFilter === cat.toLowerCase();
-                  return (
-                    <button
-                      key={cat}
-                      onClick={() => setSelectedCategoryFilter(cat.toLowerCase())}
-                      className={cn(
-                        "px-3 py-1.5 rounded-lg text-xs font-semibold tracking-wide transition-all whitespace-nowrap border",
-                        isActive
-                          ? "bg-[#d8aa5c]/25 border-[#d8aa5c] text-[#fef5e0] font-bold"
-                          : "bg-black/40 border-white/10 text-[#8e887a] hover:text-white hover:border-white/20"
-                      )}
-                    >
-                      {cat === 'todos' ? 'Todas Categorias' : cat}
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Search Bar with Clear Button & Live Counter */}
-              <div className="flex items-center gap-3">
-                <div className="relative flex-1 sm:w-80">
-                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#9a9485] pointer-events-none" />
+                {/* Search Bar */}
+                <div className="relative sm:w-72">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#9a9485] pointer-events-none" />
                   <input
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Buscar por feudo, governante, capital..."
-                    className="w-full pl-10 pr-9 py-2 rounded-xl bg-black/60 border border-white/10 text-xs text-white placeholder:text-[#6a6559] focus:outline-none focus:border-[#d8aa5c] focus:ring-1 focus:ring-[#d8aa5c]/40 transition-all font-sans"
+                    placeholder="Buscar feudo, capital..."
+                    className="w-full pl-9 pr-8 py-1.5 rounded-xl bg-black/60 border border-white/10 text-xs text-white placeholder:text-[#6a6559] focus:outline-none focus:border-[#d8aa5c]"
                   />
                   {searchQuery && (
-                    <button
-                      onClick={() => setSearchQuery('')}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[#9a9485] hover:text-white"
-                    >
-                      <X className="h-3.5 w-3.5" />
+                    <button onClick={() => setSearchQuery('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#9a9485] hover:text-white">
+                      <X className="h-3 w-3" />
                     </button>
                   )}
                 </div>
 
-                <div className="hidden sm:flex items-center px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-[11px] font-mono text-[#d8aa5c] whitespace-nowrap">
-                  {filteredTerritories.length} {filteredTerritories.length === 1 ? 'resultado' : 'resultados'}
-                </div>
               </div>
 
-            </div>
-
-          </div>
-
-          {/* TERRITORY CARDS GRID */}
-          {filteredTerritories.length === 0 ? (
-            <div className="w-full py-16 flex flex-col items-center justify-center text-center border border-dashed border-white/10 rounded-2xl bg-black/40 p-6">
-              <Compass className="h-10 w-10 text-[#d8aa5c]/40 mb-3 animate-spin" />
-              <h4 className="text-base font-bold font-display text-white">Nenhum feudo ou território sob estes filtros</h4>
-              <p className="text-xs text-[#9a9485] max-w-sm mt-1 mb-4">
-                Tente ajustar a busca ou limpar os filtros para visualizar os outros territórios primordiais.
-              </p>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  setSelectedContinentFilter('todos');
-                  setSelectedCategoryFilter('todos');
-                  setSearchQuery('');
-                }}
-                className="border-[#d8aa5c]/40 text-[#ffd28a] hover:bg-[#d8aa5c] hover:text-black text-xs font-bold uppercase tracking-wider"
-              >
-                Limpar Todos os Filtros
-              </Button>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredTerritories.map((loc) => {
-                const contMeta = CONTINENTS_DATA.find((c) => c.id === loc.continentId) || CONTINENTS_DATA[0];
-
-                return (
-                  <Card
-                    key={loc.id}
-                    className="relative group overflow-hidden rounded-2xl bg-gradient-to-b from-[#091122]/90 via-[#040814]/95 to-[#02050e]/98 border border-white/10 hover:border-[#d8aa5c]/60 shadow-[0_12px_32px_rgba(0,0,0,0.85)] hover:shadow-[0_0_28px_rgba(216,170,92,0.25)] transition-all duration-300 flex flex-col justify-between"
-                  >
-                    {/* Location Card Image */}
-                    <div className="relative w-full h-44 overflow-hidden bg-black">
-                      <img
-                        src={loc.imageUrl}
-                        alt={loc.name}
-                        className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-700 opacity-90 group-hover:opacity-100"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-[#040814] via-[#040814]/30 to-transparent" />
-                      
-                      {/* Top Badges */}
-                      <div className="absolute top-3 left-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/80 border border-white/15 backdrop-blur-md">
-                        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: contMeta.color }} />
-                        <span className="text-[10px] font-mono font-bold uppercase text-[#fef5e0]">
-                          {contMeta.name}
-                        </span>
-                      </div>
-
-                      <div className="absolute top-3 right-3 text-[10px] font-mono font-semibold text-[#d8aa5c] bg-black/75 px-2 py-0.5 rounded border border-[#d8aa5c]/30 backdrop-blur-md">
-                        {loc.category}
-                      </div>
-                    </div>
-
-                    {/* Card Details */}
-                    <CardContent className="p-5 flex-1 flex flex-col justify-between pt-2">
+              {/* Territory Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {filteredTerritories.map((loc) => {
+                  const contMeta = CONTINENTS_DATA.find((c) => c.id === loc.continentId) || CONTINENTS_DATA[0];
+                  return (
+                    <div
+                      key={loc.id}
+                      className="group rounded-2xl p-4 bg-gradient-to-b from-[#091122]/90 to-[#02050f]/95 border border-white/10 hover:border-[#d8aa5c]/60 shadow-[0_8px_20px_rgba(0,0,0,0.8)] transition-all flex flex-col justify-between"
+                    >
                       <div>
-                        <h4 className="font-display text-xl font-bold text-[#fef5e0] group-hover:text-[#ffd28a] transition-colors leading-snug mb-2 text-left">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded bg-black/60 text-[#d8aa5c] border border-white/10">
+                            {loc.category}
+                          </span>
+                          <span className="text-[10px] font-mono text-[#a8a294] flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: contMeta.color }} />
+                            {contMeta.name}
+                          </span>
+                        </div>
+
+                        <h4 className="font-display text-base font-bold text-white group-hover:text-[#ffd28a] transition-colors mb-1">
                           {loc.name}
                         </h4>
 
-                        <p className="text-xs text-[#a8a294] leading-relaxed line-clamp-2 font-serif mb-4 text-left">
+                        <p className="text-xs text-[#a8a294] font-serif leading-relaxed line-clamp-2 mb-3">
                           {loc.description}
                         </p>
-
-                        {/* Nobility Metadata Grid */}
-                        <div className="grid grid-cols-2 gap-2 text-[11px] bg-black/40 rounded-xl p-3 border border-white/5 mb-4 text-left">
-                          <div>
-                            <span className="text-[#888173] block text-[9.5px] uppercase font-mono">👑 Soberano</span>
-                            <span className="font-medium text-white truncate block">{loc.ruler}</span>
-                          </div>
-                          <div>
-                            <span className="text-[#888173] block text-[9.5px] uppercase font-mono">🏛️ Capital</span>
-                            <span className="font-medium text-white truncate block">{loc.capital}</span>
-                          </div>
-                          <div>
-                            <span className="text-[#888173] block text-[9.5px] uppercase font-mono">⚡ Nível de Mana</span>
-                            <span className="font-bold text-[#ffd28a] truncate block">{loc.manaLevel}</span>
-                          </div>
-                          <div>
-                            <span className="text-[#888173] block text-[9.5px] uppercase font-mono">⛅ Clima</span>
-                            <span className="font-medium text-white truncate block">{loc.climate.split(' ')[0]}</span>
-                          </div>
-                        </div>
                       </div>
 
-                      {/* Action Buttons: Globe Focus & Chronicle */}
                       <div className="flex items-center gap-2 pt-2 border-t border-white/5">
                         <Button
-                          variant="outline"
                           size="sm"
                           onClick={() => handleFocusOnGlobe(loc.continentId, loc.name, { x: loc.mapX, y: loc.mapY })}
-                          className="flex-1 bg-black/70 border-[#d8aa5c]/40 text-[#f7e0aa] hover:bg-[#d8aa5c] hover:text-black font-display text-[10.5px] font-bold uppercase tracking-wider transition-all"
+                          className="flex-1 bg-black/60 border border-[#d8aa5c]/40 text-[#ffd28a] hover:bg-[#d8aa5c] hover:text-black font-display text-[10.5px] font-bold uppercase tracking-wider"
                         >
-                          <Crosshair className="h-3.5 w-3.5 mr-1 text-[#ffd28a] group-hover:text-black" />
-                          Localizar no Globo
+                          <Crosshair className="h-3 w-3 mr-1" />
+                          <span>Localizar</span>
                         </Button>
-
                         <Button
                           size="sm"
+                          variant="ghost"
                           onClick={() => setLocation(`/mundo/${loc.id}`)}
-                          className="flex-1 bg-[#d8aa5c]/20 hover:bg-[#d8aa5c] text-[#ffd28a] hover:text-black border border-[#d8aa5c]/40 font-display text-[10.5px] font-bold uppercase tracking-wider transition-all"
+                          className="text-[#a8a294] hover:text-white text-[10.5px] font-bold uppercase tracking-wider"
                         >
-                          <BookOpen className="h-3.5 w-3.5 mr-1" />
-                          Ler Crônica
+                          <span>Crônica</span>
+                          <ChevronRight className="h-3 w-3 ml-0.5" />
                         </Button>
                       </div>
+                    </div>
+                  );
+                })}
+              </div>
 
-                    </CardContent>
-                  </Card>
-                );
-              })}
             </div>
           )}
-
-        </section>
-
-        {/* ════════════════════════════════════════════════════════════════════════
-            5. WORLD LORE & FACTION MATRIX WIDGET (AS GRANDES FORÇAS DE CALONIA)
-        ════════════════════════════════════════════════════════════════════════ */}
-        <section className="w-full mt-4 select-none">
-          
-          <div className="text-center max-w-3xl mx-auto mb-8">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#d8aa5c]/10 border border-[#d8aa5c]/30 text-[#d8aa5c] text-[11px] font-bold font-mono uppercase mb-2">
-              <Crown className="h-3.5 w-3.5" />
-              <span>Geopolítica das Seis Forças</span>
-            </div>
-
-            <h2 className="font-display text-3xl sm:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#ffffff] via-[#f7e0aa] to-[#c99539] uppercase tracking-tight">
-              Grandes Forças & Alianças de Calonia
-            </h2>
-
-            <p className="text-xs sm:text-sm text-[#b0a99a] mt-2">
-              As casas nobres, ordens de feitiçaria e guildas militares que disputam as correntes de mana e moldam as leis do mundo conhecido.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {FACTIONS_DATA.map((faction) => {
-              return (
-                <div
-                  key={faction.name}
-                  className="rounded-2xl p-6 bg-gradient-to-b from-[#091122]/90 to-[#02050f]/95 border border-white/10 hover:border-[#d8aa5c]/60 shadow-[0_16px_40px_rgba(0,0,0,0.85)] hover:shadow-[0_0_30px_rgba(216,170,92,0.2)] transition-all flex flex-col justify-between"
-                  style={{
-                    borderTopColor: faction.accentColor,
-                    borderTopWidth: '3px'
-                  }}
-                >
-                  <div>
-                    {/* Faction Header */}
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-base sm:text-lg font-bold">{faction.insignia}</span>
-                      <span
-                        className="text-[10px] font-mono uppercase font-bold px-2 py-0.5 rounded-full border"
-                        style={{
-                          color: faction.accentColor,
-                          borderColor: `${faction.accentColor}50`,
-                          backgroundColor: faction.accentBg
-                        }}
-                      >
-                        {faction.continentName}
-                      </span>
-                    </div>
-
-                    <h3 className="font-display text-xl font-bold text-white mb-1">
-                      {faction.name}
-                    </h3>
-
-                    {/* Motto */}
-                    <div className="text-[11.5px] italic text-[#ffd28a] font-serif mb-3 leading-relaxed">
-                      {faction.motto}
-                    </div>
-
-                    {/* Philosophy */}
-                    <p className="text-xs text-[#a8a294] font-serif leading-relaxed mb-4">
-                      {faction.philosophy}
-                    </p>
-
-                    {/* Faction Spec Sheet */}
-                    <div className="space-y-1.5 text-[11px] bg-black/40 rounded-xl p-3 border border-white/5 font-sans mb-4">
-                      <div className="flex items-start justify-between gap-2">
-                        <span className="text-[#888173]">👑 Liderança:</span>
-                        <span className="text-white font-medium text-right">{faction.ruler}</span>
-                      </div>
-                      <div className="flex items-start justify-between gap-2">
-                        <span className="text-[#888173]">🏰 Bastião:</span>
-                        <span className="text-[#ffd28a] font-medium text-right">{faction.stronghold}</span>
-                      </div>
-                      <div className="flex items-start justify-between gap-2 border-t border-white/5 pt-1.5 mt-1.5">
-                        <span className="text-[#888173]">⚔️ Poder Arcana:</span>
-                        <span className="text-white font-medium text-right">{faction.specialty}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Focus Continent Button */}
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleFocusOnGlobe(faction.continentId, faction.stronghold)}
-                    className="w-full bg-black/50 border-[#d8aa5c]/40 text-[#f7e0aa] hover:bg-[#d8aa5c] hover:text-black font-display text-[11px] font-bold uppercase tracking-wider transition-all"
-                  >
-                    <Compass className="h-3.5 w-3.5 mr-1 text-[#ffd28a] group-hover:text-black" />
-                    Localizar Domínio no Globo
-                  </Button>
-                </div>
-              );
-            })}
-          </div>
 
         </section>
 
