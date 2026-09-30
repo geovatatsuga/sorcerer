@@ -7,7 +7,9 @@ import type { Location } from "@shared/schema";
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useLocation } from 'wouter';
 import InteractiveWorldMap from "@/components/interactive-world-map/InteractiveWorldMap";
-import { Compass, Map, Sparkles, Search, Layers, Shield } from "lucide-react";
+import ArcaneGlobe from "@/components/world-3d/ArcaneGlobe";
+import { Compass, Map, Sparkles, Search, Layers, Shield, Globe } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export default function World() {
   const { data: locations = [], isLoading } = useQuery<Location[]>({
@@ -16,6 +18,7 @@ export default function World() {
   const [, setLocation] = useLocation();
 
   const { t } = useLanguage();
+  const [mapMode, setMapMode] = React.useState<'3d' | '2d'>('3d');
 
   const typePt = (type: string) => {
     const map: Record<string, string> = {
@@ -95,16 +98,51 @@ export default function World() {
             Mapa do Mundo
           </h1>
 
-          <p className="text-[#cfc9b8] text-xs sm:text-[14.5px] max-w-2xl mx-auto font-medium drop-shadow mb-4 leading-relaxed">
-            Navegue pelo mapa interativo de Calonia. Passe o mouse ou toque sobre as regiões, continentes e mares para revelar os territórios, rotas e segredos do mundo.
+          <p className="text-[#cfc9b8] text-xs sm:text-[14.5px] max-w-2xl mx-auto font-medium drop-shadow mb-5 leading-relaxed">
+            Explore a geografia primordial de Calonia. Gire o globo celeste, descubra continentes ancestrais e examine os territórios que moldam o destino dos primeiros feiticeiros.
           </p>
+
+          {/* Map View Mode Switcher (3D Arcane Globe vs 2D Tactical Map) */}
+          <div className="flex items-center justify-center gap-3 mb-2">
+            <button
+              onClick={() => setMapMode('3d')}
+              className={cn(
+                "flex items-center gap-2 px-5 py-2 rounded-xl text-xs sm:text-sm font-bold font-display uppercase tracking-wider transition-all duration-300",
+                mapMode === '3d'
+                  ? "bg-gradient-to-r from-[#ffd28a] to-[#d8aa5c] text-black shadow-[0_0_24px_rgba(216,170,92,0.6)] scale-105"
+                  : "bg-black/60 border border-[#d8aa5c]/30 text-[#d8aa5c] hover:bg-white/10"
+              )}
+            >
+              <Sparkles className="h-4 w-4" />
+              <span>Globo Arcano 3D</span>
+            </button>
+
+            <button
+              onClick={() => setMapMode('2d')}
+              className={cn(
+                "flex items-center gap-2 px-5 py-2 rounded-xl text-xs sm:text-sm font-bold font-display uppercase tracking-wider transition-all duration-300",
+                mapMode === '2d'
+                  ? "bg-gradient-to-r from-[#ffd28a] to-[#d8aa5c] text-black shadow-[0_0_24px_rgba(216,170,92,0.6)] scale-105"
+                  : "bg-black/60 border border-[#d8aa5c]/30 text-[#d8aa5c] hover:bg-white/10"
+              )}
+            >
+              <Map className="h-4 w-4" />
+              <span>Cartografia 2D</span>
+            </button>
+          </div>
         </section>
 
         {/* ════════════════════════════════════════════════════════════════
-            2. O MAPA INTERATIVO REAL (COM HOVER, ZOOM E TOOLTIPS)
+            2. O MAPA INTERATIVO REAL (3D GLOBO OU 2D PLANO)
         ════════════════════════════════════════════════════════════════ */}
-        <section className="w-full max-w-6xl mx-auto rounded-2xl border border-[#d8aa5c]/35 overflow-hidden bg-[#040810] shadow-[0_25px_60px_rgba(0,0,0,0.95)] relative">
-          <InteractiveWorldMap />
+        <section className="w-full max-w-6xl mx-auto">
+          {mapMode === '3d' ? (
+            <ArcaneGlobe />
+          ) : (
+            <div className="w-full rounded-2xl border border-[#d8aa5c]/35 overflow-hidden bg-[#040810] shadow-[0_25px_60px_rgba(0,0,0,0.95)] relative">
+              <InteractiveWorldMap />
+            </div>
+          )}
         </section>
 
         {/* ════════════════════════════════════════════════════════════════
